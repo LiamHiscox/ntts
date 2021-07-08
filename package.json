@@ -8,6 +8,9 @@
     "watch": "tsc -w",
     "test": "jest"
   },
+  "bin": {
+    "nodejs2ts": "bin/cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://gitlab.com/LiamHiscox/nodejs-to-ts.git"
@@ -22,6 +25,7 @@
     "yargs": "^16.2.0"
   },
   "devDependencies": {
+    "@types/jest": "^26.0.24",
     "@types/node": "^16.0.1",
     "@types/yargs": "^16.0.4",
     "jest": "^27.0.6"
