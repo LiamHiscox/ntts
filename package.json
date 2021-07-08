@@ -4,8 +4,8 @@
   "description": "A CLI tool for refactoring an existing NodeJs application to a fully functional TypeScript application.",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -w -p tsconfig.json",
     "test": "jest"
   },
   "bin": {
@@ -25,6 +25,7 @@
     "yargs": "^16.2.0"
   },
   "devDependencies": {
+    "typescript": "^4.3.5",
     "@types/jest": "^26.0.24",
     "@types/node": "^16.0.1",
     "@types/yargs": "^16.0.4",
