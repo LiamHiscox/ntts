@@ -1,0 +1,33 @@
+{
+  "name": "nodejs-to-ts",
+  "version": "1.0.0",
+  "description": "A CLI tool for refactoring an existing NodeJs application to a fully functional TypeScript application.",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest"
+  },
+  "bin": {
+    "nodejs2ts": "bin/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/LiamHiscox/nodejs-to-ts.git"
+  },
+  "author": "Liam Hiscox",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/LiamHiscox/nodejs-to-ts/issues"
+  },
+  "homepage": "https://gitlab.com/LiamHiscox/nodejs-to-ts#readme",
+  "dependencies": {
+    "yargs": "^16.2.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.24",
+    "@types/node": "^16.0.1",
+    "@types/yargs": "^16.0.4",
+    "jest": "^27.0.6"
+  }
+}
