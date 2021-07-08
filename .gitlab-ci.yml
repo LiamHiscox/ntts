@@ -1,0 +1,14 @@
+build:
+  stage: build
+  script:
+    - npm i
+    - npm run build
+  only:
+    - merge_requests
+
+test:
+  stage: test
+  script:
+    - jest
+  only:
+    - merge_requests
