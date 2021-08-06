@@ -2,8 +2,6 @@ import yargs, {Arguments} from 'yargs';
 import {FileRename} from "./file-rename/file-rename";
 import {ScriptRunner} from "./script-runner/script-runner";
 
-// TODO: root and target should both be configurable
-
 yargs
     .scriptName('nodejs2ts')
     .command(
@@ -17,9 +15,17 @@ yargs
                     type: 'string',
                     default: '.'
                 })
+                .option('t', {
+                    alias: 'target',
+                    type: 'string',
+                    describe: 'Provide the target folder to refactor to TypeScript',
+                    default: ''
+                })
         },
-        (options: Arguments<{ root: string }>) => {
+        (options: Arguments<{ root: string, target: string }>) => {
+            console.log(options);
+            const targetFolder = options.target || options.root;
             ScriptRunner.run('npm install', options.root);
-            FileRename.renameFiles(options.root);
+            FileRename.renameFiles(targetFolder);
         })
     .argv;
