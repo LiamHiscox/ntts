@@ -1,4 +1,5 @@
 import yargs, {Arguments} from 'yargs';
+import {FileRename} from "./file-rename/file-rename";
 
 yargs
     .scriptName('nodejs2ts')
@@ -15,6 +16,6 @@ yargs
                 })
         },
         (options: Arguments<{ root: string }>) => {
-            console.log(options);
+            FileRename.renameFiles(options.root);
         })
     .argv;
