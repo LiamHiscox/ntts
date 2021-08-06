@@ -26,5 +26,4 @@ test('should rename a files recursively', () => {
     const assetsCopyDir = readdirSync(assetsCopy);
     expect(readdirSync(singleFilePath)[0]).toBe('index.ts');
     expect(assetsCopyDir.includes('js-ts.ts')).toBe(true);
-    expect(assetsCopyDir.includes('README.md')).toBe(true);
 });
