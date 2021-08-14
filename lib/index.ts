@@ -23,9 +23,8 @@ yargs
                 })
         },
         (options: Arguments<{ root: string, target: string }>) => {
-            console.log(options);
             const targetFolder = options.target || options.root;
-            ScriptRunner.run('npm install', options.root);
+            ScriptRunner.run('npm install', { cwd: options.root });
             FileRename.renameFiles(targetFolder);
         })
     .argv;

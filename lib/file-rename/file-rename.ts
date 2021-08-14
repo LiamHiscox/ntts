@@ -14,6 +14,9 @@ export class FileRename {
         renameSync(path, newPath);
     }
 
+    /**
+     * @param path the target folder to recursively rename the files in.
+     */
     static renameFiles(path: string): void {
         readdirSync(path).forEach(name => {
             const fullPath = join(path, name);
