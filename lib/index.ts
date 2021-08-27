@@ -19,13 +19,12 @@ yargs
                     alias: 'target',
                     type: 'string',
                     describe: 'Provide the target folder to refactor within the root folder',
-                    default: ''
+                    default: '.'
                 })
         },
         (options: Arguments<{ root: string, target: string }>) => {
-            const targetFolder = options.target || options.root;
             process.chdir(options.root);
             ScriptRunner.run('npm install');
-            FileRename.renameFiles(targetFolder);
+            FileRename.renameFiles(options.target);
         })
     .argv;

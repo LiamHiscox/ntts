@@ -6,7 +6,7 @@ export class ScriptRunner {
      * @param stdio how the stdio should be handled.
      * @returns string the stdout from the given script.
      */
-    static run(script: string, stdio?: StdioOptions): string {
+    static run(script: string, stdio: StdioOptions = 'inherit'): string {
         return execSync(script, { stdio, encoding: 'utf8' });
     }
 
