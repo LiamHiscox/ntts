@@ -18,13 +18,14 @@ yargs
                 .option('t', {
                     alias: 'target',
                     type: 'string',
-                    describe: 'Provide the target folder to refactor to TypeScript',
+                    describe: 'Provide the target folder to refactor within the root folder',
                     default: ''
                 })
         },
         (options: Arguments<{ root: string, target: string }>) => {
             const targetFolder = options.target || options.root;
-            ScriptRunner.run('npm install', { cwd: options.root });
+            process.chdir(options.root);
+            ScriptRunner.run('npm install');
             FileRename.renameFiles(targetFolder);
         })
     .argv;
