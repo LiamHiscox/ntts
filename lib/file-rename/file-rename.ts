@@ -3,6 +3,7 @@ import {join} from "path";
 
 // TODO: what if typescript file with same name already exists
 // TODO: some files should maybe not be renamed (babel.config.js, *.test.js, *.spec.js, ...)
+// TODO: some directories should maybe not be renamed (node_modules, ...)
 
 export class FileRename {
     private static getStats(path: string): Stats {
