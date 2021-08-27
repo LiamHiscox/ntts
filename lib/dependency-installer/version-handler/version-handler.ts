@@ -34,6 +34,6 @@ export class VersionHandler {
      * @returns PackageVersion the installed version of Node.js
      */
     static nodeVersion = (): PackageVersion => {
-        return ScriptRunner.run('node --version').trim().substring(1);
+        return ScriptRunner.runPipe('node --version').substring(1);
     }
 }

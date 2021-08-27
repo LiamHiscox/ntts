@@ -24,5 +24,6 @@ jobs:
           node-version: 15
 
       - run: npm ci
+      - run: npm link
       - run: npm run build
       - run: npm run test

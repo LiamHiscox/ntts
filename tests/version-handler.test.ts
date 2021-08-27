@@ -2,8 +2,7 @@ import {VersionHandler} from "../lib/dependency-installer/version-handler/versio
 import {VersionCalculator} from "../lib/dependency-installer/version-calculator/version-calculator";
 
 test('get correct version of package', () => {
-    const isValidVersion = (/^\d+\.\d+\.\d+$/).test(VersionHandler.packageVersion('yargs'));
-    expect(isValidVersion).toBeTruthy();
+    expect(VersionHandler.packageVersion('yargs')).toMatch(/^\d+\.\d+\.\d+$/)
 });
 
 test('get closest version with same major version', () => {

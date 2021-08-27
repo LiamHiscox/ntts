@@ -24,7 +24,7 @@ yargs
         },
         (options: Arguments<{ root: string, target: string }>) => {
             process.chdir(options.root);
-            ScriptRunner.run('npm install');
+            ScriptRunner.runInherit('npm install');
             FileRename.renameFiles(options.target);
         })
     .argv;

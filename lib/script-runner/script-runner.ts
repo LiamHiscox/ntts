@@ -1,22 +1,29 @@
-import {execSync, StdioOptions} from "child_process";
+import {execSync} from "child_process";
 
 export class ScriptRunner {
     /**
+     * @description runs a script inheriting all it's outputs to the parents stdio
      * @param script the script to run in the terminal.
-     * @param stdio how the stdio should be handled.
+     */
+    static runInherit(script: string): void {
+        execSync(script, { stdio: 'inherit' });
+    }
+
+    /**
+     * @description runs a given script only printing stderr to the parents stdio
+     * @param script the script to run in the terminal.
      * @returns string the stdout from the given script.
      */
-    static run(script: string, stdio: StdioOptions = 'inherit'): string {
-        return execSync(script, { stdio, encoding: 'utf8' });
+    static runPipe(script: string): string {
+        return execSync(script, { stdio: 'pipe', encoding: 'utf8' }).trim();
     }
 
     /**
      * @param script the script to run in the terminal.
-     * @param stdio how the stdio should be handled.
      * @returns T stdout as an object from the given script.
      */
-    static runParsed<T>(script: string, stdio?: StdioOptions): T {
-        const result = execSync(script, { stdio, encoding: 'utf8' });
+    static runParsed<T>(script: string): T {
+        const result = execSync(script, { stdio: 'pipe', encoding: 'utf8' }).trim();
         return this.parseResponse<T>(result);
     }
 
