@@ -3,27 +3,27 @@ import * as fse from "fs-extra";
 import { join } from "path";
 import {readdirSync} from "fs";
 
-const assetsCopy = 'tests/assets-copy';
-const assets = 'tests/assets';
+const sampleCopy = 'tests/sample-copy';
+const sample = 'tests/sample';
 
 beforeEach(() => {
-    fse.copySync(assets, assetsCopy);
+    fse.copySync(sample, sampleCopy);
 });
 
 afterEach(() => {
-    fse.rmSync(assetsCopy, { recursive: true, force: true });
+    fse.rmSync(sampleCopy, { recursive: true, force: true });
 });
 
 test('should rename a single file', () => {
-    const singleFilePath = join(assetsCopy, 'src');
+    const singleFilePath = join(sampleCopy, 'src');
     FileRename.renameFiles(singleFilePath);
     expect(readdirSync(singleFilePath)[0]).toBe('index.ts');
 });
 
 test('should rename a files recursively', () => {
-    const singleFilePath = join(assetsCopy, 'src');
-    FileRename.renameFiles(assetsCopy);
-    const assetsCopyDir = readdirSync(assetsCopy);
+    const singleFilePath = join(sampleCopy, 'src');
+    FileRename.renameFiles(sampleCopy);
+    const assetsCopyDir = readdirSync(sampleCopy);
     expect(readdirSync(singleFilePath)[0]).toBe('index.ts');
     expect(assetsCopyDir.includes('js-ts.ts')).toBe(true);
 });
