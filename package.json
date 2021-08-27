@@ -2,7 +2,7 @@
   "name": "nodejs-to-ts",
   "version": "1.0.0",
   "description": "A CLI tool for refactoring an existing NodeJs application to a fully functional TypeScript application.",
-  "main": "index.js",
+  "main": "bin/cli.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
