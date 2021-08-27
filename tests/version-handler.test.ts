@@ -6,11 +6,6 @@ test('get correct version of package', () => {
     expect(isValidVersion).toBeTruthy();
 });
 
-test('get correct version of node', () => {
-    const isValidVersion = (/^\d+\.\d+\.\d+$/).test(VersionHandler.nodeVersion());
-    expect(isValidVersion).toBeTruthy();
-});
-
 test('get closest version with same major version', () => {
     const targetVersion = '3.1.1';
     const versions = ['3.1.5', '3.2.0', '3.0.9'];
