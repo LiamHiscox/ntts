@@ -15,8 +15,8 @@ export class VersionHandler {
      * @param packageName the package to get the available version of
      * @returns Array<PackageVersion> a list of all the available version of the given package
      */
-    static packageVersions = (packageName: string): Array<PackageVersion> => {
-        return ScriptRunner.runParsed<Array<PackageVersion>>(`npm view ${packageName} versions --json`);
+    static typesVersions = (packageName: string): Array<PackageVersion> => {
+        return ScriptRunner.runParsed<Array<PackageVersion>>(`npm view @types/${packageName} versions --json`);
     }
 
     /**
