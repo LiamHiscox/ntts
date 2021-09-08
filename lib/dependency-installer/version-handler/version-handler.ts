@@ -1,14 +1,6 @@
 import {ScriptRunner} from "../../script-runner/script-runner";
+import {PackageVersion, PackageVersionModel} from "../../models/package-version.model";
 
-export type PackageVersion = string;
-
-interface PackageVersionModel {
-    dependencies: {
-        [packageName: string]: {
-            version: PackageVersion
-        }
-    }
-}
 
 export class VersionHandler {
     /**
