@@ -3,6 +3,14 @@ import {FileRename} from "./file-rename/file-rename";
 import {ScriptRunner} from "./script-runner/script-runner";
 import {DependencyInstaller} from "./dependency-installer/dependency-installer";
 
+const main = (root: string, target: string) => {
+  process.chdir(root);
+  ScriptRunner.runInherit('npm install');
+  FileRename.renameFiles(target);
+  DependencyInstaller.installBaseDependencies();
+  DependencyInstaller.installTypeDependencies();
+}
+
 yargs
     .scriptName('nodejs2ts')
     .command(
@@ -25,11 +33,3 @@ yargs
         },
         ({root, target}: Arguments<{ root: string, target: string }>) => main(root, target))
     .argv;
-
-const main = (root: string, target: string) => {
-  process.chdir(root);
-  ScriptRunner.runInherit('npm install');
-  FileRename.renameFiles(target);
-  DependencyInstaller.installBaseDependencies();
-  DependencyInstaller.installTypeDependencies();
-}
