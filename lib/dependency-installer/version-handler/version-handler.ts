@@ -1,22 +1,14 @@
 import {ScriptRunner} from "../../script-runner/script-runner";
+import {PackageVersion, PackageVersionModel} from "../../models/package.model";
 
-export type PackageVersion = string;
-
-interface PackageVersionModel {
-    dependencies: {
-        [packageName: string]: {
-            version: PackageVersion
-        }
-    }
-}
 
 export class VersionHandler {
     /**
      * @param packageName the package to get the available version of
      * @returns Array<PackageVersion> a list of all the available version of the given package
      */
-    static typesVersions = (packageName: string): Array<PackageVersion> => {
-        return ScriptRunner.runParsed<Array<PackageVersion>>(`npm view @types/${packageName} versions --json`);
+    static packageVersions = (packageName: string): Array<PackageVersion> => {
+        return ScriptRunner.runParsed<Array<PackageVersion>>(`npm view ${packageName} versions --json`);
     }
 
     /**
