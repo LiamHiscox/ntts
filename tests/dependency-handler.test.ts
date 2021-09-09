@@ -23,6 +23,14 @@ test('should have yargs installed', () => {
   expect(DependencyHandler.installedPackages()).toHaveProperty('yargs');
 });
 
+test('should be type definition package', () => {
+  expect(DependencyHandler.isTypeDefinition('@types/yargs')).toBeTruthy();
+});
+
+test('should not be type definition package', () => {
+  expect(DependencyHandler.isTypeDefinition('yargs')).toBeFalsy();
+});
+
 test('should format simple package', () => {
   expect(DependencyHandler.packageToTypesFormat('yargs')).toBe('@types/yargs');
 });
