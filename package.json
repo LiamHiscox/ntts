@@ -22,6 +22,7 @@
   },
   "homepage": "https://gitlab.com/LiamHiscox/nodejs-to-ts#readme",
   "dependencies": {
+    "globby": "^11.0.4",
     "yargs": "^17.1.1"
   },
   "devDependencies": {

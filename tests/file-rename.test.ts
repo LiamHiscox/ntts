@@ -1,29 +1,34 @@
 import {FileRename} from "../lib/file-rename/file-rename";
 import * as fse from "fs-extra";
-import { join } from "path";
-import {readdirSync} from "fs";
+import {join} from "path";
+import {existsSync} from "fs";
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
 
 beforeEach(() => {
-    fse.copySync(sample, sampleCopy);
+  fse.copySync(sample, sampleCopy);
 });
 
 afterEach(() => {
-    fse.rmSync(sampleCopy, { recursive: true, force: true });
+  fse.rmSync(sampleCopy, {recursive: true, force: true});
 });
 
 test('should rename a single file', () => {
-    const singleFilePath = join(sampleCopy, 'src');
-    FileRename.renameFiles(singleFilePath);
-    expect(readdirSync(singleFilePath)[0]).toBe('index.ts');
+  const singleFilePath = join(sampleCopy, 'src');
+  FileRename.rename(singleFilePath);
+  expect(existsSync(join(singleFilePath, 'index.ts'))).toBeTruthy();
+});
+
+test('should not rename config file', () => {
+  const singleFilePath = join(sampleCopy, 'src');
+  FileRename.rename(singleFilePath);
+  expect(existsSync(join(singleFilePath, 'babe.config.ts'))).toBeFalsy();
 });
 
 test('should rename a files recursively', () => {
-    const singleFilePath = join(sampleCopy, 'src');
-    FileRename.renameFiles(sampleCopy);
-    const assetsCopyDir = readdirSync(sampleCopy);
-    expect(readdirSync(singleFilePath)[0]).toBe('index.ts');
-    expect(assetsCopyDir.includes('js-ts.ts')).toBe(true);
+  const singleFilePath = join(sampleCopy, 'src');
+  FileRename.rename(sampleCopy);
+  expect(existsSync(join(singleFilePath, 'index.ts'))).toBeTruthy();
+  expect(existsSync(join(sampleCopy, 'js-ts.ts'))).toBeTruthy();
 });

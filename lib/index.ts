@@ -6,7 +6,7 @@ import {DependencyInstaller} from "./dependency-installer/dependency-installer";
 const main = (root: string, target: string) => {
   process.chdir(root);
   ScriptRunner.runInherit('npm install');
-  FileRename.renameFiles(target);
+  FileRename.rename(target);
   DependencyInstaller.installBaseDependencies();
   DependencyInstaller.installTypeDependencies();
 }
