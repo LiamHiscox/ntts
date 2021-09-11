@@ -2,11 +2,12 @@ import yargs, {Arguments} from 'yargs';
 import {FileRename} from "./file-rename/file-rename";
 import {ScriptRunner} from "./script-runner/script-runner";
 import {DependencyInstaller} from "./dependency-installer/dependency-installer";
+import {IgnoreConfigParser} from "./ignore-config-parser/ignore-config-parser";
 
 const main = (root: string, target: string) => {
   process.chdir(root);
   ScriptRunner.runInherit('npm install');
-  FileRename.rename(target);
+  FileRename.rename(target, IgnoreConfigParser.getIgnores());
   DependencyInstaller.installBaseDependencies();
   DependencyInstaller.installTypeDependencies();
 }
