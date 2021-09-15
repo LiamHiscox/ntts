@@ -8,28 +8,27 @@ const defaultIgnore = [
 ];
 
 export class FileRename {
-  private static renameFile(path: string, file: string): void {
-    const fullFile = join(path, file);
+  private static renameFile(file: string): void {
+    const fullFile = join(file);
     const newFile = fullFile.replace(/\.\w+$/, '.ts');
     renameSync(fullFile, newFile);
   }
 
-  private static findFiles(path: string, ignore: string[]): string[] {
+  private static findFiles(ignore: string[], keep: string[]): string[] {
     return globby.sync(
-      ["**/*.js", "**/*.mjs", "**/*.cjs"],
+      ["**/*.js", "**/*.mjs", "**/*.cjs", ...keep],
       {
-        cwd: path,
+        cwd: process.cwd(),
         ignore: [...defaultIgnore, ...ignore]
       });
   }
 
   /**
-   * @param path the target folder to recursively rename the files in.
    * @param ignore files and directories to ignore in .gitignore style format.
+   * @param keep files and directories to keep in .gitignore style format.
    */
-  static rename(path: string, ignore: string[]): void {
-    const fullPath = join(process.cwd(), path);
-    const filesToRename = FileRename.findFiles(fullPath, ignore);
-    filesToRename.forEach(file => FileRename.renameFile(fullPath, file));
+  static rename(ignore: string[], keep: string[]): void {
+    const filesToRename = FileRename.findFiles(ignore, keep);
+    filesToRename.forEach(file => FileRename.renameFile(file));
   }
 }

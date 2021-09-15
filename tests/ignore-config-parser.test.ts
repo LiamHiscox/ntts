@@ -15,7 +15,7 @@ afterAll(() => {
 
 
 test('should parse a gitignore file correctly', () => {
-  const result = IgnoreConfigParser.parseFile(join(sampleCopy, '.gitignore'));
+  const result = IgnoreConfigParser.parseFile(join(sampleCopy, '.gitignore'), formattedPath);
   expect(result.sort()).toEqual([
     "**/node_modules/**",
     "**/*.log",

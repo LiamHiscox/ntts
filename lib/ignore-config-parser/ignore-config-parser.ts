@@ -1,5 +1,5 @@
 import {existsSync, readFileSync} from "fs";
-import { join } from "path";
+import {IgnoreConfigModel} from "../models/ignore-config.model";
 
 export class IgnoreConfigParser {
   private static reformatStart = (entry: string): string => {
@@ -13,11 +13,7 @@ export class IgnoreConfigParser {
   }
 
   private static reformatEnd = (entry: string): string => {
-    if (entry.endsWith('/')) {
-      return entry + '**';
-    } else {
-      return entry;
-    }
+    return entry.replace(/\/$/g, '/**');
   }
 
   private static reformat = (entry: string): string => {
@@ -25,20 +21,43 @@ export class IgnoreConfigParser {
       IgnoreConfigParser.reformatEnd(entry))
   }
 
-  static parseFile = (path: string): string[] => {
-    return readFileSync(path, {encoding: 'utf-8'})
-      .replace('\r\n', '\n')
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => !!line && !line.startsWith('#'))
-      .map(line => IgnoreConfigParser.reformat(line));
+  private static splitLines = (lines: string[]): IgnoreConfigModel => {
+    return lines.reduce((split: IgnoreConfigModel, line: string) => {
+      if (line.startsWith('!')) {
+        const reformatted = IgnoreConfigParser.reformat(line.substring(1));
+        return {...split, keep: split.keep.concat(reformatted)}
+      } else {
+        const reformatted = IgnoreConfigParser.reformat(line);
+        return {...split, ignore: split.ignore.concat(reformatted)}
+      }
+    }, {ignore: new Array<string>(), keep: new Array<string>()});
   }
 
-  static getIgnores = (path: string = ''): string[] => {
-    if (existsSync(join(path, '.gitignore'))) {
-      return IgnoreConfigParser.parseFile(join(path, '.gitignore'));
+  private static parseFile = (path: string, targetPath: string): IgnoreConfigModel => {
+    const lines = readFileSync(path, {encoding: 'utf-8'})
+      .replace('\r\n', '\n')
+      .split('\n')
+      .concat(targetPath)
+      .filter(line => {
+        const trimmed = line.trim();
+        return !!trimmed && !trimmed.startsWith('#');
+      })
+    return IgnoreConfigParser.splitLines(lines);
+  }
+
+  private static formatTargetPath = (path: string): string => {
+    return path
+      .replace(/\.{1,2}\//g, '')
+      .replace(/^\//g, '')
+      .replace(/\/$/g, '/**');
+  }
+
+  static getIgnores = (path: string): IgnoreConfigModel => {
+    const formattedPath = IgnoreConfigParser.formatTargetPath(path);
+    if (existsSync('.gitignore')) {
+      return IgnoreConfigParser.parseFile('.gitignore', formattedPath);
     } else {
-      return [];
+      return {keep: [formattedPath], ignore: []};
     }
   }
 }
