@@ -3,8 +3,7 @@ import {FileRename} from "./file-rename/file-rename";
 import {ScriptRunner} from "./script-runner/script-runner";
 import {DependencyInstaller} from "./dependency-installer/dependency-installer";
 
-const main = (root: string, target: string) => {
-  process.chdir(root);
+const main = (target: string) => {
   ScriptRunner.runInherit('npm install');
   FileRename.rename(target);
   DependencyInstaller.installBaseDependencies();
@@ -18,18 +17,12 @@ yargs
         'refactor an existing Node.js application to support TypeScript',
         (yargs) => {
             yargs
-                .option('r', {
-                    alias: 'root',
-                    describe: 'Provide the root folder of the project',
-                    type: 'string',
-                    default: '.'
-                })
                 .option('t', {
                     alias: 'target',
                     type: 'string',
-                    describe: 'Provide the target folder to refactor within the root folder',
-                    default: '.'
+                    describe: 'Provide the target folder to refactor the files in',
+                    default: ''
                 })
         },
-        ({root, target}: Arguments<{ root: string, target: string }>) => main(root, target))
+        ({target}: Arguments<{ target: string }>) => main(target))
     .argv;

@@ -3,6 +3,7 @@ import {IgnoreConfigParser} from "../lib/ignore-config-parser/ignore-config-pars
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
+const cwd = process.cwd();
 
 beforeAll(() => {
   fse.copySync(sample, sampleCopy);
@@ -10,7 +11,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-  process.chdir(sampleCopy);
+  process.chdir(cwd);
   fse.rmSync(sampleCopy, {recursive: true, force: true});
 });
 

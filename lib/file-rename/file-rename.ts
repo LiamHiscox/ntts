@@ -4,7 +4,6 @@ import globby from "globby";
 import {IgnoreConfigParser} from "../ignore-config-parser/ignore-config-parser";
 
 const defaultIgnore = [
-  "**/*.config.js",
   "**/node_modules/**"
 ];
 
