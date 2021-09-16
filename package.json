@@ -9,7 +9,7 @@
     "test": "jest --runInBand"
   },
   "bin": {
-    "nodejs2ts": "bin/cli.js"
+    "ntts": "bin/cli.js"
   },
   "repository": {
     "type": "git",
