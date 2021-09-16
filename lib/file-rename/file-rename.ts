@@ -24,7 +24,7 @@ export class FileRename {
     if (item.isFile() && !ig.ignores(fullPath) && (/^.*\.[mc]?js$/g).test(item.name)) {
       this.renameFile(fullPath);
     } if(item.isDirectory() && !ig.ignores(fullPath)) {
-      this.findFiles(ignoreList, join(path, item.name));
+      this.findFiles(ignoreList, fullPath);
     }
   }
 
