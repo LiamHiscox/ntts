@@ -1,32 +1,36 @@
-import {lstatSync, readdirSync, renameSync, Stats} from "fs";
+import {Dirent, readdirSync, renameSync} from "fs";
 import {join} from "path";
+import {IgnoreConfigParser} from "../ignore-config-parser/ignore-config-parser";
+import ignore, {Ignore} from "ignore";
 
-// TODO: what if typescript file with same name already exists
-// TODO: some files should maybe not be renamed (babel.config.js, *.test.js, *.spec.js, ...)
-// TODO: some directories should maybe not be renamed (node_modules, ...)
+const defaultIgnore = ["node_modules/"];
 
 export class FileRename {
-    private static getStats(path: string): Stats {
-        return lstatSync(path);
-    }
+  /**
+   * @param targetPath the path to search for javascript files in
+   */
+  static rename(targetPath: string): void {
+    const ignores = defaultIgnore.concat(IgnoreConfigParser.getIgnores());
+    FileRename.findFiles(ignores, targetPath);
+  }
 
-    private static renameFile(path: string): void {
-        const newPath = path.replace(/js$/, 'ts');
-        renameSync(path, newPath);
-    }
+  private static renameFile(file: string): void {
+    const newFile = file.replace(/\.\w+$/, '.ts');
+    renameSync(file, newFile);
+  }
 
-    /**
-     * @param path the target folder to recursively rename the files in.
-     */
-    static renameFiles(path: string): void {
-        readdirSync(path).forEach(name => {
-            const fullPath = join(path, name);
-            const stats = FileRename.getStats(fullPath);
-            if (stats.isFile() && name.endsWith('.js')) {
-                FileRename.renameFile(fullPath);
-            } else if (stats.isDirectory()) {
-                FileRename.renameFiles(fullPath);
-            }
-        })
+  private static checkDirectoryEntry = (item: Dirent, path: string, ig: Ignore, ignoreList: string[]) => {
+    const fullPath = join(path, item.name);
+    if (item.isFile() && !ig.ignores(fullPath) && (/^.*\.[mc]?js$/g).test(item.name)) {
+      this.renameFile(fullPath);
+    } if(item.isDirectory() && !ig.ignores(fullPath)) {
+      this.findFiles(ignoreList, join(path, item.name));
     }
+  }
+
+  private static findFiles(ignoreList: string[], path: string): void {
+    const ig = ignore().add(ignoreList);
+    readdirSync(path, {withFileTypes: true})
+      .forEach(item => this.checkDirectoryEntry(item, path, ig, ignoreList))
+  }
 }

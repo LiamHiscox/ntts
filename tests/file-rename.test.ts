@@ -1,29 +1,37 @@
 import {FileRename} from "../lib/file-rename/file-rename";
 import * as fse from "fs-extra";
-import { join } from "path";
-import {readdirSync} from "fs";
+import {writeFileSync} from "fs";
+import globby from "globby";
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
+const cwd = process.cwd();
 
 beforeEach(() => {
-    fse.copySync(sample, sampleCopy);
+  fse.copySync(sample, sampleCopy);
+  process.chdir(sampleCopy);
 });
 
 afterEach(() => {
-    fse.rmSync(sampleCopy, { recursive: true, force: true });
+  process.chdir(cwd);
+  fse.rmSync(sampleCopy, {recursive: true, force: true});
 });
 
 test('should rename a single file', () => {
-    const singleFilePath = join(sampleCopy, 'src');
-    FileRename.renameFiles(singleFilePath);
-    expect(readdirSync(singleFilePath)[0]).toBe('index.ts');
+  FileRename.rename('src');
+  expect(globby.sync(["**/*.ts"]).sort())
+    .toEqual(["src/index.ts"].sort());
 });
 
-test('should rename a files recursively', () => {
-    const singleFilePath = join(sampleCopy, 'src');
-    FileRename.renameFiles(sampleCopy);
-    const assetsCopyDir = readdirSync(sampleCopy);
-    expect(readdirSync(singleFilePath)[0]).toBe('index.ts');
-    expect(assetsCopyDir.includes('js-ts.ts')).toBe(true);
+test('should not rename config file', () => {
+  writeFileSync('.gitignore', '*.config.js');
+  FileRename.rename('.');
+  expect(globby.sync(["**/*.ts"]).sort())
+    .toEqual(["src/index.ts", "js-ts.ts"].sort());
+});
+
+test('should rename all files recursively', () => {
+  FileRename.rename('.');
+  expect(globby.sync(["**/*.ts"]).sort())
+    .toEqual(["src/index.ts", "js-ts.ts", "babel.config.ts"].sort());
 });

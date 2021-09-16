@@ -19,5 +19,5 @@ test('should not throw an error', () => {
 });
 
 test('should not throw an error with paramaters', () => {
-    expect(() => execSync(`nodejs2ts refactor -r ${sampleCopy} -t src`, {cwd: testsRoot})).not.toThrow();
+    expect(() => execSync(`nodejs2ts refactor -t src`, {cwd: join(testsRoot, sampleCopy)})).not.toThrow();
 });
