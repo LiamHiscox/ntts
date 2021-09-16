@@ -15,9 +15,9 @@ afterEach(() => {
 });
 
 test('should not throw an error', () => {
-    expect(() => execSync('nodejs2ts refactor', {cwd: join(testsRoot, sampleCopy)})).not.toThrow();
+    expect(() => execSync('ntts refactor', {cwd: join(testsRoot, sampleCopy)})).not.toThrow();
 });
 
 test('should not throw an error with paramaters', () => {
-    expect(() => execSync(`nodejs2ts refactor -t src`, {cwd: join(testsRoot, sampleCopy)})).not.toThrow();
+    expect(() => execSync(`ntts refactor -t src`, {cwd: join(testsRoot, sampleCopy)})).not.toThrow();
 });
