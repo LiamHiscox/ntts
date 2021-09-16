@@ -21,7 +21,7 @@ yargs
                     alias: 'target',
                     type: 'string',
                     describe: 'Provide the target folder to refactor the files in',
-                    default: ''
+                    default: '.'
                 })
         },
         ({target}: Arguments<{ target: string }>) => main(target))

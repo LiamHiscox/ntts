@@ -18,22 +18,9 @@ afterAll(() => {
 test('should parse a gitignore file correctly', () => {
   const result = IgnoreConfigParser.getIgnores();
   expect(result.sort()).toEqual([
-    "**/node_modules/**",
-    "**/*.log",
-    "!**/index.log",
-    "temp/test/**",
-    "**/test/temp"
+    "node_modules/",
+    "*.log",
+    "!index.log",
+    "/temp/test/"
   ].sort());
-})
-
-test('should reformat target path', () => {
-  expect(IgnoreConfigParser.formatTargetPath('./src/')).toBe('src/');
-})
-
-test('should reformat empty target path', () => {
-  expect(IgnoreConfigParser.formatTargetPath('')).toBe('');
-})
-
-test('should reformat empty spaced target path', () => {
-  expect(IgnoreConfigParser.formatTargetPath('   ')).toBe('');
 })

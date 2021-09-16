@@ -25,13 +25,13 @@ test('should rename a single file', () => {
 
 test('should not rename config file', () => {
   writeFileSync('.gitignore', '*.config.js');
-  FileRename.rename('');
+  FileRename.rename('.');
   expect(globby.sync(["**/*.ts"]).sort())
     .toEqual(["src/index.ts", "js-ts.ts"].sort());
 });
 
 test('should rename all files recursively', () => {
-  FileRename.rename('');
+  FileRename.rename('.');
   expect(globby.sync(["**/*.ts"]).sort())
     .toEqual(["src/index.ts", "js-ts.ts", "babel.config.ts"].sort());
 });
