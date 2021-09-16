@@ -3,5 +3,6 @@
 
  # log
 *.log
+!index.log
 /temp/test/
 test/temp
