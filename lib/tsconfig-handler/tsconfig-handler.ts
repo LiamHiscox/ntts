@@ -1,6 +1,7 @@
 import {existsSync, readFileSync, writeFileSync} from "fs";
 import {VersionHandler} from "../dependency-installer/version-handler/version-handler";
 import {join} from "path";
+import {TsconfigModel} from "../models/tsconfig.model";
 
 const pathToConfigs = join(__dirname, "..", "..", "node_modules", "@tsconfig");
 const defaultConfig = join(__dirname, "tsconfig.default.json");
@@ -13,7 +14,7 @@ const nodeToConfigList: [number, string][] = [
 ]
 
 export class TsconfigHandler {
-  private static getTsconfig = (): TsconfigHandler => {
+  private static getTsconfig = (): TsconfigModel => {
     const nodeMajorVersion = VersionHandler.parsedNodeVersion()[0];
     const tsconfigPath = nodeToConfigList.reduce((bestConfig, entry) =>
         nodeMajorVersion >= entry[0] ? entry[1] : bestConfig, defaultConfig);
@@ -21,23 +22,32 @@ export class TsconfigHandler {
     return JSON.parse(tsconfig);
   }
 
+  private static writeToConfig = (filename: string, tsconfig: TsconfigModel, partialConfig: Partial<TsconfigModel>) => {
+    writeFileSync(
+      filename,
+      JSON.stringify({
+        ...tsconfig,
+        ...partialConfig,
+      }));
+  }
+
+  /**
+   * @param path the path to include for the typescript configuration
+   */
   static addConfig = (path: string) => {
     const tsconfig = this.getTsconfig();
     if (!existsSync('tsconfig.json')) {
-      writeFileSync(
+      TsconfigHandler.writeToConfig(
         'tsconfig.json',
-        JSON.stringify({
-          ...tsconfig,
-          include: [path]
-        }));
+        tsconfig,
+        {include: [path]}
+      );
     } else {
-      writeFileSync(
+      TsconfigHandler.writeToConfig(
         'tsconfig.ntts.json',
-        JSON.stringify({
-          ...tsconfig,
-          extends: "./tsconfig.json",
-          include: [path]
-        }));
+        tsconfig,
+        {include: [path], extends: "./tsconfig.json"}
+      );
     }
   }
 }
