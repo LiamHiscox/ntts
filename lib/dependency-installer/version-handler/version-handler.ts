@@ -28,4 +28,11 @@ export class VersionHandler {
     static nodeVersion = (): PackageVersion => {
         return ScriptRunner.runPipe('node --version').substring(1).trim();
     }
+
+    /**
+     * @returns PackageVersion the installed version of Node.js as a number array
+     */
+    static parsedNodeVersion = (): number[] => {
+        return VersionHandler.nodeVersion().split('.').map(v => +v);
+    }
 }
