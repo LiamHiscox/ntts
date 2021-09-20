@@ -1,6 +1,6 @@
 import {Dirent, readdirSync, renameSync} from "fs";
 import {join} from "path";
-import {IgnoreConfigParser} from "../ignore-config-parser/ignore-config-parser";
+import {IgnoreConfigParser} from "./ignore-config-parser/ignore-config-parser";
 import ignore, {Ignore} from "ignore";
 
 const defaultIgnore = ["node_modules/"];

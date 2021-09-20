@@ -11,7 +11,7 @@ const main = (target: string) => {
 }
 
 yargs
-    .scriptName('nodejs2ts')
+    .scriptName('ntts')
     .command(
         'refactor',
         'refactor an existing Node.js application to support TypeScript',

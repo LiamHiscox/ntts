@@ -1,5 +1,5 @@
 import * as fse from "fs-extra";
-import {IgnoreConfigParser} from "../lib/ignore-config-parser/ignore-config-parser";
+import {IgnoreConfigParser} from "../lib/file-rename/ignore-config-parser/ignore-config-parser";
 import {writeFileSync} from "fs";
 
 const sampleCopy = 'tests/sample-copy';
