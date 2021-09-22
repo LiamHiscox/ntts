@@ -6,6 +6,7 @@ import {DependencyInstaller} from "./dependency-installer/dependency-installer";
 const main = (target: string) => {
   ScriptRunner.runInherit('npm install');
   FileRename.rename(target);
+  DependencyInstaller.addPackageJson();
   DependencyInstaller.installBaseDependencies();
   DependencyInstaller.installTypeDependencies();
 }
