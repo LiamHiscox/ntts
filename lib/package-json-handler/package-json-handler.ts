@@ -1,5 +1,5 @@
-import {readFileSync} from "fs";
-import {PackageJsonModel} from "../models/package-json.model";
+import {readFileSync, writeFileSync} from "fs";
+import {PackageJsonModel, Scripts} from "../models/package-json.model";
 import {resolve} from "path";
 
 interface NodeCliModel {
@@ -9,14 +9,6 @@ interface NodeCliModel {
 }
 
 export class PackageJsonHandler {
-  private static readPackageJson = (): PackageJsonModel => {
-    const packageJson = JSON.parse(readFileSync('package.json', {encoding: 'utf-8'}));
-    if (!packageJson.hasOwnProperty('scripts')) {
-      return {...packageJson, scripts: {}} as PackageJsonModel;
-    }
-    return packageJson as PackageJsonModel;
-  }
-
   private static isNodeScript = (script: string): boolean => {
     return script.startsWith('node');
   }
@@ -48,19 +40,30 @@ export class PackageJsonHandler {
       return trimmed;
     }
     const parsedScript = this.parseNodeScript(trimmed);
-    if (parsedScript.scriptFile && this.fileInTargetPath(parsedScript.scriptFile, path)) {
+    if (this.fileInTargetPath(path, parsedScript.scriptFile)) {
       return (`ts-node ${parsedScript.scriptFile} ${parsedScript.arguments.join(' ')}`).trim();
     }
     return trimmed;
   }
 
-  static addTsScripts = (path: string) => {
-    const packageJson = this.readPackageJson();
-    Object
-      .entries(packageJson.scripts)
-      .reduce((acc: { [key: string]: string }, [name, script]: [string, string]) => {
+  static readPackageJson = (): PackageJsonModel => {
+    const packageJson = JSON.parse(readFileSync('package.json', {encoding: 'utf-8'}));
+    if (!packageJson.hasOwnProperty('scripts')) {
+      return {...packageJson, scripts: {}} as PackageJsonModel;
+    }
+    return packageJson as PackageJsonModel;
+  }
+
+  static writePackageJson = (packageJson: PackageJsonModel) => {
+    writeFileSync('package.json', JSON.stringify(packageJson));
+  }
+
+  static addTsScripts = (scripts: Scripts, path: string): Scripts => {
+    return Object
+      .entries(scripts)
+      .reduce((acc: Scripts, [name, script]: [string, string]) => {
         const transformed = this.transformNodeScript(script, path);
         return {...acc, [name]: transformed};
-      }, {} as { [key: string]: string });
+      }, {});
   }
 }

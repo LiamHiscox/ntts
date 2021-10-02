@@ -1,5 +1,8 @@
 export interface PackageJsonModel {
-  "scripts": {
-    [key: string]: string;
-  }
+  "scripts": Scripts;
+  [key: string]: any;
+}
+
+export interface Scripts {
+  [key: string]: string
 }
