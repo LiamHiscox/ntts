@@ -28,7 +28,7 @@ export class TsconfigHandler {
       JSON.stringify({
         ...tsconfig,
         ...partialConfig,
-      }));
+      }, null, 2));
   }
 
   /**
