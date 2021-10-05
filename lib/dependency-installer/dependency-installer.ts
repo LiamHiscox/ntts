@@ -2,6 +2,7 @@ import {ScriptRunner} from "../script-runner/script-runner";
 import {VersionHandler} from "./version-handler/version-handler";
 import {VersionCalculator} from "./version-calculator/version-calculator";
 import {DependencyHandler} from "./dependency-handler/dependency-handler";
+import {existsSync} from "fs";
 
 export class DependencyInstaller {
   /**
@@ -22,6 +23,15 @@ export class DependencyInstaller {
     DependencyInstaller.install('typescript');
     DependencyInstaller.install('ts-node');
   }
+
+  /**
+   * @description adds a basic package.json file if none exists
+   */
+  static addPackageJson = () => {
+    if (!existsSync('package.json')) {
+      ScriptRunner.runInherit('npm init -y');
+    }
+  };
 
   private static install = (packageName: string, version?: string) => {
     const fullPackage = version ? `${packageName}@${version}` : packageName;
