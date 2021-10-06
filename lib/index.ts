@@ -4,6 +4,7 @@ import {ScriptRunner} from "./script-runner/script-runner";
 import {DependencyInstaller} from "./dependency-installer/dependency-installer";
 import {TsconfigHandler} from "./tsconfig-handler/tsconfig-handler";
 import {PackageJsonHandler} from "./package-json-handler/package-json-handler";
+import {InputValidator} from "./input-validator/input-validator";
 
 const basicSetup = () => {
   ScriptRunner.runInherit('npm install');
@@ -30,26 +31,29 @@ const addScripts = (target: string) => {
 }
 
 const main = (target: string) => {
-  basicSetup();
-  renameFiles(target);
-  installDependencies();
-  addTsconfig(target);
-  addScripts(target);
+  const validTarget = InputValidator.validate(target);
+  if (validTarget !== null) {
+    basicSetup();
+    renameFiles(validTarget);
+    installDependencies();
+    addTsconfig(validTarget);
+    addScripts(validTarget);
+  }
 }
 
 yargs
-    .scriptName('ntts')
-    .command(
-        'refactor',
-        'refactor an existing Node.js application to support TypeScript',
-        (yargs) => {
-            yargs
-                .option('t', {
-                    alias: 'target',
-                    type: 'string',
-                    describe: 'Provide the target folder to refactor the files in',
-                    default: '.'
-                })
-        },
-        ({target}: Arguments<{ target: string }>) => main(target))
-    .argv;
+  .scriptName('ntts')
+  .command(
+    'refactor',
+    'refactor an existing Node.js application to support TypeScript',
+    (yargs) => {
+      yargs
+        .option('t', {
+          alias: 'target',
+          type: 'string',
+          describe: 'Provide the target folder to refactor the files in',
+          default: '.'
+        })
+    },
+    ({target}: Arguments<{ target: string }>) => main(target))
+  .argv;
