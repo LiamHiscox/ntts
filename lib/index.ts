@@ -5,9 +5,12 @@ import {DependencyInstaller} from "./dependency-installer/dependency-installer";
 import {TsconfigHandler} from "./tsconfig-handler/tsconfig-handler";
 import {PackageJsonHandler} from "./package-json-handler/package-json-handler";
 import {InputValidator} from "./input-validator/input-validator";
+import {Logger} from "./logger/logger";
 
 const basicSetup = () => {
-  ScriptRunner.runInherit('npm install');
+  Logger.info('Installing existing dependencies');
+  ScriptRunner.runIgnore('npm install');
+  Logger.success('Installed existing dependencies');
 }
 
 const renameFiles = (target: string) => {
@@ -25,9 +28,11 @@ const addTsconfig = (target: string) => {
 }
 
 const addScripts = (target: string) => {
+  Logger.info('Adding new scripts to package.json');
   const packageJson = PackageJsonHandler.readPackageJson();
   const scripts = PackageJsonHandler.addTsScripts(packageJson.scripts, target);
   PackageJsonHandler.writePackageJson({...packageJson, scripts});
+  Logger.success('Scripts added to package.json!');
 }
 
 const main = (target: string) => {

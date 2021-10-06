@@ -1,4 +1,5 @@
 import {existsSync, readFileSync} from "fs";
+import {Logger} from "../../logger/logger";
 
 const gitignore = '.gitignore';
 const nttsignore = '.nttsignore';
@@ -8,10 +9,15 @@ export class IgnoreConfigParser {
    * @returns string[] returns all ignores of the root .nttsignore or .gitignore if provided
    */
   static getIgnores = (): string[] => {
-    if (existsSync(nttsignore))
+    if (existsSync(nttsignore)) {
+      Logger.info('Reading .nttsignore file');
       return IgnoreConfigParser.parseFile(nttsignore);
-    if (existsSync(gitignore))
+    }
+    if (existsSync(gitignore)) {
+      Logger.info('Reading .gitignore file');
       return IgnoreConfigParser.parseFile(gitignore);
+    }
+    Logger.warn('No ignore file found!');
     return [];
   }
 

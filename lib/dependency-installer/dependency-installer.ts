@@ -3,12 +3,14 @@ import {VersionHandler} from "./version-handler/version-handler";
 import {VersionCalculator} from "./version-calculator/version-calculator";
 import {DependencyHandler} from "./dependency-handler/dependency-handler";
 import {existsSync} from "fs";
+import {Logger} from "../logger/logger";
 
 export class DependencyInstaller {
   /**
   * @description installs type definitions of package if necessary and possible
   */
   static installTypeDependencies = () => {
+    Logger.info('Installing additional type definitions');
     const installedPackages = DependencyHandler.installedPackages();
     Object.entries(installedPackages).map(([packageName, {version}]) => {
       DependencyInstaller.installTypes(packageName, version);
@@ -19,6 +21,7 @@ export class DependencyInstaller {
    * @description installs all the base dependencies needed for a node typescript project
    */
   static installBaseDependencies = () => {
+    Logger.info('Installing base dependencies');
     DependencyInstaller.installNodeTypes();
     DependencyInstaller.install('typescript');
     DependencyInstaller.install('ts-node');
@@ -29,13 +32,16 @@ export class DependencyInstaller {
    */
   static addPackageJson = () => {
     if (!existsSync('package.json')) {
-      ScriptRunner.runInherit('npm init -y');
+      ScriptRunner.runIgnore('npm init -y');
+      Logger.info('package.json file added');
     }
   };
 
   private static install = (packageName: string, version?: string) => {
+    Logger.info(`Installing ${packageName} ${version || ''}`);
     const fullPackage = version ? `${packageName}@${version}` : packageName;
-    ScriptRunner.runInherit(`npm install ${fullPackage}`);
+    ScriptRunner.runIgnore(`npm install ${fullPackage}`);
+    Logger.success(`${packageName} installed!`);
   }
 
   private static installNodeTypes = () => {

@@ -5,7 +5,7 @@ test('should pipe simple script', () => {
 });
 
 test('should inherit simple script', () => {
-    expect(() => ScriptRunner.runInherit('npm --version')).not.toThrow();
+    expect(() => ScriptRunner.runIgnore('npm --version')).not.toThrow();
 });
 
 test('should run script parsed result', () => {

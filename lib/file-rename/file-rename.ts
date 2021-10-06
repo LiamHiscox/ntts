@@ -2,6 +2,7 @@ import {Dirent, readdirSync, renameSync} from "fs";
 import {join} from "path";
 import {IgnoreConfigParser} from "./ignore-config-parser/ignore-config-parser";
 import ignore, {Ignore} from "ignore";
+import {Logger} from "../logger/logger";
 
 const defaultIgnore = ["node_modules/"];
 
@@ -10,8 +11,10 @@ export class FileRename {
    * @param target the path to search for javascript files in
    */
   static rename(target: string): void {
+    Logger.info('Renaming all JavaScript files');
     const ignores = defaultIgnore.concat(IgnoreConfigParser.getIgnores());
     FileRename.findFiles(ignores, target || '.');
+    Logger.success('All JavaScript files renamed to TypeScript files');
   }
 
   private static renameFile(file: string): void {
