@@ -5,11 +5,11 @@ test('should parse simple path', () => {
 });
 
 test('should reject invalid path', () => {
-  expect(InputValidator.validate('..')).toBeUndefined();
+  expect(InputValidator.validate('..')).toBeNull();
 });
 
 test('should reject non-existent path', () => {
-  expect(InputValidator.validate('./assadasdasd')).toBeUndefined();
+  expect(InputValidator.validate('./assadasdasd')).toBeNull();
 });
 
 test('should parse empty path', () => {
