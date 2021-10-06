@@ -7,11 +7,11 @@ const defaultIgnore = ["node_modules/"];
 
 export class FileRename {
   /**
-   * @param targetPath the path to search for javascript files in
+   * @param target the path to search for javascript files in
    */
-  static rename(targetPath: string): void {
+  static rename(target: string): void {
     const ignores = defaultIgnore.concat(IgnoreConfigParser.getIgnores());
-    FileRename.findFiles(ignores, targetPath);
+    FileRename.findFiles(ignores, target || '.');
   }
 
   private static renameFile(file: string): void {
