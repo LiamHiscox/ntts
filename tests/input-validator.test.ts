@@ -1,4 +1,21 @@
 import {InputValidator} from "../lib/input-validator/input-validator";
+import {mkdirSync} from "fs";
+import * as fse from "fs-extra";
+
+const sampleCopy = 'tests/sample-copy';
+const sample = 'tests/sample';
+const cwd = process.cwd();
+
+beforeAll(() => {
+  fse.copySync(sample, sampleCopy);
+  process.chdir(sampleCopy);
+  mkdirSync('src/test');
+});
+
+afterAll(() => {
+  process.chdir(cwd);
+  fse.rmSync(sampleCopy, {recursive: true, force: true});
+});
 
 test('should parse simple path', () => {
   expect(InputValidator.validate('src')).toBe('src');
@@ -21,9 +38,9 @@ test('should parse empty path', () => {
 });
 
 test('should parse long posix path', () => {
-  expect(InputValidator.validate('test/text')).toBe('src/test');
+  expect(InputValidator.validate('src/test')).toBe('src/test');
 });
 
 test('should parse long windows path', () => {
-  expect(InputValidator.validate('test\\text')).toBe('src/test');
+  expect(InputValidator.validate('src\\test')).toBe('src/test');
 });
