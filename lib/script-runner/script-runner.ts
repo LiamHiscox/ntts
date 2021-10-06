@@ -2,11 +2,11 @@ import {execSync} from "child_process";
 
 export class ScriptRunner {
     /**
-     * @description runs a script inheriting all it's outputs to the parents stdio
+     * @description runs a script ignoring all it's outputs.
      * @param script the script to run in the terminal.
      */
-    static runInherit(script: string): void {
-        execSync(script, { stdio: 'inherit' });
+    static runIgnore(script: string): void {
+        execSync(script, { stdio: 'ignore' });
     }
 
     /**

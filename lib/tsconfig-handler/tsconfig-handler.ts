@@ -2,6 +2,7 @@ import {existsSync, readFileSync, writeFileSync} from "fs";
 import {VersionHandler} from "../dependency-installer/version-handler/version-handler";
 import {join} from "path";
 import {TsconfigModel} from "../models/tsconfig.model";
+import {Logger} from "../logger/logger";
 
 const pathToConfigs = join(__dirname, "..", "..", "node_modules", "@tsconfig");
 const defaultConfig = join(__dirname, "tsconfig.default.json");
@@ -35,6 +36,7 @@ export class TsconfigHandler {
    * @param path the path to include for the typescript configuration
    */
   static addConfig = (path: string) => {
+    Logger.info('Adding new TypeScript configuration file');
     const tsconfig = this.getTsconfig();
     if (!existsSync('tsconfig.json')) {
       TsconfigHandler.writeToConfig(
@@ -42,12 +44,14 @@ export class TsconfigHandler {
         tsconfig,
         {include: [path]}
       );
+      Logger.success('Added tsconfig.json file');
     } else {
       TsconfigHandler.writeToConfig(
         'tsconfig.ntts.json',
         tsconfig,
         {include: [path], extends: "./tsconfig.json"}
       );
+      Logger.info('Added tsconfig.ntts.json file');
     }
   }
 }
