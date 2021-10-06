@@ -6,7 +6,7 @@ export class InputValidator {
   static validate(path: string): string|null {
     const fullPath = resolve(path).split('\\').join('/');
     const cwd = process.cwd().split('\\').join('/');
-    if (!existsSync(path)) {
+    if (!existsSync(fullPath)) {
       Logger.error('The given target does not exist!');
       return null;
     }

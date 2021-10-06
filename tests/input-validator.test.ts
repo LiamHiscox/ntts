@@ -33,8 +33,8 @@ test('should parse empty path', () => {
   expect(InputValidator.validate('')).toBe('');
 });
 
-test('should parse empty path', () => {
-  expect(InputValidator.validate('.')).toBe("");
+test('should parse dot path', () => {
+  expect(InputValidator.validate('.')).toBe('');
 });
 
 test('should parse long posix path', () => {
