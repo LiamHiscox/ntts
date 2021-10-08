@@ -58,7 +58,7 @@ export class DependencyInstaller {
   };
 
   private static yarnInstalled = (): boolean => {
-    return /^\d\.\d\.\d.*$/.test(ScriptRunner.runPipe('yarn --version'));
+    return /^\d+\.\d+\.\d+.*$/.test(ScriptRunner.runPipe('yarn --version'));
   }
 
   private static install = (packageName: string, packageManager: PackageManager, version?: string) => {

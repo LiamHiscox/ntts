@@ -2,6 +2,7 @@ import {existsSync, readFileSync, writeFileSync} from "fs";
 import {PackageJsonModel, Scripts} from "../models/package-json.model";
 import {resolve} from "path";
 import {Logger} from "../logger/logger";
+import {FileRename} from "../file-rename/file-rename";
 
 interface NodeCliModel {
   preNodeArguments: string[];
@@ -28,7 +29,7 @@ export class PackageJsonHandler {
         } if (!acc.scriptFile && parameter.startsWith('-')) {
           return {...acc, options: [...acc.options, parameter]};
         } if (!acc.scriptFile) {
-          return {...acc, scriptFile: parameter.replace(/\.[mc]?js$/g, '.ts')};
+          return {...acc, scriptFile: FileRename.renameFileName(parameter)};
         }
         return {...acc, arguments: [...acc.arguments, parameter]};
       }, {preNodeArguments: [], node: false, options: [], arguments: []});
@@ -84,6 +85,17 @@ export class PackageJsonHandler {
   }
 
   /**
+   * @param packageJson the package.json content to change the main target in
+   * @param target the target path to do the refactoring in
+   */
+  static changeMainFile = (packageJson: PackageJsonModel, target: string): PackageJsonModel => {
+    if (packageJson.main && this.fileInTargetPath(target, packageJson.main)) {
+      return {...packageJson, "main": FileRename.renameFileName(packageJson.main)};
+    }
+    return packageJson;
+  }
+
+  /**
    * @param scripts the existing scripts in the package.json
    * @param path the target path to do the refactoring in
    * @returns Scripts the node scripts refactored to support ts-node
@@ -126,7 +138,7 @@ export class PackageJsonHandler {
    */
   static refactorScripts = (target: string) => {
     Logger.info('Adding new scripts to package.json');
-    const packageJson = PackageJsonHandler.readPackageJson();
+    const packageJson = this.changeMainFile(PackageJsonHandler.readPackageJson(), target);
     const scripts = PackageJsonHandler.addTsScripts(packageJson.scripts, target);
     PackageJsonHandler.writePackageJson({...packageJson, scripts});
     Logger.success('Scripts added to package.json!');
