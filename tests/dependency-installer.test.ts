@@ -2,6 +2,7 @@ import * as fse from "fs-extra";
 import {DependencyInstaller} from "../lib/dependency-installer/dependency-installer";
 import {DependencyHandler} from "../lib/dependency-installer/dependency-handler/dependency-handler";
 import {existsSync, readFileSync, unlinkSync} from "fs";
+import {NPM} from "../lib/models/package-manager";
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
@@ -10,8 +11,8 @@ const cwd = process.cwd();
 beforeAll(() => {
     fse.copySync(sample, sampleCopy);
     process.chdir(sampleCopy);
-    DependencyInstaller.installBaseDependencies();
-    DependencyInstaller.installTypeDependencies();
+    DependencyInstaller.installBaseDependencies(NPM);
+    DependencyInstaller.installTypeDependencies(NPM);
 });
 
 afterAll(() => {
@@ -34,7 +35,7 @@ test('should install type definitions', () => {
 
 test('should keep package.json', () => {
     const content = readFileSync('package.json', {encoding: 'utf-8'});
-    DependencyInstaller.addPackageJson();
+    DependencyInstaller.addPackageJson(NPM);
     const contentNew = readFileSync('package.json', {encoding: 'utf-8'});
     expect(content).toEqual(contentNew);
 });
@@ -42,6 +43,6 @@ test('should keep package.json', () => {
 test('should add package.json', () => {
     unlinkSync('package.json');
     expect(existsSync('package.json')).toBeFalsy();
-    DependencyInstaller.addPackageJson();
+    DependencyInstaller.addPackageJson(NPM);
     expect(existsSync('package.json')).toBeTruthy();
 });

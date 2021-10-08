@@ -1,6 +1,7 @@
 import {existsSync, readFileSync, writeFileSync} from "fs";
 import {PackageJsonModel, Scripts} from "../models/package-json.model";
 import {resolve} from "path";
+import {Logger} from "../logger/logger";
 
 interface NodeCliModel {
   preNodeArguments: string[];
@@ -117,5 +118,17 @@ export class PackageJsonHandler {
    */
   static writePackageJson = (packageJson: PackageJsonModel) => {
     writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
+  }
+
+  /**
+   * @param target the target folder to refactor the files in
+   * @description refactors the all node scripts in the package.json that point to a file inside the target folder
+   */
+  static refactorScripts = (target: string) => {
+    Logger.info('Adding new scripts to package.json');
+    const packageJson = PackageJsonHandler.readPackageJson();
+    const scripts = PackageJsonHandler.addTsScripts(packageJson.scripts, target);
+    PackageJsonHandler.writePackageJson({...packageJson, scripts});
+    Logger.success('Scripts added to package.json!');
   }
 }

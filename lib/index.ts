@@ -1,26 +1,23 @@
 import yargs, {Arguments} from 'yargs';
 import {FileRename} from "./file-rename/file-rename";
-import {ScriptRunner} from "./script-runner/script-runner";
 import {DependencyInstaller} from "./dependency-installer/dependency-installer";
 import {TsconfigHandler} from "./tsconfig-handler/tsconfig-handler";
 import {PackageJsonHandler} from "./package-json-handler/package-json-handler";
 import {InputValidator} from "./input-validator/input-validator";
-import {Logger} from "./logger/logger";
+import {PackageManager} from "./models/package-manager";
 
-const basicSetup = () => {
-  Logger.info('Installing existing dependencies');
-  ScriptRunner.runIgnore('npm install');
-  Logger.success('Installed existing dependencies');
+const basicSetup = (packageManager: PackageManager) => {
+  DependencyInstaller.addPackageJson(packageManager);
+  DependencyInstaller.installProject(packageManager);
 }
 
 const renameFiles = (target: string) => {
   FileRename.rename(target);
 }
 
-const installDependencies = () => {
-  DependencyInstaller.addPackageJson();
-  DependencyInstaller.installBaseDependencies();
-  DependencyInstaller.installTypeDependencies();
+const installDependencies = (packageManager: PackageManager) => {
+  DependencyInstaller.installBaseDependencies(packageManager);
+  DependencyInstaller.installTypeDependencies(packageManager);
 }
 
 const addTsconfig = (target: string) => {
@@ -28,19 +25,16 @@ const addTsconfig = (target: string) => {
 }
 
 const addScripts = (target: string) => {
-  Logger.info('Adding new scripts to package.json');
-  const packageJson = PackageJsonHandler.readPackageJson();
-  const scripts = PackageJsonHandler.addTsScripts(packageJson.scripts, target);
-  PackageJsonHandler.writePackageJson({...packageJson, scripts});
-  Logger.success('Scripts added to package.json!');
+  PackageJsonHandler.refactorScripts(target);
 }
 
 const main = (target: string) => {
   const validTarget = InputValidator.validate(target);
   if (validTarget !== null) {
-    basicSetup();
+    const packageManager = DependencyInstaller.getPackageManager();
+    basicSetup(packageManager);
+    installDependencies(packageManager);
     renameFiles(validTarget);
-    installDependencies();
     addTsconfig(validTarget);
     addScripts(validTarget);
   }
