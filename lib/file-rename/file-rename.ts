@@ -17,9 +17,16 @@ export class FileRename {
     Logger.success('All JavaScript files renamed to TypeScript files');
   }
 
+  /**
+   * @param file the filename of the javascript file to change
+   * @returns string returns the formatted filename
+   */
+  static renameFileName(file: string): string {
+    return file.replace(/\.[mc]?js$/g, '.ts');
+  }
+
   private static renameFile(file: string): void {
-    const newFile = file.replace(/\.\w+$/, '.ts');
-    renameSync(file, newFile);
+    renameSync(file, this.renameFileName(file));
   }
 
   private static checkDirectoryEntry = (item: Dirent, path: string, ig: Ignore, ignoreList: string[]) => {
