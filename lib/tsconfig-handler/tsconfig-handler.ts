@@ -42,7 +42,9 @@ export class TsconfigHandler {
       TsconfigHandler.writeToConfig(
         'tsconfig.json',
         tsconfig,
-        {include: [path]}
+        {
+          include: [path]
+        }
       );
       Logger.success('Added tsconfig.json file');
     } else {

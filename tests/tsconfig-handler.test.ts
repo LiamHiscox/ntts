@@ -17,12 +17,12 @@ afterEach(() => {
 });
 
 test('should add a tsconfig.json in root', () => {
-  TsconfigHandler.addConfig('');
+  TsconfigHandler.addConfig('', ignores);
   expect(existsSync('./tsconfig.json'));
 });
 
 test('should add a tsconfig.json in root with path', () => {
-  TsconfigHandler.addConfig('src');
+  TsconfigHandler.addConfig('src', ignores);
   expect(existsSync('./tsconfig.json'));
   const tsconfig = JSON.parse(readFileSync('./tsconfig.json', {encoding: 'utf-8'}));
   expect(tsconfig.include).toEqual(['src']);
@@ -30,13 +30,13 @@ test('should add a tsconfig.json in root with path', () => {
 
 test('should add a tsconfig.ntts.json in root', () => {
   writeFileSync('tsconfig.json', '{}')
-  TsconfigHandler.addConfig('');
+  TsconfigHandler.addConfig('', ignores);
   expect(existsSync('./tsconfig.ntts.json'));
 });
 
 test('should add a tsconfig.ntts.json in root with path', () => {
   writeFileSync('tsconfig.json', '{}')
-  TsconfigHandler.addConfig('src');
+  TsconfigHandler.addConfig('src', ignores);
   expect(existsSync('./tsconfig.ntts.json'));
   const tsconfig = JSON.parse(readFileSync('./tsconfig.ntts.json', {encoding: 'utf-8'}));
   expect(tsconfig.include).toEqual(['src']);
