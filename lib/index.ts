@@ -5,7 +5,7 @@ import {TsconfigHandler} from "./tsconfig-handler/tsconfig-handler";
 import {PackageJsonHandler} from "./package-json-handler/package-json-handler";
 import {InputValidator} from "./input-validator/input-validator";
 import {PackageManager} from "./models/package-manager";
-import {IgnoreConfigParser} from "./file-rename/ignore-config-parser/ignore-config-parser";
+import {IgnoreConfigParser} from "./ignore-config-parser/ignore-config-parser";
 import {CodeRefactor} from "./code-refactor/code-refactor";
 import {Project} from "ts-morph";
 
