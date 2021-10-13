@@ -2,6 +2,7 @@ import {FileRename} from "../lib/file-rename/file-rename";
 import * as fse from "fs-extra";
 import {writeFileSync} from "fs";
 import globby from "globby";
+import {IgnoreConfigParser} from "../lib/ignore-config-parser/ignore-config-parser";
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
@@ -18,20 +19,23 @@ afterEach(() => {
 });
 
 test('should rename a single file', () => {
-  FileRename.rename('src');
+  const ignores = IgnoreConfigParser.getIgnores();
+  FileRename.rename('src', ignores);
   expect(globby.sync(["**/*.ts"]).sort())
     .toEqual(["src/index.ts"].sort());
 });
 
 test('should not rename config file', () => {
   writeFileSync('.gitignore', '*.config.js');
-  FileRename.rename('.');
+  const ignores = IgnoreConfigParser.getIgnores();
+  FileRename.rename('.', ignores);
   expect(globby.sync(["**/*.ts"]).sort())
     .toEqual(["src/index.ts", "js-ts.ts"].sort());
 });
 
 test('should rename all files recursively', () => {
-  FileRename.rename('.');
+  const ignores = IgnoreConfigParser.getIgnores();
+  FileRename.rename('.', ignores);
   expect(globby.sync(["**/*.ts"]).sort())
     .toEqual(["src/index.ts", "js-ts.ts", "babel.config.ts"].sort());
 });

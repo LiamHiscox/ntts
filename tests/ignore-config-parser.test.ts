@@ -1,5 +1,5 @@
 import * as fse from "fs-extra";
-import {IgnoreConfigParser} from "../lib/file-rename/ignore-config-parser/ignore-config-parser";
+import {IgnoreConfigParser} from "../lib/ignore-config-parser/ignore-config-parser";
 import {writeFileSync} from "fs";
 
 const sampleCopy = 'tests/sample-copy';
@@ -20,6 +20,7 @@ test('should parse a .gitignore file correctly', () => {
   const result = IgnoreConfigParser.getIgnores();
   expect(result.sort()).toEqual([
     "node_modules/",
+    "node_modules/",
     "*.log",
     "!index.log",
     "/temp/test/"
@@ -29,5 +30,5 @@ test('should parse a .gitignore file correctly', () => {
 test('should parse a .nttsignore file correctly', () => {
   writeFileSync('.nttsignore', '*.config.js');
   const result = IgnoreConfigParser.getIgnores();
-  expect(result).toEqual(["*.config.js"]);
+  expect(result).toEqual(["*.config.js", "node_modules/"]);
 })

@@ -5,14 +5,17 @@ import {TsconfigHandler} from "./tsconfig-handler/tsconfig-handler";
 import {PackageJsonHandler} from "./package-json-handler/package-json-handler";
 import {InputValidator} from "./input-validator/input-validator";
 import {PackageManager} from "./models/package-manager";
+import {IgnoreConfigParser} from "./ignore-config-parser/ignore-config-parser";
+import {CodeRefactor} from "./code-refactor/code-refactor";
+import {Project} from "ts-morph";
 
 const basicSetup = (packageManager: PackageManager) => {
   DependencyInstaller.addPackageJson(packageManager);
   DependencyInstaller.installProject(packageManager);
 }
 
-const renameFiles = (target: string) => {
-  FileRename.rename(target);
+const renameFiles = (target: string, ignores: string[]) => {
+  FileRename.rename(target, ignores);
 }
 
 const installDependencies = (packageManager: PackageManager) => {
@@ -20,13 +23,19 @@ const installDependencies = (packageManager: PackageManager) => {
   DependencyInstaller.installTypeDependencies(packageManager);
 }
 
-const addTsconfig = (target: string) => {
-  TsconfigHandler.addConfig(target);
+const addTsconfig = (target: string, ignores: string[]) => {
+  TsconfigHandler.addConfig(target, ignores);
 }
 
 const addScripts = (target: string) => {
   PackageJsonHandler.refactorScripts(target);
 }
+
+const refactorJSCode = (target: string, ignores: string[]) => {
+  const project = CodeRefactor.addSourceFiles(new Project(), ignores, target);
+  project.getSourceFiles()
+}
+
 
 const main = (target: string) => {
   const validTarget = InputValidator.validate(target);
@@ -34,9 +43,11 @@ const main = (target: string) => {
     const packageManager = DependencyInstaller.getPackageManager();
     basicSetup(packageManager);
     installDependencies(packageManager);
-    renameFiles(validTarget);
-    addTsconfig(validTarget);
+    const ignores = IgnoreConfigParser.getIgnores();
+    renameFiles(validTarget, ignores);
+    addTsconfig(validTarget, ignores);
     addScripts(validTarget);
+    refactorJSCode(validTarget, ignores);
   }
 }
 
