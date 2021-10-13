@@ -6,7 +6,7 @@ import {join} from "path";
 export class CodeRefactor {
   static addSourceFiles = (project: Project, ignores: string[], path: string): Project => {
     const ig = ignore().add(ignores);
-    this.readDirectory(project, path, ig);
+    this.readDirectory(project, path || '.', ig);
     return project;
   }
 

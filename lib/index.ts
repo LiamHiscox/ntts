@@ -8,7 +8,6 @@ import {PackageManager} from "./models/package-manager";
 import {IgnoreConfigParser} from "./file-rename/ignore-config-parser/ignore-config-parser";
 import {CodeRefactor} from "./code-refactor/code-refactor";
 import {Project} from "ts-morph";
-import {join} from "path";
 
 const basicSetup = (packageManager: PackageManager) => {
   DependencyInstaller.addPackageJson(packageManager);
@@ -24,36 +23,31 @@ const installDependencies = (packageManager: PackageManager) => {
   DependencyInstaller.installTypeDependencies(packageManager);
 }
 
-const addTsconfig = (target: string) => {
-  TsconfigHandler.addConfig(target);
+const addTsconfig = (target: string, ignores: string[]) => {
+  TsconfigHandler.addConfig(target, ignores);
 }
 
 const addScripts = (target: string) => {
   PackageJsonHandler.refactorScripts(target);
 }
 
-const refactorJSCode = (ignores: string[], target: string) => {
+const refactorJSCode = (target: string, ignores: string[]) => {
   const project = CodeRefactor.addSourceFiles(new Project(), ignores, target);
-  project.getSourceFiles().forEach(file => {
-    console.log(join(file.getFilePath(), file.getBaseName()));
-  })
+  project.getSourceFiles()
 }
 
 
 const main = (target: string) => {
   const validTarget = InputValidator.validate(target);
   if (validTarget !== null) {
-    if (false) {
-      const packageManager = DependencyInstaller.getPackageManager();
-      basicSetup(packageManager);
-      installDependencies(packageManager);
-      const ignores = IgnoreConfigParser.getIgnores();
-      renameFiles(validTarget!, ignores);
-      addTsconfig(validTarget!);
-      addScripts(validTarget!);
-    }
+    const packageManager = DependencyInstaller.getPackageManager();
+    basicSetup(packageManager);
+    installDependencies(packageManager);
     const ignores = IgnoreConfigParser.getIgnores();
-    refactorJSCode(ignores, validTarget);
+    renameFiles(validTarget, ignores);
+    addTsconfig(validTarget, ignores);
+    addScripts(validTarget);
+    refactorJSCode(validTarget, ignores);
   }
 }
 

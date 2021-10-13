@@ -1,8 +1,9 @@
-import {existsSync, readFileSync, writeFileSync} from "fs";
+import {readFileSync, writeFileSync} from "fs";
 import {PackageJsonModel, Scripts} from "../models/package-json.model";
 import {resolve} from "path";
 import {Logger} from "../logger/logger";
 import {FileRename} from "../file-rename/file-rename";
+import {TsconfigHandler} from "../tsconfig-handler/tsconfig-handler";
 
 interface NodeCliModel {
   preNodeArguments: string[];
@@ -80,10 +81,6 @@ export class PackageJsonHandler {
     return {...scripts, [name]: script};
   }
 
-  private static tsconfigFileName = () => {
-    return existsSync('tsconfig.ntts.json') ? 'tsconfig.ntts.json' : 'tsconfig.json';
-  }
-
   /**
    * @param packageJson the package.json content to change the main target in
    * @param target the target path to do the refactoring in
@@ -101,7 +98,7 @@ export class PackageJsonHandler {
    * @returns Scripts the node scripts refactored to support ts-node
    */
   static addTsScripts = (scripts: Scripts, path: string): Scripts => {
-    const tsconfig = this.tsconfigFileName();
+    const tsconfig = TsconfigHandler.tsconfigFileName();
     const watchScripts = this.addTscScriptName(scripts, 'tsc-watch', `tsc -w -p ${tsconfig}`);
     const fullScripts = this.addTscScriptName(watchScripts, 'tsc-build', `tsc -p ${tsconfig}`);
     return Object

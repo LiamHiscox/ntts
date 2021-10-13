@@ -33,9 +33,17 @@ export class TsconfigHandler {
   }
 
   /**
-   * @param path the path to include for the typescript configuration
+   * @returns string returns the name of the tsconfig file to use
    */
-  static addConfig = (path: string) => {
+  static tsconfigFileName = (): string => {
+    return existsSync('tsconfig.ntts.json') ? 'tsconfig.ntts.json' : 'tsconfig.json';
+  }
+
+  /**
+   * @param path the path to include for the typescript configuration
+   * @param ignores the files and directories to ignore while renaming the javascript files
+   */
+  static addConfig = (path: string, ignores: string[]) => {
     Logger.info('Adding new TypeScript configuration file');
     const tsconfig = this.getTsconfig();
     if (!existsSync('tsconfig.json')) {
@@ -43,7 +51,8 @@ export class TsconfigHandler {
         'tsconfig.json',
         tsconfig,
         {
-          include: [path]
+          include: [path],
+          exclude: ignores
         }
       );
       Logger.success('Added tsconfig.json file');
@@ -51,7 +60,11 @@ export class TsconfigHandler {
       TsconfigHandler.writeToConfig(
         'tsconfig.ntts.json',
         tsconfig,
-        {include: [path], extends: "./tsconfig.json"}
+        {
+          include: [path],
+          exclude: ignores,
+          extends: "./tsconfig.json"
+        }
       );
       Logger.info('Added tsconfig.ntts.json file');
     }

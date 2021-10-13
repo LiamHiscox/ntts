@@ -7,6 +7,13 @@ const defaultIgnore = ["node_modules/"];
 
 export class IgnoreConfigParser {
   /**
+   * @param ignores the content of the given ignore file
+   */
+  static filterIgnores = (ignores: string[]): string[] => {
+    return ignores.filter(ignore => ignore.startsWith('!'));
+  }
+
+  /**
    * @returns string[] returns all ignores of the root .nttsignore or .gitignore if provided
    */
   static getIgnores = (): string[] => {
