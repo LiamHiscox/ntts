@@ -4,6 +4,10 @@ import ignore, {Ignore} from "ignore";
 import {join} from "path";
 
 export class CodeRefactor {
+  static convertToTypescript = () => {
+
+  }
+
   static addSourceFiles = (project: Project, ignores: string[], path: string): Project => {
     const ig = ignore().add(ignores);
     this.readDirectory(project, path || '.', ig);
