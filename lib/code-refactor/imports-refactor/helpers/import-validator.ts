@@ -1,17 +1,25 @@
-import {BindingElement, ObjectBindingPattern, SyntaxKind, VariableDeclaration} from "ts-morph";
+import {
+  BindingElement,
+  CallExpression,
+  ObjectBindingPattern,
+  StringLiteral,
+  SyntaxKind,
+  VariableDeclaration
+} from "ts-morph";
 import {WriteAccessChecker} from "./write-access-checker";
 
 export class ImportValidator {
+  static callExpressionFirstArgument (callExpression: CallExpression): string {
+    return (callExpression.getArguments()[0] as StringLiteral).getLiteralValue();
+  }
+
   static isValidImport = (declaration: VariableDeclaration): boolean => {
     const nameNode = declaration.getNameNode();
     switch (nameNode.getKind()) {
       case SyntaxKind.Identifier:
-        return WriteAccessChecker.hasValueChanged(declaration);
+        return !WriteAccessChecker.hasValueChanged(declaration);
       case SyntaxKind.ObjectBindingPattern:
-        if (this.validDestructingFormat((nameNode as ObjectBindingPattern))) {
-          return WriteAccessChecker.hasValueChanged(declaration);
-        }
-        return false;
+        return this.validDestructingFormat((nameNode as ObjectBindingPattern)) && !WriteAccessChecker.hasValueChanged(declaration);
       case SyntaxKind.ArrayBindingPattern:
       default:
         return false;
@@ -23,5 +31,13 @@ export class ImportValidator {
       .getElements()
       .reduce((valid: boolean, element: BindingElement) =>
         valid && !element.getDotDotDotToken() && !!element.getNameNode().asKind(SyntaxKind.Identifier), true)
+  }
+
+  static validRequire = (initializer: CallExpression): boolean => {
+    const argumentList = initializer.getArguments();
+    return (/^require[ \t]*\(.*?\)$/).test(initializer.getText().trim())
+      && argumentList
+      && argumentList.length > 0
+      && argumentList[0].getKind() === SyntaxKind.StringLiteral;
   }
 }

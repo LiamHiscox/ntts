@@ -30,7 +30,7 @@ export class WriteAccessChecker {
   }
 
   private static referencesHaveWriteAccess(referenceEntries: ReferenceEntry[]): boolean {
-    return referenceEntries.reduce((acc: boolean, {isDefinition, isWriteAccess}) =>
-      acc || (!isDefinition() && isWriteAccess()), false);
+    return referenceEntries.reduce((acc: boolean, entry) =>
+      acc || (!entry.isDefinition() && entry.isWriteAccess()), false);
   }
 }

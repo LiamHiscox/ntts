@@ -1,81 +1,40 @@
-import {
-  CallExpression,
-  Node,
-  SourceFile,
-  StringLiteral,
-  SyntaxKind,
-  VariableDeclaration,
-  VariableDeclarationKind,
-  VariableStatement
-} from "ts-morph";
-import {VariableNameGenerator} from "./helpers/variable-name-generator";
+import {CallExpression, ExpressionStatement, Node, SourceFile, SyntaxKind, VariableDeclaration} from "ts-morph";
 import {ImportValidator} from "./helpers/import-validator";
+import {BinaryImportsRefactor} from "./binary-import-refactor/binary-imports-refactor";
+import {ExpressionImportsRefactor} from "./expression-import-refactor/expression-imports-refactor";
+import {CallImportsRefactor} from "./call-import-refactor/call-imports-refactor";
+import {DeclarationImportRefactor} from "./declaration-import-refactor/declaration-import-refactor";
 
 export class ImportsRefactor {
-  static requiresToImports(sourceFile: SourceFile) {
-    sourceFile
-      .getVariableStatements()
-      .forEach(statement => ImportsRefactor.forEachVariableDeclarations(statement, sourceFile));
-  }
-
-  private static forEachVariableDeclarations(statement: VariableStatement, sourceFile: SourceFile) {
-    statement
-      .getDeclarations()
-      .forEach(declaration => ImportsRefactor.refactorVariableDeclarations(declaration, statement.getDeclarationKind(), sourceFile));
-  }
-
-  private static refactorVariableDeclarations(declaration: VariableDeclaration, declarationKind: VariableDeclarationKind, sourceFile: SourceFile) {
-    const initializer = declaration.getInitializerIfKind(SyntaxKind.CallExpression);
-    if (initializer && ImportsRefactor.isRequire(initializer)) {
-      ImportsRefactor.refactorValidRequire(initializer.getArguments(), declaration, declarationKind, sourceFile);
+  static requireToImport(node: Node, sourceFile: SourceFile): boolean {
+    if (
+      node.getKind() === SyntaxKind.CallExpression
+      && ImportValidator.validRequire(node as CallExpression)
+    ) {
+      this.refactorCallExpression(node as CallExpression, sourceFile);
+      return true;
     }
+    return false;
   }
 
-  private static refactorValidRequire(
-    argumentList: Node[],
-    declaration: VariableDeclaration,
-    declarationKind: VariableDeclarationKind,
-    sourceFile: SourceFile
-  ) {
-    if (argumentList && argumentList.length > 0 && argumentList[0].getKind() === SyntaxKind.StringLiteral) {
-      const importId = (argumentList[0] as StringLiteral).getLiteralValue();
-      this.addValidImport(importId, sourceFile, declarationKind, declaration);
-      declaration.remove();
+  private static refactorCallExpression(callExpression: CallExpression, sourceFile: SourceFile) {
+    const importId = ImportValidator.callExpressionFirstArgument(callExpression);
+
+    switch (callExpression.getParent()?.getKind()) {
+      case SyntaxKind.BinaryExpression:
+        BinaryImportsRefactor.addBinaryExpressionImport(callExpression, importId, sourceFile);
+        break;
+      case SyntaxKind.ExpressionStatement:
+        const expression = callExpression.getParent()! as ExpressionStatement;
+        ExpressionImportsRefactor.addExpressionStatementImport(expression, importId, sourceFile)
+        break;
+      case SyntaxKind.CallExpression:
+        CallImportsRefactor.addCallExpressionImport(callExpression, importId, sourceFile)
+        break;
+      case SyntaxKind.VariableDeclaration:
+        const declaration = callExpression.getParent()! as VariableDeclaration;
+        DeclarationImportRefactor.addVariableDeclarationImport(declaration, importId, sourceFile);
+        break;
     }
-  }
-
-  private static addValidImport(
-    importId: string,
-    sourceFile: SourceFile,
-    declarationKind: VariableDeclarationKind,
-    declaration: VariableDeclaration
-  ) {
-    const importName = declaration.getName();
-    if (ImportValidator.isValidImport(declaration)) {
-      sourceFile.addImportDeclaration({
-        defaultImport: importName,
-        moduleSpecifier: importId
-      });
-    } else {
-      const moduleVariableName = VariableNameGenerator.variableNameFromImportId(importId);
-      const variableName = VariableNameGenerator.getUsableVariableName(moduleVariableName, sourceFile);
-      const importDeclaration = sourceFile.addImportDeclaration({
-        defaultImport: variableName,
-        moduleSpecifier: importId
-      });
-      const index = importDeclaration.getEndLineNumber() + 1;
-      sourceFile.insertVariableStatement(index, {
-        declarationKind,
-        declarations: [{
-          name: importName,
-          initializer: variableName,
-        }],
-      })
-    }
-  }
-
-  private static isRequire = (initializer: CallExpression): boolean => {
-    const identifiers = initializer.getChildrenOfKind(SyntaxKind.Identifier);
-    return identifiers.length === 1 && identifiers[0].getText() === 'require';
   }
 }
