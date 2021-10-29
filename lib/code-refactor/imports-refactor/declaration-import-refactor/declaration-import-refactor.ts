@@ -1,6 +1,7 @@
 import {SourceFile, VariableDeclaration} from "ts-morph";
 import {ImportValidator} from "../helpers/import-validator";
 import {VariableNameGenerator} from "../helpers/variable-name-generator";
+import {ImportCreator} from "../helpers/import-creator";
 
 export class DeclarationImportRefactor {
 
@@ -9,21 +10,14 @@ export class DeclarationImportRefactor {
     importId: string,
     sourceFile: SourceFile
   ) {
-    const importName = declaration.getName();
     if (ImportValidator.isValidImport(declaration)) {
-      sourceFile.addImportDeclaration({
-        defaultImport: importName,
-        moduleSpecifier: importId
-      });
+      ImportCreator.addImport(declaration.getNameNode(), importId, sourceFile);
       declaration.remove();
     } else {
       const moduleVariableName = VariableNameGenerator.variableNameFromImportId(importId);
       const variableName = VariableNameGenerator.getUsableVariableName(moduleVariableName, sourceFile);
-      sourceFile.addImportDeclaration({
-        defaultImport: variableName,
-        moduleSpecifier: importId
-      });
-      declaration.setInitializer(variableName)
+      const defaultImport = ImportCreator.addSimpleImport(variableName, importId, sourceFile);
+      declaration.setInitializer(defaultImport)
     }
   }
 }
