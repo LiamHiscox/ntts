@@ -1,4 +1,4 @@
-import {Node, Project, SourceFile} from "ts-morph";
+import {Project, SourceFile} from "ts-morph";
 import {Dirent, readdirSync} from "fs";
 import ignore, {Ignore} from "ignore";
 import {join} from "path";
@@ -6,18 +6,11 @@ import {ImportsRefactor} from "./imports-refactor/imports-refactor";
 
 export class CodeRefactor {
   static convertToTypescript = (sourceFile: SourceFile) => {
-    const children = sourceFile.getChildSyntaxList()?.getChildren();
-    if (children) {
-      this.refactor(children, sourceFile);
-    }
-  }
-
-  private static refactor = (nodes: Node[], sourceFile: SourceFile) => {
-    nodes.forEach(node => {
-      if (!node.wasForgotten() && !ImportsRefactor.requireToImport(node, sourceFile)) {
-        this.refactor(node.getChildren(), sourceFile);
+    sourceFile.getDescendants().forEach(node => {
+      if (!node.wasForgotten()) {
+        ImportsRefactor.requireToImport(node, sourceFile);
       }
-    });
+    })
   }
 
   static addSourceFiles = (project: Project, ignores: string[], path: string): Project => {

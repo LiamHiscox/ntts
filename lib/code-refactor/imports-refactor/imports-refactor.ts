@@ -6,15 +6,11 @@ import {CallImportsRefactor} from "./call-import-refactor/call-imports-refactor"
 import {DeclarationImportRefactor} from "./declaration-import-refactor/declaration-import-refactor";
 
 export class ImportsRefactor {
-  static requireToImport(node: Node, sourceFile: SourceFile): boolean {
-    if (
-      node.getKind() === SyntaxKind.CallExpression
-      && ImportValidator.validRequire(node as CallExpression)
-    ) {
-      this.refactorCallExpression(node as CallExpression, sourceFile);
-      return true;
+  static requireToImport(node: Node, sourceFile: SourceFile) {
+    const callExpression = node.asKind(SyntaxKind.CallExpression);
+    if (callExpression && ImportValidator.validRequire(callExpression)) {
+      this.refactorCallExpression(callExpression, sourceFile);
     }
-    return false;
   }
 
   private static refactorCallExpression(callExpression: CallExpression, sourceFile: SourceFile) {
