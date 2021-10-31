@@ -8,8 +8,8 @@ import {DeclarationImportRefactor} from "./declaration-import-refactor/declarati
 export class ImportsRefactor {
   static requiresToImports(sourceFile: SourceFile) {
     sourceFile.getDescendants().forEach(node => {
-      const callExpression = node.asKind(SyntaxKind.CallExpression);
-      if (!node.wasForgotten() && callExpression && ImportValidator.validRequire(callExpression)) {
+      const callExpression = !node.wasForgotten() ? node.asKind(SyntaxKind.CallExpression) : undefined;
+      if (callExpression && ImportValidator.validRequire(callExpression)) {
         this.refactorCallExpression(callExpression, sourceFile);
       }
     })
