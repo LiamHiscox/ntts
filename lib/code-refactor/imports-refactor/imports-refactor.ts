@@ -1,4 +1,4 @@
-import {CallExpression, ExpressionStatement, Node, SourceFile, SyntaxKind, VariableDeclaration} from "ts-morph";
+import {CallExpression, ExpressionStatement, SourceFile, SyntaxKind, VariableDeclaration} from "ts-morph";
 import {ImportValidator} from "./helpers/import-validator";
 import {BinaryImportsRefactor} from "./binary-import-refactor/binary-imports-refactor";
 import {ExpressionImportsRefactor} from "./expression-import-refactor/expression-imports-refactor";
@@ -6,11 +6,13 @@ import {CallImportsRefactor} from "./call-import-refactor/call-imports-refactor"
 import {DeclarationImportRefactor} from "./declaration-import-refactor/declaration-import-refactor";
 
 export class ImportsRefactor {
-  static requireToImport(node: Node, sourceFile: SourceFile) {
-    const callExpression = node.asKind(SyntaxKind.CallExpression);
-    if (callExpression && ImportValidator.validRequire(callExpression)) {
-      this.refactorCallExpression(callExpression, sourceFile);
-    }
+  static requiresToImports(sourceFile: SourceFile) {
+    sourceFile.getDescendants().forEach(node => {
+      const callExpression = node.asKind(SyntaxKind.CallExpression);
+      if (!node.wasForgotten() && callExpression && ImportValidator.validRequire(callExpression)) {
+        this.refactorCallExpression(callExpression, sourceFile);
+      }
+    })
   }
 
   private static refactorCallExpression(callExpression: CallExpression, sourceFile: SourceFile) {

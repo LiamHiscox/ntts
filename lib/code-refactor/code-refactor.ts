@@ -3,14 +3,12 @@ import {Dirent, readdirSync} from "fs";
 import ignore, {Ignore} from "ignore";
 import {join} from "path";
 import {ImportsRefactor} from "./imports-refactor/imports-refactor";
+import {ClassRefactor} from "./class-refactor/class-refactor";
 
 export class CodeRefactor {
   static convertToTypescript = (sourceFile: SourceFile) => {
-    sourceFile.getDescendants().forEach(node => {
-      if (!node.wasForgotten()) {
-        ImportsRefactor.requireToImport(node, sourceFile);
-      }
-    })
+    ImportsRefactor.requiresToImports(sourceFile);
+    ClassRefactor.toTypeScriptClasses(sourceFile);
   }
 
   static addSourceFiles = (project: Project, ignores: string[], path: string): Project => {
