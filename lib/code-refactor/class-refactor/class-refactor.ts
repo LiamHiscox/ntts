@@ -1,5 +1,19 @@
-import {ClassDeclaration, ClassExpression, Node, Scope, SourceFile, SyntaxKind} from "ts-morph";
+import {
+  ClassDeclaration,
+  ClassExpression,
+  ClassStaticBlockDeclaration,
+  GetAccessorDeclaration,
+  MethodDeclaration,
+  Node,
+  PropertyDeclaration,
+  Scope,
+  SetAccessorDeclaration,
+  SourceFile,
+  SyntaxKind
+} from "ts-morph";
 import {MethodFunctionHandler} from "./method-function-handler/method-function-handler";
+
+type NamedMember = MethodDeclaration | PropertyDeclaration | GetAccessorDeclaration | SetAccessorDeclaration | ClassStaticBlockDeclaration;
 
 export class ClassRefactor {
   static toTypeScriptClasses(sourceFile: SourceFile) {
@@ -48,8 +62,18 @@ export class ClassRefactor {
     }
   }
 
+  private static getDeclaredMembers(_class: ClassExpression | ClassDeclaration): string[] {
+    return _class.getMembers().map((p) => {
+      if (p.getKind() === SyntaxKind.Constructor) {
+        return 'constructor';
+      }
+      return (p as NamedMember).getName();
+    });
+
+  }
+
   private static addMissingProperties(_class: ClassExpression | ClassDeclaration) {
-    const declaredPropertyNames = _class.getProperties().map(p => p.getName());
+    const declaredMemberNames = this.getDeclaredMembers(_class);
     _class
       .getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)
       .reduce((declared, propertyAccess) => {
@@ -59,6 +83,6 @@ export class ClassRefactor {
           return declared.concat(name);
         }
         return declared;
-      }, declaredPropertyNames)
+      }, declaredMemberNames)
   }
 }

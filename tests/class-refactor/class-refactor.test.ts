@@ -20,6 +20,10 @@ class Car {
     return this.#year;
   }
 
+  showDoubleYear () {
+    return this.#doubleYear();
+  }
+
   #doubleYear () {
     return this.#year * 2;
   }
@@ -51,6 +55,10 @@ const expectedContent =
 
   get showYear () {
     return this.year;
+  }
+
+  showDoubleYear () {
+    return this.doubleYear();
   }
 
   private doubleYear () {
