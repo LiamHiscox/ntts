@@ -9,7 +9,7 @@ import {
 import {WriteAccessChecker} from "./write-access-checker";
 
 export class ImportValidator {
-  static callExpressionFirstArgument (callExpression: CallExpression): string {
+  static callExpressionFirstArgument(callExpression: CallExpression): string {
     return (callExpression.getArguments()[0] as StringLiteral).getLiteralValue();
   }
 
@@ -19,19 +19,34 @@ export class ImportValidator {
       case SyntaxKind.Identifier:
         return !WriteAccessChecker.hasValueChanged(declaration);
       case SyntaxKind.ObjectBindingPattern:
-        return this.validDestructingFormat((nameNode as ObjectBindingPattern)) && !WriteAccessChecker.hasValueChanged(declaration);
+        return this.validDestructingFormat((nameNode as ObjectBindingPattern))
+          && !WriteAccessChecker.hasValueChanged(declaration);
       case SyntaxKind.ArrayBindingPattern:
       default:
         return false;
     }
   }
 
+  private static validPropertyNameNode(element: BindingElement): boolean {
+    const nameNode = element.getPropertyNameNode();
+    return !nameNode
+      || !!nameNode.asKind(SyntaxKind.Identifier)
+      || !!nameNode.asKind(SyntaxKind.StringLiteral)?.getLiteralValue()
+      || !!nameNode
+        .asKind(SyntaxKind.ComputedPropertyName)
+        ?.getFirstChildByKind(SyntaxKind.StringLiteral)
+        ?.getLiteralValue();
+  }
+
   private static validDestructingFormat(nameNode: ObjectBindingPattern) {
     return nameNode
       .getElements()
       .reduce((valid: boolean, element: BindingElement) =>
-        valid && !element.getDotDotDotToken()
-        && !!element.getNameNode().asKind(SyntaxKind.Identifier), true)
+          valid
+          && !element.getDotDotDotToken()
+          && !!element.getNameNode().asKind(SyntaxKind.Identifier)
+          && this.validPropertyNameNode(element)
+        , true)
   }
 
   static validRequire = (initializer: CallExpression): boolean => {

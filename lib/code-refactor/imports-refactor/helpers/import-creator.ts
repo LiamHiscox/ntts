@@ -1,4 +1,12 @@
-import {BindingName, Identifier, ImportDeclaration, ObjectBindingPattern, SourceFile, SyntaxKind} from "ts-morph";
+import {
+  BindingElement,
+  BindingName,
+  Identifier,
+  ImportDeclaration,
+  ObjectBindingPattern,
+  SourceFile,
+  SyntaxKind
+} from "ts-morph";
 
 export class ImportCreator {
   static addSimpleImport(importName: string, moduleSpecifier: string, sourceFile: SourceFile): string {
@@ -30,6 +38,29 @@ export class ImportCreator {
     }
   }
 
+  private static getPropertyName(element: BindingElement): string|undefined {
+    const nameNode = element.getPropertyNameNode();
+    if (!nameNode) return;
+    return nameNode.asKind(SyntaxKind.Identifier)?.getText()
+      || nameNode.asKind(SyntaxKind.StringLiteral)?.getLiteralValue()
+      || nameNode.asKind(SyntaxKind.ComputedPropertyName)
+        ?.getFirstChildByKind(SyntaxKind.StringLiteral)
+        ?.getLiteralValue()
+  }
+
+  private static getNamedImports(objectBinding: ObjectBindingPattern): string[] {
+    return objectBinding
+      .getElements()
+      .map(binding => {
+        const propertyName = this.getPropertyName(binding);
+        const bindingName = (binding.getNameNode() as Identifier).getText();
+        if (propertyName) {
+          return `${propertyName} as ${bindingName}`;
+        }
+        return bindingName;
+      });
+  }
+
   private static addNamedImportStatement(
     importDeclaration: ImportDeclaration | undefined,
     objectBinding: ObjectBindingPattern,
@@ -37,7 +68,7 @@ export class ImportCreator {
     sourceFile: SourceFile
   ) {
     const existingNamedImports = importDeclaration?.getNamedImports().map(named => named.getNameNode().getText());
-    const namedImports = objectBinding.getElements().map(binding => (binding.getNameNode() as Identifier).getText());
+    const namedImports = this.getNamedImports(objectBinding);
     if (namedImports.length <= 0) {
       return;
     } else if (importDeclaration && existingNamedImports) {
