@@ -30,7 +30,8 @@ export class ImportValidator {
     return nameNode
       .getElements()
       .reduce((valid: boolean, element: BindingElement) =>
-        valid && !element.getDotDotDotToken() && !!element.getNameNode().asKind(SyntaxKind.Identifier), true)
+        valid && !element.getDotDotDotToken()
+        && !!element.getNameNode().asKind(SyntaxKind.Identifier), true)
   }
 
   static validRequire = (initializer: CallExpression): boolean => {
