@@ -32,3 +32,27 @@ test('should refactor empty object require', () => {
   ImportsRefactor.requiresToImports(sourceFile);
   expect(sourceFile.getText()).toEqual('');
 });
+
+test('should refactor simple name binding require', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'const {name: rename} = require("ts-morph");', {overwrite: true});
+  ImportsRefactor.requiresToImports(sourceFile);
+  expect(sourceFile.getText()).toEqual('import { name as rename } from "ts-morph";');
+});
+
+test('should refactor string literal binding require', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'const {"name": rename} = require("ts-morph");', {overwrite: true});
+  ImportsRefactor.requiresToImports(sourceFile);
+  expect(sourceFile.getText()).toEqual('import { name as rename } from "ts-morph";');
+});
+
+test('should refactor computed property binding require', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'const {["name"]: rename} = require("ts-morph");', {overwrite: true});
+  ImportsRefactor.requiresToImports(sourceFile);
+  expect(sourceFile.getText()).toEqual('import { name as rename } from "ts-morph";');
+});
+
+test('should refactor invalid computed property binding require', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'const value = "name";\nconst {[value]: rename} = require("ts-morph");', {overwrite: true});
+  ImportsRefactor.requiresToImports(sourceFile);
+  expect(sourceFile.getText()).toEqual('import ts_morph from "ts-morph";\n\nconst value = "name";\nconst {[value]: rename} = ts_morph;');
+});
