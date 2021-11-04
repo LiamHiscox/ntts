@@ -9,6 +9,13 @@ import {
 } from "ts-morph";
 
 export class ImportCreator {
+  static addEmptyImport(moduleSpecifier: string, sourceFile: SourceFile) {
+    const importDeclaration = sourceFile.getImportDeclaration(moduleSpecifier);
+    if (!importDeclaration) {
+      sourceFile.addImportDeclaration({moduleSpecifier});
+    }
+  }
+
   static addSimpleImport(importName: string, moduleSpecifier: string, sourceFile: SourceFile): string {
     const importDeclaration = sourceFile.getImportDeclaration(moduleSpecifier);
     const defaultImport = importDeclaration?.getDefaultImport()?.getText();

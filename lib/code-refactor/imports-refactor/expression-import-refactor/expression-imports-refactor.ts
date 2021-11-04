@@ -1,5 +1,4 @@
 import {ExpressionStatement, SourceFile} from "ts-morph";
-import {VariableNameGenerator} from "../helpers/variable-name-generator";
 import {ImportCreator} from "../helpers/import-creator";
 
 export class ExpressionImportsRefactor {
@@ -8,9 +7,7 @@ export class ExpressionImportsRefactor {
     importId: string,
     sourceFile: SourceFile,
   ) {
-    const moduleVariableName = VariableNameGenerator.variableNameFromImportId(importId);
-    const variableName = VariableNameGenerator.getUsableVariableName(moduleVariableName, sourceFile);
-    ImportCreator.addSimpleImport(variableName, importId, sourceFile);
+    ImportCreator.addEmptyImport(importId, sourceFile);
     expression.remove();
   }
 }

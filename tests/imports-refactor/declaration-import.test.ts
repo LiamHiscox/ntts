@@ -56,3 +56,9 @@ test('should refactor invalid computed property binding require', () => {
   ImportsRefactor.requiresToImports(sourceFile);
   expect(sourceFile.getText()).toEqual('import ts_morph from "ts-morph";\n\nconst value = "name";\nconst {[value]: rename} = ts_morph;');
 });
+
+test('should import different file type', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'const json = require("./file.json");', {overwrite: true});
+  ImportsRefactor.requiresToImports(sourceFile);
+  expect(sourceFile.getText()).toEqual('import json from "./file.json";');
+});
