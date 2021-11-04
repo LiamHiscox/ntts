@@ -4,7 +4,6 @@ import {
   ClassStaticBlockDeclaration,
   GetAccessorDeclaration,
   MethodDeclaration,
-  Node,
   PropertyDeclaration,
   Scope,
   SetAccessorDeclaration,
@@ -13,25 +12,19 @@ import {
 } from "ts-morph";
 import {MethodFunctionHandler} from "./method-function-handler/method-function-handler";
 
-type NamedMember = MethodDeclaration | PropertyDeclaration | GetAccessorDeclaration | SetAccessorDeclaration | ClassStaticBlockDeclaration;
+type NamedMember =
+  MethodDeclaration
+  | PropertyDeclaration
+  | GetAccessorDeclaration
+  | SetAccessorDeclaration
+  | ClassStaticBlockDeclaration;
 
 export class ClassRefactor {
   static toTypeScriptClasses(sourceFile: SourceFile) {
     this.getClassDescendants(sourceFile).forEach(_class => {
       this.addMissingProperties(_class);
-      this.refactorClass(_class.getPos(), this.getClassKind(_class), sourceFile);
+      this.refactorClass(_class);
     });
-  }
-
-  private static getClassKind(node: Node): SyntaxKind.ClassExpression | SyntaxKind.ClassDeclaration {
-    switch (node.getKind()) {
-      case SyntaxKind.ClassDeclaration:
-        return SyntaxKind.ClassDeclaration;
-      case SyntaxKind.ClassExpression:
-        return SyntaxKind.ClassExpression;
-      default:
-        throw new Error("Invalid class kind!");
-    }
   }
 
   private static getClassDescendants(sourceFile: SourceFile): (ClassDeclaration | ClassExpression)[] {
@@ -46,25 +39,19 @@ export class ClassRefactor {
     }, new Array<ClassDeclaration | ClassExpression>());
   }
 
-  private static refactorClass(pos: number, type: SyntaxKind.ClassExpression | SyntaxKind.ClassDeclaration, sourceFile: SourceFile) {
-    const _class = sourceFile.getDescendantAtPos(pos)?.getFirstAncestorByKind(type);
+  private static refactorClass(_class: ClassExpression | ClassDeclaration) {
     const propertyNames = MethodFunctionHandler.getMethodFunctionNames(_class);
-    if (_class && propertyNames) {
-      propertyNames.forEach(propertyName => {
-        const ancestor = sourceFile.getDescendantAtPos(pos)?.getFirstAncestorByKind(type);
-        const property = MethodFunctionHandler.getMethodFunction(propertyName, ancestor);
-        if (ancestor && property && property.getName().startsWith('#')) {
-          property
-            .setScope(Scope.Private)
-            .rename(property.getName().substring(1));
-        }
-      });
-    }
+    propertyNames.forEach(propertyName => {
+      const property = MethodFunctionHandler.getMethodFunction(propertyName, _class);
+      if (property?.getName().startsWith('#')) {
+        property.setScope(Scope.Private).rename(property.getName().substring(1));
+      }
+    });
   }
 
   private static getDeclaredMembers(_class: ClassExpression | ClassDeclaration): string[] {
     return _class.getMembers().map((p) => {
-      if (p.getKind() === SyntaxKind.Constructor) {
+      if (p.asKind(SyntaxKind.Constructor)) {
         return 'constructor';
       }
       return (p as NamedMember).getName();
