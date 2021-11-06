@@ -1,5 +1,5 @@
 import {CallExpression, SourceFile} from "ts-morph";
-import {VariableNameGenerator} from "../helpers/variable-name-generator";
+import {VariableNameGenerator} from "../../helpers/variable-name-generator/variable-name-generator";
 import {ImportCreator} from "../helpers/import-creator";
 
 export class BinaryImportsRefactor {

@@ -6,7 +6,8 @@ import {
   SyntaxKind,
   VariableDeclaration
 } from "ts-morph";
-import {WriteAccessChecker} from "./write-access-checker";
+import {WriteAccessChecker} from "../../helpers/write-access-checker/write-access-checker";
+
 
 export class ImportValidator {
   static callExpressionFirstArgument(callExpression: CallExpression): string {
@@ -19,8 +20,9 @@ export class ImportValidator {
       case SyntaxKind.Identifier:
         return !WriteAccessChecker.hasValueChanged(declaration);
       case SyntaxKind.ObjectBindingPattern:
-        return this.validDestructingFormat((nameNode as ObjectBindingPattern))
-          && !WriteAccessChecker.hasValueChanged(declaration);
+        return (
+          this.validDestructingFormat(nameNode.asKindOrThrow(SyntaxKind.ObjectBindingPattern))
+          && !WriteAccessChecker.hasValueChanged(declaration));
       case SyntaxKind.ArrayBindingPattern:
       default:
         return false;
@@ -29,13 +31,21 @@ export class ImportValidator {
 
   private static validPropertyNameNode(element: BindingElement): boolean {
     const nameNode = element.getPropertyNameNode();
-    return !nameNode
-      || !!nameNode.asKind(SyntaxKind.Identifier)
-      || !!nameNode.asKind(SyntaxKind.StringLiteral)?.getLiteralValue()
-      || !!nameNode
-        .asKind(SyntaxKind.ComputedPropertyName)
-        ?.getFirstChildByKind(SyntaxKind.StringLiteral)
-        ?.getLiteralValue();
+    switch (nameNode?.getKind()) {
+      case undefined:
+      case SyntaxKind.Identifier:
+        return true;
+      case SyntaxKind.StringLiteral:
+        return !!nameNode.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue();
+      case SyntaxKind.NoSubstitutionTemplateLiteral:
+        return !!nameNode.asKindOrThrow(SyntaxKind.NoSubstitutionTemplateLiteral).getLiteralValue();
+      case SyntaxKind.ComputedPropertyName:
+        const computed = nameNode.asKindOrThrow(SyntaxKind.ComputedPropertyName);
+        const literal = computed.getFirstChildByKind(SyntaxKind.StringLiteral) || computed.getFirstChildByKind(SyntaxKind.NoSubstitutionTemplateLiteral);
+        return !!literal?.getLiteralValue();
+      default:
+        return false;
+    }
   }
 
   private static validDestructingFormat(nameNode: ObjectBindingPattern) {
