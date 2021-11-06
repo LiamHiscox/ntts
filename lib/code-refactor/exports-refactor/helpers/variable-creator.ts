@@ -1,26 +1,21 @@
-import {BinaryExpression, Identifier, SourceFile, VariableDeclarationKind} from "ts-morph";
+import {SourceFile, VariableDeclarationKind} from "ts-morph";
 
 export class VariableCreator {
-  static createVariable(identifier: Identifier, binary: BinaryExpression, declarationKind: VariableDeclarationKind, sourceFile: SourceFile) {
+  static createVariable(name: string, index: number, initializer: string, declarationKind: VariableDeclarationKind, sourceFile: SourceFile) {
     sourceFile.insertVariableStatement(
-      binary.getChildIndex(),
+      index,
       {
         declarationKind,
-        declarations: [{
-          initializer: binary.getRight().getText(),
-          name: identifier.getText(),
-        }],
+        declarations: [{initializer, name}]
       })
   }
 
-  static createEmptyVariable(identifier: Identifier, binary: BinaryExpression, declarationKind: VariableDeclarationKind, sourceFile: SourceFile) {
+  static createEmptyVariable(name: string, index: number, declarationKind: VariableDeclarationKind, sourceFile: SourceFile) {
     sourceFile.insertVariableStatement(
-      binary.getChildIndex(),
+      index,
       {
         declarationKind,
-        declarations: [{
-          name: identifier.getText()
-        }],
+        declarations: [{name}]
       })
   }
 }

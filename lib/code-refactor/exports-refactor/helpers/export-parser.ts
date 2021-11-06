@@ -1,4 +1,5 @@
-import {Identifier, Node, SyntaxKind} from "ts-morph";
+import {ElementAccessExpression, Identifier, Node, PropertyAccessExpression, SyntaxKind} from "ts-morph";
+import {ExportedVariableModel} from "../../../models/exported-variable.model";
 
 export class ExportParser {
   static flatten(node: Node, result: Identifier[] = []): Identifier[] {
@@ -19,5 +20,25 @@ export class ExportParser {
       return identifiers.slice(2);
     }
     return identifiers.slice(1);
+  }
+
+  static getSourceFileIndex(node: Node): number {
+    const sourceFile = node.getParent()?.asKind(SyntaxKind.SourceFile);
+    if (sourceFile) {
+      return node.getChildIndex();
+    }
+    return this.getSourceFileIndex(node.getParentOrThrow());
+  }
+
+  static exportVariableExists(variableName: string, exportedVariables: ExportedVariableModel[]): ExportedVariableModel | undefined {
+    return exportedVariables
+      .find(exported =>
+        (!exported.alias && exported.name === variableName)
+        || (!!exported.alias && exported.alias === variableName));
+  }
+
+  static getBaseExport(identifiers: Identifier[]): PropertyAccessExpression | ElementAccessExpression {
+    const parent = identifiers[0].getParent();
+    return parent.asKind(SyntaxKind.PropertyAccessExpression) || parent.asKindOrThrow(SyntaxKind.ElementAccessExpression);
   }
 }

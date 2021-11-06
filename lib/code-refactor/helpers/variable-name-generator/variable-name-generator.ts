@@ -10,17 +10,17 @@ export class VariableNameGenerator {
     return newName;
   }
 
-  static getUsableVariableName(name: string, sourceFile: SourceFile) {
-    if (sourceFile.getVariableStatement(name) || reservedKeywords.includes(name)) {
-      return this.iterateVariableNames(name, 0, sourceFile);
+  static getUsableVariableName(name: string, usedVariables: string[], sourceFile: SourceFile) {
+    if (usedVariables.includes(name) || reservedKeywords.includes(name)) {
+      return this.iterateVariableNames(name, 0, usedVariables, sourceFile);
     }
     return name;
   }
 
-  private static iterateVariableNames(name: string, counter: number, sourceFile: SourceFile): string {
+  private static iterateVariableNames(name: string, counter: number, usedVariables: string[], sourceFile: SourceFile): string {
     const newName = name + counter;
-    if (sourceFile.getVariableStatement(newName) || reservedKeywords.includes(name)) {
-      return this.iterateVariableNames(name, counter++, sourceFile);
+    if (usedVariables.includes(newName) || reservedKeywords.includes(name)) {
+      return this.iterateVariableNames(name, counter++, usedVariables, sourceFile);
     }
     return newName;
   }
