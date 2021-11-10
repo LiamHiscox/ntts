@@ -1,4 +1,3 @@
-import {SourceFile} from "ts-morph";
 import {reservedKeywords} from "../../../assets/reserved-keywords";
 
 export class VariableNameGenerator {
@@ -10,17 +9,17 @@ export class VariableNameGenerator {
     return newName;
   }
 
-  static getUsableVariableName(name: string, usedVariables: string[], sourceFile: SourceFile) {
-    if (usedVariables.includes(name) || reservedKeywords.includes(name)) {
-      return this.iterateVariableNames(name, 0, usedVariables, sourceFile);
+  static getUsableVariableName(name: string, usedNames: string[]) {
+    if (usedNames.includes(name) || reservedKeywords.includes(name)) {
+      return this.iterateVariableNames(name, 0, usedNames);
     }
     return name;
   }
 
-  private static iterateVariableNames(name: string, counter: number, usedVariables: string[], sourceFile: SourceFile): string {
+  private static iterateVariableNames(name: string, counter: number, usedNames: string[]): string {
     const newName = name + counter;
-    if (usedVariables.includes(newName) || reservedKeywords.includes(name)) {
-      return this.iterateVariableNames(name, counter++, usedVariables, sourceFile);
+    if (usedNames.includes(newName) || reservedKeywords.includes(newName)) {
+      return this.iterateVariableNames(name, ++counter, usedNames);
     }
     return newName;
   }

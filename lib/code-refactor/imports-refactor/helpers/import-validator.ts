@@ -7,6 +7,7 @@ import {
   VariableDeclaration
 } from "ts-morph";
 import {WriteAccessChecker} from "../../helpers/write-access-checker/write-access-checker";
+import {VariableValidator} from "../../helpers/variable-validator/variable-validator";
 
 
 export class ImportValidator {
@@ -36,13 +37,15 @@ export class ImportValidator {
       case SyntaxKind.Identifier:
         return true;
       case SyntaxKind.StringLiteral:
-        return !!nameNode.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue();
+        const stringName = nameNode.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue();
+        return !!stringName && VariableValidator.validVariableName(stringName);
       case SyntaxKind.NoSubstitutionTemplateLiteral:
-        return !!nameNode.asKindOrThrow(SyntaxKind.NoSubstitutionTemplateLiteral).getLiteralValue();
+        const subName = nameNode.asKindOrThrow(SyntaxKind.NoSubstitutionTemplateLiteral).getLiteralValue();
+        return !!subName && VariableValidator.validVariableName(subName);
       case SyntaxKind.ComputedPropertyName:
         const computed = nameNode.asKindOrThrow(SyntaxKind.ComputedPropertyName);
         const literal = computed.getFirstChildByKind(SyntaxKind.StringLiteral) || computed.getFirstChildByKind(SyntaxKind.NoSubstitutionTemplateLiteral);
-        return !!literal?.getLiteralValue();
+        return !!literal?.getLiteralValue() && VariableValidator.validVariableName(literal.getLiteralValue());
       default:
         return false;
     }

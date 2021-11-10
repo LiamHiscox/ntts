@@ -16,15 +16,16 @@ export class NestedRefactor {
     binary: BinaryExpression,
     accessExpression: PropertyAccessExpression | ElementAccessExpression,
     exportedVariables: ExportedVariableModel[],
-    usedVariables: string[],
+    usedNames: string[],
     sourceFile: SourceFile
   ): ExportedVariableModel[] {
     const exported = ExportParser.exportVariableExists(exportName, exportedVariables);
     if (exported) {
+      sourceFile.getVariableStatementOrThrow(exported.name).setDeclarationKind(VariableDeclarationKind.Let);
       accessExpression.replaceWithText(exported.name);
       return exportedVariables;
     } else {
-      const usableName = VariableNameGenerator.getUsableVariableName(exportName, usedVariables, sourceFile);
+      const usableName = VariableNameGenerator.getUsableVariableName(exportName, usedNames);
       VariableCreator.createEmptyVariable(usableName, ExportParser.getSourceFileIndex(binary), VariableDeclarationKind.Let, sourceFile);
       accessExpression.replaceWithText(exportName);
       return exportedVariables.concat({

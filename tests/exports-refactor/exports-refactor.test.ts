@@ -24,11 +24,11 @@ test('should refactor nested export', () => {
 test('should refactor re-assignment of export', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'module.exports.item = 2;\nmodule.exports.item = 12;', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('const item = 2;\nitem = 12;');
+  expect(sourceFile.getText()).toEqual('let item = 2;\nitem = 12;');
 });
 
 test('should refactor deep property access export', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'module.exports.item = {};\nmodule.exports.item.name = 2;', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('const item = {};\nitem.name = 2;');
+  expect(sourceFile.getText()).toEqual('let item = {};\nitem.name = 2;');
 });

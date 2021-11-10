@@ -8,6 +8,7 @@ export class DeclarationImportRefactor {
   static addVariableDeclarationImport(
     declaration: VariableDeclaration,
     importId: string,
+    usedNames: string[],
     sourceFile: SourceFile
   ) {
     if (ImportValidator.isValidImport(declaration)) {
@@ -15,7 +16,7 @@ export class DeclarationImportRefactor {
       declaration.remove();
     } else {
       const moduleVariableName = VariableNameGenerator.variableNameFromImportId(importId);
-      const variableName = VariableNameGenerator.getUsableVariableName(moduleVariableName, sourceFile);
+      const variableName = VariableNameGenerator.getUsableVariableName(moduleVariableName, usedNames);
       const defaultImport = ImportCreator.addSimpleImport(variableName, importId, sourceFile);
       declaration.setInitializer(defaultImport)
     }

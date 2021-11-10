@@ -1,5 +1,6 @@
 import {
-  BinaryExpression, ElementAccessExpression,
+  BinaryExpression,
+  ElementAccessExpression,
   ExpressionStatement,
   PropertyAccessExpression,
   SourceFile,
@@ -18,36 +19,37 @@ export class TopLevelRefactor {
     expression: ExpressionStatement,
     accessExpression: PropertyAccessExpression | ElementAccessExpression,
     exportedVariables: ExportedVariableModel[],
-    usedVariables: string[],
+    usedNames: string[],
     sourceFile: SourceFile
   ): ExportedVariableModel[] {
     const exported = ExportParser.exportVariableExists(exportName, exportedVariables);
     if (exported) {
-      this.refactorExistingExport(exported, accessExpression);
+      this.refactorExistingExport(exported, accessExpression, sourceFile);
       return exportedVariables;
     } else if (binary.getRight().asKind(SyntaxKind.Identifier)) {
-      const newExport = this.refactorIdentifierAssignment(exportName, binary, expression, usedVariables, sourceFile);
+      const newExport = this.refactorIdentifierAssignment(exportName, binary, expression, usedNames, sourceFile);
       return exportedVariables.concat(newExport);
     } else {
-      const newExport = this.refactorNewExport(exportName, binary, expression, usedVariables, sourceFile);
+      const newExport = this.refactorNewExport(exportName, binary, expression, usedNames, sourceFile);
       return exportedVariables.concat(newExport);
     }
   }
 
-  private static refactorExistingExport(exported: ExportedVariableModel, accessExpression: PropertyAccessExpression | ElementAccessExpression) {
+  private static refactorExistingExport(exported: ExportedVariableModel, accessExpression: PropertyAccessExpression | ElementAccessExpression, sourceFile: SourceFile) {
+    sourceFile.getVariableStatementOrThrow(exported.name).setDeclarationKind(VariableDeclarationKind.Let);
     accessExpression.replaceWithText(exported.name);
   }
 
-  private static refactorIdentifierAssignment(exportName: string, binary: BinaryExpression, expression: ExpressionStatement, usedVariables: string[], sourceFile: SourceFile) {
+  private static refactorIdentifierAssignment(exportName: string, binary: BinaryExpression, expression: ExpressionStatement, usedNames: string[], sourceFile: SourceFile) {
     const alias = binary.getRight().asKindOrThrow(SyntaxKind.Identifier).getText();
-    const usableName = VariableNameGenerator.getUsableVariableName(exportName, usedVariables, sourceFile);
+    const usableName = VariableNameGenerator.getUsableVariableName(exportName, usedNames);
     VariableCreator.createVariable(usableName, ExportParser.getSourceFileIndex(binary), binary.getRight().getText(), VariableDeclarationKind.Const, sourceFile);
     expression.remove();
     return {name: usableName, alias};
   }
 
-  private static refactorNewExport(exportName: string, binary: BinaryExpression, expression: ExpressionStatement, usedVariables: string[], sourceFile: SourceFile) {
-    const usableName = VariableNameGenerator.getUsableVariableName(exportName, usedVariables, sourceFile);
+  private static refactorNewExport(exportName: string, binary: BinaryExpression, expression: ExpressionStatement, usedNames: string[], sourceFile: SourceFile) {
+    const usableName = VariableNameGenerator.getUsableVariableName(exportName, usedNames);
     VariableCreator.createVariable(usableName, ExportParser.getSourceFileIndex(binary), binary.getRight().getText(), VariableDeclarationKind.Const, sourceFile);
     expression.remove();
     return {

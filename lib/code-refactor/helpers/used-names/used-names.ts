@@ -1,13 +1,25 @@
-import {ImportClause, ParameterDeclaration, SourceFile, SyntaxKind, VariableDeclaration} from "ts-morph";
+import {
+  Node,
+  ImportClause,
+  ParameterDeclaration,
+  SourceFile,
+  SyntaxKind,
+  VariableDeclaration
+} from "ts-morph";
 import {VariableParser} from "../variable-parser/variable-parser";
 
-export class UsedVariables {
-  static getDeclaredVariables(sourceFile: SourceFile): string[] {
+export class UsedNames {
+  static getDeclaredName(sourceFile: SourceFile): string[] {
     return sourceFile.getDescendants().reduce((variableNames, descendant) => {
       switch (descendant.getKind()) {
         case SyntaxKind.ImportClause:
           const importClause = descendant.asKindOrThrow(SyntaxKind.ImportClause);
           return variableNames.concat(this.parseImportClause(importClause));
+        case SyntaxKind.ClassExpression:
+        case SyntaxKind.ClassDeclaration:
+        case SyntaxKind.FunctionDeclaration:
+        case SyntaxKind.FunctionExpression:
+          return this.parseFunctionOrClass(descendant, variableNames);
         case SyntaxKind.Parameter:
         case SyntaxKind.VariableDeclaration:
           const typed = descendant.asKind(SyntaxKind.Parameter) || descendant.asKindOrThrow(SyntaxKind.VariableDeclaration);
@@ -32,5 +44,15 @@ export class UsedVariables {
       return identifier.getText();
     }
     return VariableParser.getIdentifiers(variable.getNameNode()).map(i => i.getText());
+  }
+
+  private static parseFunctionOrClass(node: Node, variableNames: string[]): string[] {
+    const typedNode = node.asKind(SyntaxKind.ClassExpression)
+      || node.asKind(SyntaxKind.ClassDeclaration)
+      || node.asKind(SyntaxKind.FunctionDeclaration)
+      || node.asKindOrThrow(SyntaxKind.FunctionExpression);
+
+    const nodeName = typedNode.getName();
+    return nodeName ? variableNames.concat(nodeName) : variableNames;
   }
 }
