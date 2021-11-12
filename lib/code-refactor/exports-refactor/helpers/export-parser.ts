@@ -49,15 +49,15 @@ export class ExportParser {
         || (!!exported.alias && exported.alias === variableName));
   }
 
-  static getBaseExport(identifiers: Identifier[]): PropertyAccessExpression | ElementAccessExpression {
+  static getBaseExport(identifiers: Identifier[]): PropertyAccessExpression {
     const parent = identifiers[0].getParent();
-    return parent.asKind(SyntaxKind.PropertyAccessExpression) || parent.asKindOrThrow(SyntaxKind.ElementAccessExpression);
+    return parent.asKindOrThrow(SyntaxKind.PropertyAccessExpression);
   }
 
-  static getDefaultBaseExport(identifiers: Identifier[]): Identifier | PropertyAccessExpression | ElementAccessExpression {
+  static getElementAccessOrDefaultBaseExport(identifiers: Identifier[]): Identifier | PropertyAccessExpression | ElementAccessExpression {
     if (identifiers.length === 1) {
-      return identifiers[0];
+      return identifiers[0].getParent().asKind(SyntaxKind.ElementAccessExpression) || identifiers[0];
     }
-    return this.getBaseExport(identifiers);
+    return identifiers[0].getParent().getParentIfKind(SyntaxKind.ElementAccessExpression) || this.getBaseExport(identifiers);
   }
 }
