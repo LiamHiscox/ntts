@@ -26,3 +26,9 @@ test('should refactor call expression statement with binary expression', () => {
   ImportsRefactor.requiresToImports(sourceFile);
   expect(sourceFile.getText()).toEqual('import ts_morph from "ts-morph";\n\napp = ts_morph();');
 });
+
+test('should not refactor call expression with different name', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'const ts_morph = require("ts-morph");\nconst app = test("app");', {overwrite: true});
+  ImportsRefactor.requiresToImports(sourceFile);
+  expect(sourceFile.getText()).toEqual('import ts_morph from "ts-morph";\nconst app = test("app");');
+});

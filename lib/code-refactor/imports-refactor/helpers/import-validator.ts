@@ -15,7 +15,7 @@ export class ImportValidator {
     return (callExpression.getArguments()[0] as StringLiteral).getLiteralValue();
   }
 
-  static isValidImport = (declaration: VariableDeclaration): boolean => {
+  static isValidImport(declaration: VariableDeclaration): boolean {
     const nameNode = declaration.getNameNode();
     switch (nameNode.getKind()) {
       case SyntaxKind.Identifier:
@@ -62,9 +62,12 @@ export class ImportValidator {
         , true)
   }
 
-  static validRequire = (initializer: CallExpression): boolean => {
+  static validRequire(initializer: CallExpression): boolean {
     const argumentList = initializer.getArguments();
-    return (/^require[ \t]*\(.*?\)$/).test(initializer.getText().trim())
+    const identifier = initializer.getFirstChildByKind(SyntaxKind.Identifier);
+    return !!identifier
+      && identifier.getText() === "require"
+      && identifier.getImplementations().length <= 0
       && argumentList
       && argumentList.length > 0
       && argumentList[0].getKind() === SyntaxKind.StringLiteral;

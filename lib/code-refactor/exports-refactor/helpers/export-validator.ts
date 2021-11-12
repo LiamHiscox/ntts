@@ -1,30 +1,65 @@
-import {BinaryExpression, Identifier, SyntaxKind} from "ts-morph";
+import {BinaryExpression, Identifier, Node, SyntaxKind} from "ts-morph";
 import {ExportParser} from "./export-parser";
+import {ExportedVariableModel} from "../../../models/exported-variable.model";
 
 export class ExportValidator {
-  static isExport(identifiers: Identifier[]): boolean {
-    return (
-      identifiers[0].getText() === "exports"
-      || (
-        identifiers[0].getText() === "module"
-        && identifiers[1].getText() === "exports"
-      )
-    );
-  }
-
   static isExportAssigment(binary: BinaryExpression): Identifier[] | undefined {
-    if (!binary.getOperatorToken().asKind(SyntaxKind.EqualsToken)) {
+    const left = binary.getLeft().asKind(SyntaxKind.Identifier)
+      || binary.getLeft().asKind(SyntaxKind.PropertyAccessExpression)
+      || binary.getLeft().asKind(SyntaxKind.ElementAccessExpression);
+    if (!binary.getOperatorToken().asKind(SyntaxKind.EqualsToken) || !left) {
       return;
     }
-    const left = binary.getLeft();
-    const flattened = ExportParser.flatten(left);
-    if (
-      left.getKind() === SyntaxKind.Identifier
-      || left.getKind() === SyntaxKind.PropertyAccessExpression
-      || this.isExport(flattened)
-    ) {
-      return flattened;
+    const identifiers = this.isExport(ExportParser.flatten(left));
+    if (identifiers && identifiers[0] && identifiers[0].getImplementations().length <= 0) {
+      return identifiers;
     }
     return;
+  }
+
+  private static isExport(identifiers: (Identifier | null)[]): Identifier[] | undefined {
+    if (identifiers.length === 2
+      && identifiers[0] && identifiers[0].getText() === "module"
+      && identifiers[1] && identifiers[1].getText() === "exports"
+    ) {
+      return [identifiers[0], identifiers[1]];
+    } else if (identifiers.length > 2
+      && identifiers[0] && identifiers[0].getText() === "module"
+      && identifiers[1] && identifiers[1].getText() === "exports"
+      && identifiers[2]
+    ) {
+      return [identifiers[0], identifiers[1], identifiers[2]];
+    } else if (
+      identifiers.length === 1
+      && identifiers[0] && identifiers[0].getText() === "exports"
+    ) {
+      return [identifiers[0]];
+    } else if (
+      identifiers.length > 1
+      && identifiers[0] && identifiers[0].getText() === "exports"
+      && identifiers[1]
+    ) {
+      return [identifiers[0], identifiers[1]];
+    }
+    return;
+  }
+
+  static validObjetLiteralExpression(node: Node): boolean {
+    const objectLiteral = node.asKind(SyntaxKind.ObjectLiteralExpression);
+    const validLiteral = objectLiteral?.getProperties().reduce((valid, property) => {
+      switch (property.getKind()) {
+        case SyntaxKind.PropertyAssignment:
+          return valid && !!property.asKindOrThrow(SyntaxKind.PropertyAssignment).getNameNode().asKind(SyntaxKind.Identifier);
+        case SyntaxKind.ShorthandPropertyAssignment:
+          return valid && true;
+        default:
+          return valid && false;
+      }
+      }, true);
+    return !!objectLiteral && !!validLiteral;
+  }
+
+  static hasDefaultExport(exportedVariables: ExportedVariableModel[]): boolean {
+    return !!exportedVariables.find(exported => !!exported.defaultExport);
   }
 }
