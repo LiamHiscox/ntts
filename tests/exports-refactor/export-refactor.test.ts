@@ -32,3 +32,15 @@ test('should refactor usage of shorthand default export', () => {
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText()).toEqual('const _default = () => {};\nconsole.log(_default());\n\nexport default _default;\n');
 });
+
+test('should refactor usage of shorthand element access default export', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'exports["fun"] = () => {};\nconsole.log(exports["fun"]());', {overwrite: true});
+  ExportsRefactor.moduleExportsToExport(sourceFile);
+  expect(sourceFile.getText()).toEqual('let _default = {};\n\n_default["fun"] = () => {};\nconsole.log(_default["fun"]());\n\nexport default _default;\n');
+});
+
+test('should refactor usage of element access default export', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'module.exports["fun"] = () => {};\nconsole.log(module.exports["fun"]());', {overwrite: true});
+  ExportsRefactor.moduleExportsToExport(sourceFile);
+  expect(sourceFile.getText()).toEqual('let _default = {};\n\n_default["fun"] = () => {};\nconsole.log(_default["fun"]());\n\nexport default _default;\n');
+});
