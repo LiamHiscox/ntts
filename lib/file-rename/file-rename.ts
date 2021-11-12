@@ -5,6 +5,8 @@ import {Logger} from "../logger/logger";
 
 
 export class FileRename {
+  private static javaScriptEnding = /\.[mc]?js$/g;
+
   /**
    * @param target the path to search for javascript files in
    * @param ignores the files and directories to ignore while renaming the javascript files
@@ -20,7 +22,23 @@ export class FileRename {
    * @returns string returns the formatted filename
    */
   static renameFileName(file: string): string {
-    return file.replace(/\.[mc]?js$/g, '.ts');
+    return file.replace(this.javaScriptEnding, '.ts');
+  }
+
+  /**
+   * @param file the filename of the javascript file to change
+   * @returns string returns the formatted filename
+   */
+  static replaceEnding(file: string): string {
+    return file.replace(this.javaScriptEnding, '');
+  }
+
+  /**
+   * @param file the filename to check if it is JavaScript
+   * @returns boolean returns if the file is JavaScript or not
+   */
+  static isJavaScriptFile(file: string): boolean {
+    return this.javaScriptEnding.test(file);
   }
 
   private static renameFile(file: string): void {
@@ -29,7 +47,7 @@ export class FileRename {
 
   private static checkDirectoryEntry = (item: Dirent, path: string, ig: Ignore, ignoreList: string[]) => {
     const fullPath = join(path, item.name);
-    if (item.isFile() && !ig.ignores(fullPath) && (/^.*\.[mc]?js$/g).test(item.name)) {
+    if (item.isFile() && !ig.ignores(fullPath) && this.javaScriptEnding.test(item.name)) {
       this.renameFile(fullPath);
     }
     if (item.isDirectory() && !ig.ignores(fullPath)) {
