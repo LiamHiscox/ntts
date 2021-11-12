@@ -9,10 +9,10 @@ test('should refactor element access export', () => {
   expect(sourceFile.getText()).toEqual('let item = {};\nitem["item"] = 4;\n\nexport { item };\n');
 });
 
-test('should not refactor element access export', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', 'exports["item"] = 4;', {overwrite: true});
+test('should refactor element access default export', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'exports["item"] = 4;\n', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('exports["item"] = 4;');
+  expect(sourceFile.getText()).toEqual('let _default = {};\n\n_default["item"] = 4;\n\nexport default _default;\n');
 });
 
 test('should refactor usage of named export', () => {
