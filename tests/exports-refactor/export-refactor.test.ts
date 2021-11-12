@@ -18,7 +18,7 @@ test('should not refactor element access export', () => {
 test('should refactor usage of named export', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'exports.item = 12;\nconsole.log(exports.item);', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('const item = 12;\nconsole.log(item);\n\n export { item };');
+  expect(sourceFile.getText()).toEqual('const item = 12;\nconsole.log(item);\n\nexport { item };\n');
 });
 
 test('should refactor usage of default export', () => {

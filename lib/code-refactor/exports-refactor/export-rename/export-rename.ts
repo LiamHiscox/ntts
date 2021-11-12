@@ -1,26 +1,29 @@
-import {Identifier, PropertyAccessExpression, SourceFile, SyntaxKind} from "ts-morph";
+import {ElementAccessExpression, Identifier, PropertyAccessExpression, SourceFile, SyntaxKind} from "ts-morph";
 import {ExportedVariableModel} from "../../../models/exported-variable.model";
 import {ExportParser} from "../helpers/export-parser";
+import {ExportValidator} from "../helpers/export-validator";
 
 export class ExportRename {
   static refactorExportReadAccess(exportedVariables: ExportedVariableModel[], sourceFile: SourceFile) {
     sourceFile.getDescendantsOfKind(SyntaxKind.Identifier).forEach(identifier => {
-      if (identifier.getText() === 'exports') {
+      if (!identifier.wasForgotten() && identifier.getText() === 'exports') {
         this.renameExportAccess(identifier, exportedVariables);
       }
     })
   }
 
   private static renameExportAccess(identifier: Identifier, exportedVariables: ExportedVariableModel[]) {
-    if (this.isDefaultExportAccess(identifier)) {
+    const access = ExportParser.flatten(this.getLastPropertyAccess(identifier));
+    const namedExport = ExportValidator.isNamedExport(access);
+    if (!!ExportValidator.isDefaultExport(access)) {
       const propertyAccess = this.getDefaultExport(identifier);
       const _default = ExportParser.exportVariableExists("_default", exportedVariables, true);
       _default && propertyAccess.replaceWithText(_default.name);
-    } else {
-      const propertyAccess = this.getNamedExport(identifier);
-      const exportName = propertyAccess.getNameNode().getText();
+    } else if (namedExport) {
+      const filtered = ExportParser.filterExportIdentifiers(namedExport);
+      const exportName = filtered[0].getText();
       const exported = ExportParser.exportVariableExists(exportName, exportedVariables, false);
-      exported && propertyAccess.replaceWithText(exported.name);
+      exported && filtered[0].getParent().replaceWithText(exported.name);
     }
   }
 
@@ -29,19 +32,12 @@ export class ExportRename {
     return parent ? parent : identifier;
   }
 
-  private static getNamedExport(identifier: Identifier): PropertyAccessExpression {
-    return identifier.getParent().getParentOrThrow().asKindOrThrow(SyntaxKind.PropertyAccessExpression);
-  }
-
-  private static isDefaultExportAccess(identifier: Identifier): boolean {
-    const parent = identifier.getParent().asKind(SyntaxKind.PropertyAccessExpression);
-    const grandParent = parent?.getParent()?.asKind(SyntaxKind.PropertyAccessExpression);
-
-    if (!parent) {
-      return true;
-    } else if (grandParent?.asKind(SyntaxKind.PropertyAccessExpression)) {
-      return false;
+  private static getLastPropertyAccess(identifier: Identifier | PropertyAccessExpression | ElementAccessExpression): Identifier | PropertyAccessExpression | ElementAccessExpression {
+    const parent = identifier.getParent();
+    const access = parent && (parent.asKind(SyntaxKind.PropertyAccessExpression) || parent.asKind(SyntaxKind.ElementAccessExpression));
+    if (access) {
+      return this.getLastPropertyAccess(access);
     }
-    return true;
+    return identifier;
   }
 }
