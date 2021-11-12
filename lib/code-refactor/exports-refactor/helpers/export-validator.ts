@@ -4,7 +4,9 @@ import {ExportedVariableModel} from "../../../models/exported-variable.model";
 
 export class ExportValidator {
   private static isExport(identifiers: (Identifier | null)[]): Identifier[] | undefined {
-    return this.isDefaultExport(identifiers) || this.isNamedExport(identifiers);
+    return this.isDefaultExport(identifiers)
+      || this.isNamedExport(identifiers)
+      || this.isElementAccessExport(identifiers);
   }
 
   static isExportAssigment(binary: BinaryExpression): Identifier[] | undefined {
@@ -38,7 +40,6 @@ export class ExportValidator {
     return;
   }
 
-
   static isDefaultExport(identifiers: (Identifier | null)[]): Identifier[] | undefined {
     if (identifiers.length === 2
       && identifiers[0] && identifiers[0].getText() === "module"
@@ -48,6 +49,23 @@ export class ExportValidator {
     }  else if (
       identifiers.length === 1
       && identifiers[0] && identifiers[0].getText() === "exports"
+    ) {
+      return [identifiers[0]];
+    }
+    return;
+  }
+
+  static isElementAccessExport(identifiers: (Identifier | null)[]): Identifier[] | undefined {
+    if (identifiers.length > 2
+      && identifiers[0] && identifiers[0].getText() === "module"
+      && identifiers[1] && identifiers[1].getText() === "exports"
+      && !identifiers[2]
+    ) {
+      return [identifiers[0], identifiers[1]];
+    }  else if (
+      identifiers.length > 1
+      && identifiers[0] && identifiers[0].getText() === "exports"
+      && !identifiers[1]
     ) {
       return [identifiers[0]];
     }

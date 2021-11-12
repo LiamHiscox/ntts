@@ -4,9 +4,11 @@ import ignore, {Ignore} from "ignore";
 import {join} from "path";
 import {ImportsRefactor} from "./imports-refactor/imports-refactor";
 import {ClassRefactor} from "./class-refactor/class-refactor";
+import {ExportsRefactor} from "./exports-refactor/exports-refactor";
 
 export class CodeRefactor {
   static convertToTypescript = (sourceFile: SourceFile) => {
+    ExportsRefactor.moduleExportsToExport(sourceFile);
     ImportsRefactor.requiresToImports(sourceFile);
     ClassRefactor.toTypeScriptClasses(sourceFile);
   }
