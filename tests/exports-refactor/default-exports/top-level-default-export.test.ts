@@ -62,3 +62,4 @@ test('should refactor re-assignment of class default export', () => {
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText()).toEqual('class Car {};\n\nlet Car0 = Car;\n\nCar0 = 12;\n\nexport default Car0;\n');
 });
+
