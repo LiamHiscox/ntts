@@ -15,7 +15,7 @@ export class ExportRename {
   private static renameExportAccess(identifier: Identifier, exportedVariables: ExportedVariableModel[]) {
     const access = ExportParser.flatten(this.getLastPropertyAccess(identifier));
     const namedExport = ExportValidator.isNamedExport(access);
-    if (!!ExportValidator.isDefaultExport(access) || !!ExportValidator.isElementAccessExport(access)) {
+    if (!!ExportValidator.isDefaultExport(access)) {
       const propertyAccess = this.getDefaultExport(identifier);
       const _default = ExportParser.exportVariableExists("_default", exportedVariables, true);
       _default && propertyAccess.replaceWithText(_default.name);

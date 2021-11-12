@@ -9,12 +9,6 @@ test('should refactor nested default export', () => {
   expect(sourceFile.getText()).toEqual('let _default;\n\nif (true) _default = 2;\n\nexport default _default;\n');
 });
 
-test('should refactor nested element access default export', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', 'if (true) module.exports["item"] = 2;', {overwrite: true});
-  ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('let _default = {};\n\nif (true) _default["item"] = 2;\n\nexport default _default;\n');
-});
-
 test('should refactor nested shorthand default export', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'if (true) exports = 2;', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
