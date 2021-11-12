@@ -31,7 +31,8 @@ export class FileRename {
     const fullPath = join(path, item.name);
     if (item.isFile() && !ig.ignores(fullPath) && (/^.*\.[mc]?js$/g).test(item.name)) {
       this.renameFile(fullPath);
-    } if(item.isDirectory() && !ig.ignores(fullPath)) {
+    }
+    if (item.isDirectory() && !ig.ignores(fullPath)) {
       this.findFiles(ignoreList, fullPath);
     }
   }

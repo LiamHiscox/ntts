@@ -1,27 +1,11 @@
-import {
-  Identifier,
-  ObjectBindingPattern,
-  ReferencedSymbol,
-  ReferenceEntry,
-  SyntaxKind,
-  VariableDeclaration
-} from "ts-morph";
+import {ReferencedSymbol, ReferenceEntry, VariableDeclaration} from "ts-morph";
+import {VariableParser} from "../variable-parser/variable-parser";
 
 export class WriteAccessChecker {
   static hasValueChanged(declaration: VariableDeclaration): boolean {
-    return this
-      .getIdentifiers(declaration)
+    return VariableParser
+      .getIdentifiers(declaration.getNameNode())
       .reduce((acc: boolean, identifier) => acc || this.symbolsHaveWriteAccess(identifier.findReferences()), false);
-  }
-
-  private static getIdentifiers(declaration: VariableDeclaration): Identifier[] {
-    const nameNode = declaration.getNameNode();
-    if (nameNode.getKind() === SyntaxKind.ObjectBindingPattern) {
-      return (nameNode as ObjectBindingPattern)
-        .getElements()
-        .map(element => element.getNameNode() as Identifier);
-    }
-    return [nameNode as Identifier];
   }
 
   private static symbolsHaveWriteAccess(referencedSymbols: ReferencedSymbol[]): boolean {

@@ -4,34 +4,35 @@ import {BinaryImportsRefactor} from "./binary-import-refactor/binary-imports-ref
 import {ExpressionImportsRefactor} from "./expression-import-refactor/expression-imports-refactor";
 import {CallImportsRefactor} from "./call-import-refactor/call-imports-refactor";
 import {DeclarationImportRefactor} from "./declaration-import-refactor/declaration-import-refactor";
+import {UsedNames} from "../helpers/used-names/used-names";
 
 export class ImportsRefactor {
   static requiresToImports(sourceFile: SourceFile) {
-    sourceFile.getDescendants().forEach(node => {
-      const callExpression = !node.wasForgotten() ? node.asKind(SyntaxKind.CallExpression) : undefined;
-      if (callExpression && ImportValidator.validRequire(callExpression)) {
-        this.refactorCallExpression(callExpression, sourceFile);
+    const usedNames = UsedNames.getDeclaredName(sourceFile);
+    sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression).forEach(callExpression => {
+      if (!callExpression.wasForgotten() && ImportValidator.validRequire(callExpression)) {
+        this.refactorCallExpression(callExpression, usedNames, sourceFile);
       }
     })
   }
 
-  private static refactorCallExpression(callExpression: CallExpression, sourceFile: SourceFile) {
+  private static refactorCallExpression(callExpression: CallExpression, usedNames: string[], sourceFile: SourceFile) {
     const importId = ImportValidator.callExpressionFirstArgument(callExpression);
 
     switch (callExpression.getParent()?.getKind()) {
       case SyntaxKind.BinaryExpression:
-        BinaryImportsRefactor.addBinaryExpressionImport(callExpression, importId, sourceFile);
+        BinaryImportsRefactor.addBinaryExpressionImport(callExpression, importId, usedNames, sourceFile);
         break;
       case SyntaxKind.ExpressionStatement:
         const expression = callExpression.getParent()! as ExpressionStatement;
-        ExpressionImportsRefactor.addExpressionStatementImport(expression, importId, sourceFile)
+        ExpressionImportsRefactor.addExpressionStatementImport(expression, importId, sourceFile);
         break;
       case SyntaxKind.CallExpression:
-        CallImportsRefactor.addCallExpressionImport(callExpression, importId, sourceFile)
+        CallImportsRefactor.addCallExpressionImport(callExpression, importId, usedNames, sourceFile);
         break;
       case SyntaxKind.VariableDeclaration:
         const declaration = callExpression.getParent()! as VariableDeclaration;
-        DeclarationImportRefactor.addVariableDeclarationImport(declaration, importId, sourceFile);
+        DeclarationImportRefactor.addVariableDeclarationImport(declaration, importId, usedNames, sourceFile);
         break;
     }
   }

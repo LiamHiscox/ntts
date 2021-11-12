@@ -47,12 +47,20 @@ export class ImportCreator {
 
   private static getPropertyName(element: BindingElement): string|undefined {
     const nameNode = element.getPropertyNameNode();
-    if (!nameNode) return;
-    return nameNode.asKind(SyntaxKind.Identifier)?.getText()
-      || nameNode.asKind(SyntaxKind.StringLiteral)?.getLiteralValue()
-      || nameNode.asKind(SyntaxKind.ComputedPropertyName)
-        ?.getFirstChildByKind(SyntaxKind.StringLiteral)
-        ?.getLiteralValue()
+    switch (nameNode?.getKind()) {
+      case SyntaxKind.Identifier:
+        return nameNode.asKindOrThrow(SyntaxKind.Identifier).getText();
+      case SyntaxKind.StringLiteral:
+        return nameNode.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue();
+      case SyntaxKind.NoSubstitutionTemplateLiteral:
+        return nameNode.asKindOrThrow(SyntaxKind.NoSubstitutionTemplateLiteral).getLiteralValue();
+      case SyntaxKind.ComputedPropertyName:
+        const computed = nameNode.asKindOrThrow(SyntaxKind.ComputedPropertyName);
+        const literal = computed.getFirstChildByKind(SyntaxKind.StringLiteral) || computed.getFirstChildByKind(SyntaxKind.NoSubstitutionTemplateLiteral);
+        return literal?.getLiteralValue();
+      default:
+        return;
+    }
   }
 
   private static getNamedImports(objectBinding: ObjectBindingPattern): string[] {

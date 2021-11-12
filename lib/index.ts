@@ -27,7 +27,7 @@ const addTsconfig = (target: string, ignores: string[]) => {
   TsconfigHandler.addConfig(target, ignores);
 }
 
-const addScripts = (target: string) => {
+const renameScripts = (target: string) => {
   PackageJsonHandler.refactorScripts(target);
 }
 
@@ -46,7 +46,7 @@ const main = (target: string) => {
     const ignores = IgnoreConfigParser.getIgnores();
     renameFiles(validTarget, ignores);
     addTsconfig(validTarget, ignores);
-    addScripts(validTarget);
+    renameScripts(validTarget);
     refactorJSCode(validTarget, ignores);
   }
 }
