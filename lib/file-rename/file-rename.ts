@@ -11,7 +11,7 @@ export class FileRename {
    * @param target the path to search for javascript files in
    * @param ignores the files and directories to ignore while renaming the javascript files
    */
-  static rename(target: string, ignores: string[]): void {
+  static rename = (target: string, ignores: string[]): void => {
     Logger.info('Renaming all JavaScript files');
     FileRename.findFiles(ignores, target || '.');
     Logger.success('All JavaScript files renamed to TypeScript files');
@@ -21,7 +21,7 @@ export class FileRename {
    * @param file the filename of the javascript file to change
    * @returns string returns the formatted filename
    */
-  static renameFileName(file: string): string {
+  static renameFileName = (file: string): string => {
     return file.replace(this.javaScriptEnding, '.ts');
   }
 
@@ -29,7 +29,7 @@ export class FileRename {
    * @param file the filename of the javascript file to change
    * @returns string returns the formatted filename
    */
-  static replaceEnding(file: string): string {
+  static replaceEnding = (file: string): string => {
     return file.replace(this.javaScriptEnding, '');
   }
 
@@ -37,11 +37,11 @@ export class FileRename {
    * @param file the filename to check if it is JavaScript
    * @returns boolean returns if the file is JavaScript or not
    */
-  static isJavaScriptFile(file: string): boolean {
+  static isJavaScriptFile = (file: string): boolean => {
     return this.javaScriptEnding.test(file);
   }
 
-  private static renameFile(file: string): void {
+  private static renameFile = (file: string): void => {
     renameSync(file, this.renameFileName(file));
   }
 
@@ -55,7 +55,7 @@ export class FileRename {
     }
   }
 
-  private static findFiles(ignoreList: string[], path: string): void {
+  private static findFiles = (ignoreList: string[], path: string): void => {
     const ig = ignore().add(ignoreList);
     readdirSync(path, {withFileTypes: true})
       .forEach(item => this.checkDirectoryEntry(item, path, ig, ignoreList))

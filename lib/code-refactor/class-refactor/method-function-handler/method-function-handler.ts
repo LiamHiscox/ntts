@@ -11,7 +11,7 @@ import {
 type MethodFunction = MethodDeclaration | PropertyDeclaration | GetAccessorDeclaration | SetAccessorDeclaration;
 
 export class MethodFunctionHandler {
-  static getMethodFunctionNames(_class: ClassExpression | ClassDeclaration): string[] {
+  static getMethodFunctionNames = (_class: ClassExpression | ClassDeclaration): string[] => {
     return _class.getMembers().reduce((names, member) => {
       switch (member.getKind()) {
         case SyntaxKind.MethodDeclaration:
@@ -26,7 +26,7 @@ export class MethodFunctionHandler {
     }, new Array<string>())
   }
 
-  static getMethodFunction(name: string, _class: ClassExpression | ClassDeclaration): MethodFunction | undefined {
+  static getMethodFunction = (name: string, _class: ClassExpression | ClassDeclaration): MethodFunction | undefined => {
     const member = _class.getMember(name);
     switch (member?.getKind()) {
       case SyntaxKind.MethodDeclaration:

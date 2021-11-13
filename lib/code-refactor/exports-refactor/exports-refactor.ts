@@ -18,8 +18,8 @@ import {VariableNameGenerator} from "../helpers/variable-name-generator/variable
 import {VariableCreator} from "./helpers/variable-creator";
 
 export class ExportsRefactor {
-  static moduleExportsToExport(sourceFile: SourceFile) {
-    const usedNames = UsedNames.getDeclaredName(sourceFile);
+  static moduleExportsToExport = (sourceFile: SourceFile) => {
+    const usedNames = UsedNames.getDeclaredNames(sourceFile);
 
     const exportedVariables = sourceFile.getDescendantsOfKind(SyntaxKind.BinaryExpression).reduce((exportedVariables, node) => {
       if (!node.wasForgotten()) {
@@ -32,7 +32,7 @@ export class ExportsRefactor {
     ExportRename.refactorExportReadAccess(exportedVariables, sourceFile);
   }
 
-  private static insertExports(exportedVariables: ExportedVariableModel[], sourceFile: SourceFile) {
+  private static insertExports = (exportedVariables: ExportedVariableModel[], sourceFile: SourceFile) => {
     const exportConfig = exportedVariables.reduce((acc: { _default?: string, named: string[] }, exported) => {
       if (exported.defaultExport) {
         return {...acc, _default: exported.name};
@@ -50,11 +50,11 @@ export class ExportsRefactor {
     }
   }
 
-  private static refactorExport(binary: BinaryExpression,
-                                exportedVariables: ExportedVariableModel[],
-                                usedNames: string[],
-                                sourceFile: SourceFile
-  ): ExportedVariableModel[] {
+  private static refactorExport = (binary: BinaryExpression,
+                                   exportedVariables: ExportedVariableModel[],
+                                   usedNames: string[],
+                                   sourceFile: SourceFile
+  ): ExportedVariableModel[] => {
     const identifiers = ExportValidator.isExportAssigment(binary);
     if (!identifiers) {
       return exportedVariables;
@@ -71,13 +71,13 @@ export class ExportsRefactor {
     }
   }
 
-  private static refactorPropertyAccessExport(exportName: string,
-                                              binary: BinaryExpression,
-                                              accessExpression: PropertyAccessExpression | ElementAccessExpression,
-                                              exportedVariables: ExportedVariableModel[],
-                                              usedNames: string[],
-                                              sourceFile: SourceFile
-  ): ExportedVariableModel[] {
+  private static refactorPropertyAccessExport = (exportName: string,
+                                                 binary: BinaryExpression,
+                                                 accessExpression: PropertyAccessExpression | ElementAccessExpression,
+                                                 exportedVariables: ExportedVariableModel[],
+                                                 usedNames: string[],
+                                                 sourceFile: SourceFile
+  ): ExportedVariableModel[] => {
     const parent = binary.getParent()?.asKind(SyntaxKind.ExpressionStatement);
     const grandParent = binary.getParent()?.getParent()?.asKind(SyntaxKind.SourceFile);
     if (parent && grandParent) {
@@ -87,12 +87,12 @@ export class ExportsRefactor {
     }
   }
 
-  private static refactorElementAccessOrDefaultExport(binary: BinaryExpression,
-                                                      accessExpression: Identifier | PropertyAccessExpression | ElementAccessExpression,
-                                                      exportedVariables: ExportedVariableModel[],
-                                                      usedNames: string[],
-                                                      sourceFile: SourceFile
-  ): ExportedVariableModel[] {
+  private static refactorElementAccessOrDefaultExport = (binary: BinaryExpression,
+                                                         accessExpression: Identifier | PropertyAccessExpression | ElementAccessExpression,
+                                                         exportedVariables: ExportedVariableModel[],
+                                                         usedNames: string[],
+                                                         sourceFile: SourceFile
+  ): ExportedVariableModel[] => {
     const elementAccess = accessExpression.asKind(SyntaxKind.ElementAccessExpression);
     if (elementAccess && !ExportParser.exportVariableExists("_default", exportedVariables, true)) {
       return this.refactorNewElementAccessDefaultExport(binary, elementAccess, exportedVariables, usedNames, sourceFile);
@@ -100,12 +100,12 @@ export class ExportsRefactor {
     return this.refactorDefaultAssignmentExport(binary, accessExpression, exportedVariables, usedNames, sourceFile);
   }
 
-  private static refactorDefaultAssignmentExport(binary: BinaryExpression,
-                                                 accessExpression: Identifier | PropertyAccessExpression | ElementAccessExpression,
-                                                 exportedVariables: ExportedVariableModel[],
-                                                 usedNames: string[],
-                                                 sourceFile: SourceFile
-  ): ExportedVariableModel[] {
+  private static refactorDefaultAssignmentExport = (binary: BinaryExpression,
+                                                    accessExpression: Identifier | PropertyAccessExpression | ElementAccessExpression,
+                                                    exportedVariables: ExportedVariableModel[],
+                                                    usedNames: string[],
+                                                    sourceFile: SourceFile
+  ): ExportedVariableModel[] => {
     const parent = binary.getParent()?.asKind(SyntaxKind.ExpressionStatement);
     const grandParent = binary.getParent()?.getParent()?.asKind(SyntaxKind.SourceFile);
     if (parent && grandParent) {
@@ -115,12 +115,12 @@ export class ExportsRefactor {
     }
   }
 
-  private static refactorNewElementAccessDefaultExport(binary: BinaryExpression,
-                                                       elementAccess: ElementAccessExpression,
-                                                       exportedVariables: ExportedVariableModel[],
-                                                       usedNames: string[],
-                                                       sourceFile: SourceFile
-  ): ExportedVariableModel[] {
+  private static refactorNewElementAccessDefaultExport = (binary: BinaryExpression,
+                                                          elementAccess: ElementAccessExpression,
+                                                          exportedVariables: ExportedVariableModel[],
+                                                          usedNames: string[],
+                                                          sourceFile: SourceFile
+  ): ExportedVariableModel[] => {
     const exportedNames = exportedVariables.map(e => e.name);
     const usableName = VariableNameGenerator.getUsableVariableName("_default", usedNames.concat(exportedNames));
     const index = ExportParser.getSourceFileIndex(binary);

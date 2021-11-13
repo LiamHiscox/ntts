@@ -3,12 +3,12 @@ import {VariableNameGenerator} from "../../helpers/variable-name-generator/varia
 import {ImportCreator} from "../helpers/import-creator";
 
 export class CallImportsRefactor {
-  static addCallExpressionImport(
+  static addCallExpressionImport = (
     callExpression: CallExpression,
     importId: string,
     usedNames: string[],
     sourceFile: SourceFile
-  ) {
+  ) => {
     const moduleVariableName = VariableNameGenerator.variableNameFromImportId(importId);
     const variableName = VariableNameGenerator.getUsableVariableName(moduleVariableName, usedNames);
     const defaultImport = ImportCreator.addSimpleImport(variableName, importId, sourceFile);

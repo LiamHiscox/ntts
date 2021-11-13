@@ -11,11 +11,11 @@ import {VariableValidator} from "../../helpers/variable-validator/variable-valid
 
 
 export class ImportValidator {
-  static callExpressionFirstArgument(callExpression: CallExpression): string {
+  static callExpressionFirstArgument = (callExpression: CallExpression): string => {
     return (callExpression.getArguments()[0] as StringLiteral).getLiteralValue();
   }
 
-  static isValidImport(declaration: VariableDeclaration): boolean {
+  static isValidImport = (declaration: VariableDeclaration): boolean => {
     const nameNode = declaration.getNameNode();
     switch (nameNode.getKind()) {
       case SyntaxKind.Identifier:
@@ -30,7 +30,7 @@ export class ImportValidator {
     }
   }
 
-  private static validPropertyNameNode(element: BindingElement): boolean {
+  private static validPropertyNameNode = (element: BindingElement): boolean => {
     const nameNode = element.getPropertyNameNode();
     switch (nameNode?.getKind()) {
       case undefined:
@@ -51,7 +51,7 @@ export class ImportValidator {
     }
   }
 
-  private static validDestructingFormat(nameNode: ObjectBindingPattern) {
+  private static validDestructingFormat = (nameNode: ObjectBindingPattern) => {
     return nameNode
       .getElements()
       .reduce((valid: boolean, element: BindingElement) =>
@@ -62,12 +62,12 @@ export class ImportValidator {
         , true)
   }
 
-  static validRequire(initializer: CallExpression): boolean {
+  static validRequire = (initializer: CallExpression): boolean => {
     const argumentList = initializer.getArguments();
     const identifier = initializer.getFirstChildByKind(SyntaxKind.Identifier);
+
     return !!identifier
       && identifier.getText() === "require"
-      && identifier.getImplementations().length <= 0
       && argumentList
       && argumentList.length > 0
       && argumentList[0].getKind() === SyntaxKind.StringLiteral;

@@ -5,7 +5,7 @@ export class ScriptRunner {
      * @description runs a script ignoring all it's outputs.
      * @param script the script to run in the terminal.
      */
-    static runIgnore(script: string): void {
+    static runIgnore = (script: string): void => {
         execSync(script, { stdio: 'ignore' });
     }
 
@@ -14,7 +14,7 @@ export class ScriptRunner {
      * @param script the script to run in the terminal.
      * @returns string the stdout from the given script.
      */
-    static runPipe(script: string): string {
+    static runPipe = (script: string): string => {
         return execSync(script, { stdio: 'pipe', encoding: 'utf8' }).trim();
     }
 
@@ -22,12 +22,12 @@ export class ScriptRunner {
      * @param script the script to run in the terminal.
      * @returns T stdout as an object from the given script.
      */
-    static runParsed<T>(script: string): T {
+    static runParsed = <T>(script: string): T => {
         const result = execSync(script, { stdio: 'pipe', encoding: 'utf8' }).trim();
         return this.parseResponse<T>(result);
     }
 
-    private static parseResponse<T>(response: string): T {
+    private static parseResponse = <T>(response: string): T => {
         return JSON.parse(response) as T;
     }
 }

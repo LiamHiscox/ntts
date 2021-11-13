@@ -4,7 +4,7 @@ import {ExportParser} from "../helpers/export-parser";
 import {ExportValidator} from "../helpers/export-validator";
 
 export class ExportRename {
-  static refactorExportReadAccess(exportedVariables: ExportedVariableModel[], sourceFile: SourceFile) {
+  static refactorExportReadAccess = (exportedVariables: ExportedVariableModel[], sourceFile: SourceFile) => {
     sourceFile.getDescendantsOfKind(SyntaxKind.Identifier).forEach(identifier => {
       if (!identifier.wasForgotten() && identifier.getText() === 'exports') {
         this.renameExportAccess(identifier, exportedVariables);
@@ -12,7 +12,7 @@ export class ExportRename {
     })
   }
 
-  private static renameExportAccess(identifier: Identifier, exportedVariables: ExportedVariableModel[]) {
+  private static renameExportAccess = (identifier: Identifier, exportedVariables: ExportedVariableModel[]) => {
     const access = ExportParser.flatten(this.getLastPropertyAccess(identifier));
     const namedExport = ExportValidator.isNamedExport(access);
     if (!!ExportValidator.isDefaultExport(access) || !!ExportValidator.isElementAccessExport(access)) {
@@ -27,12 +27,12 @@ export class ExportRename {
     }
   }
 
-  private static getDefaultExport(identifier: Identifier): Identifier | PropertyAccessExpression {
+  private static getDefaultExport = (identifier: Identifier): Identifier | PropertyAccessExpression => {
     const parent = identifier.getParent().asKind(SyntaxKind.PropertyAccessExpression);
     return parent ? parent : identifier;
   }
 
-  private static getLastPropertyAccess(identifier: Identifier | PropertyAccessExpression | ElementAccessExpression): Identifier | PropertyAccessExpression | ElementAccessExpression {
+  private static getLastPropertyAccess = (identifier: Identifier | PropertyAccessExpression | ElementAccessExpression): Identifier | PropertyAccessExpression | ElementAccessExpression => {
     const parent = identifier.getParent();
     const access = parent && (parent.asKind(SyntaxKind.PropertyAccessExpression) || parent.asKind(SyntaxKind.ElementAccessExpression));
     if (access) {

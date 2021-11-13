@@ -16,7 +16,7 @@ export class DependencyHandler {
    * @returns boolean true if the package already provides type definitions
    */
   static packageHasTypes = (packageName: string): boolean => {
-    const pathToPackage = ScriptRunner.runPipe(`npm ls ${packageName} --parseable --depth`);
+    const pathToPackage = ScriptRunner.runPipe(`npm ls ${packageName} --parseable --depth=0`);
     if (existsSync(join(pathToPackage, 'index.d.ts'))) {
       return true;
     } else {

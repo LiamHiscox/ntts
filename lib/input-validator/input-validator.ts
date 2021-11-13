@@ -3,7 +3,7 @@ import {Logger} from "../logger/logger";
 import {existsSync} from "fs";
 
 export class InputValidator {
-  static validate(path: string): string|null {
+  static validate = (path: string): string|null => {
     const fullPath = resolve(path).split('\\').join('/');
     const cwd = process.cwd().split('\\').join('/');
     if (!existsSync(fullPath)) {

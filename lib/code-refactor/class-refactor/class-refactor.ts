@@ -20,14 +20,14 @@ type NamedMember =
   | ClassStaticBlockDeclaration;
 
 export class ClassRefactor {
-  static toTypeScriptClasses(sourceFile: SourceFile) {
+  static toTypeScriptClasses = (sourceFile: SourceFile) => {
     this.getClassDescendants(sourceFile).forEach(_class => {
       this.addMissingProperties(_class);
       this.refactorClass(_class);
     });
   }
 
-  private static getClassDescendants(sourceFile: SourceFile): (ClassDeclaration | ClassExpression)[] {
+  private static getClassDescendants = (sourceFile: SourceFile): (ClassDeclaration | ClassExpression)[] => {
     return sourceFile.getDescendants().reduce((classes, descendant) => {
       switch (descendant.getKind()) {
         case SyntaxKind.ClassDeclaration:
@@ -39,7 +39,7 @@ export class ClassRefactor {
     }, new Array<ClassDeclaration | ClassExpression>());
   }
 
-  private static refactorClass(_class: ClassExpression | ClassDeclaration) {
+  private static refactorClass = (_class: ClassExpression | ClassDeclaration) => {
     const propertyNames = MethodFunctionHandler.getMethodFunctionNames(_class);
     propertyNames.forEach(propertyName => {
       const property = MethodFunctionHandler.getMethodFunction(propertyName, _class);
@@ -49,7 +49,7 @@ export class ClassRefactor {
     });
   }
 
-  private static getDeclaredMembers(_class: ClassExpression | ClassDeclaration): string[] {
+  private static getDeclaredMembers = (_class: ClassExpression | ClassDeclaration): string[] => {
     return _class.getMembers().map((p) => {
       if (p.asKind(SyntaxKind.Constructor)) {
         return 'constructor';
@@ -59,7 +59,7 @@ export class ClassRefactor {
 
   }
 
-  private static addMissingProperties(_class: ClassExpression | ClassDeclaration) {
+  private static addMissingProperties = (_class: ClassExpression | ClassDeclaration) => {
     const declaredMemberNames = this.getDeclaredMembers(_class);
     _class
       .getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)

@@ -9,14 +9,14 @@ import {
 } from "ts-morph";
 
 export class ImportCreator {
-  static addEmptyImport(moduleSpecifier: string, sourceFile: SourceFile) {
+  static addEmptyImport = (moduleSpecifier: string, sourceFile: SourceFile) => {
     const importDeclaration = sourceFile.getImportDeclaration(moduleSpecifier);
     if (!importDeclaration) {
       sourceFile.addImportDeclaration({moduleSpecifier});
     }
   }
 
-  static addSimpleImport(importName: string, moduleSpecifier: string, sourceFile: SourceFile): string {
+  static addSimpleImport = (importName: string, moduleSpecifier: string, sourceFile: SourceFile): string => {
     const importDeclaration = sourceFile.getImportDeclaration(moduleSpecifier);
     const defaultImport = importDeclaration?.getDefaultImport()?.getText();
     if (importDeclaration && defaultImport) {
@@ -33,7 +33,7 @@ export class ImportCreator {
     }
   }
 
-  static addImport(nameNode: BindingName, moduleSpecifier: string, sourceFile: SourceFile) {
+  static addImport = (nameNode: BindingName, moduleSpecifier: string, sourceFile: SourceFile) => {
     const importDeclaration = sourceFile.getImportDeclaration(moduleSpecifier);
     switch (nameNode.getKind()) {
       case SyntaxKind.Identifier:
@@ -45,7 +45,14 @@ export class ImportCreator {
     }
   }
 
-  private static getPropertyName(element: BindingElement): string|undefined {
+  static addNamespaceImport = (importName: string, moduleSpecifier: string, sourceFile: SourceFile) => {
+    sourceFile.addImportDeclaration({
+      namespaceImport: importName,
+      moduleSpecifier
+    });
+  }
+
+  private static getPropertyName = (element: BindingElement): string|undefined => {
     const nameNode = element.getPropertyNameNode();
     switch (nameNode?.getKind()) {
       case SyntaxKind.Identifier:
@@ -63,7 +70,7 @@ export class ImportCreator {
     }
   }
 
-  private static getNamedImports(objectBinding: ObjectBindingPattern): string[] {
+  private static getNamedImports = (objectBinding: ObjectBindingPattern): string[] => {
     return objectBinding
       .getElements()
       .map(binding => {
@@ -76,12 +83,12 @@ export class ImportCreator {
       });
   }
 
-  private static addNamedImportStatement(
+  private static addNamedImportStatement = (
     importDeclaration: ImportDeclaration | undefined,
     objectBinding: ObjectBindingPattern,
     moduleSpecifier: string,
     sourceFile: SourceFile
-  ) {
+  ) => {
     const existingNamedImports = importDeclaration?.getNamedImports().map(named => named.getNameNode().getText());
     const namedImports = this.getNamedImports(objectBinding);
     if (namedImports.length <= 0) {
@@ -99,12 +106,12 @@ export class ImportCreator {
     }
   }
 
-  private static addDefaultImportStatement(
+  private static addDefaultImportStatement = (
     importDeclaration: ImportDeclaration | undefined,
     identifier: Identifier,
     moduleSpecifier: string,
     sourceFile: SourceFile
-  ) {
+  ) => {
     const defaultImport = importDeclaration?.getDefaultImport()?.getText();
     if (importDeclaration && defaultImport) {
       identifier.rename(defaultImport);

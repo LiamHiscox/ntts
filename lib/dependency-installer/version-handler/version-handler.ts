@@ -8,7 +8,11 @@ export class VersionHandler {
      * @returns Array<PackageVersion> a list of all the available version of the given package
      */
     static packageVersions = (packageName: string): Array<PackageVersion> => {
-        return ScriptRunner.runParsed<Array<PackageVersion>>(`npm view ${packageName} versions --json`);
+        try {
+            return ScriptRunner.runParsed<Array<PackageVersion>>(`npm view ${packageName} versions --json`);
+        } catch (e) {
+            return [];
+        }
     }
 
     /**
@@ -17,7 +21,7 @@ export class VersionHandler {
      */
     static packageVersion = (packageName: string): PackageVersion => {
         return ScriptRunner
-            .runParsed<PackageVersionModel>(`npm ls ${packageName} --json --depth`)
+            .runParsed<PackageVersionModel>(`npm ls ${packageName} --json --depth=0`)
             .dependencies[packageName]
             .version;
     }
