@@ -3,7 +3,7 @@ import {ImportCreator} from "../helpers/import-creator";
 import {VariableNameGenerator} from "../../helpers/variable-name-generator/variable-name-generator";
 
 export class ImportClauseRefactor {
-  static refactorImportClause(importStatement: ImportDeclaration, usedImportNames: string[], sourceFile: SourceFile): string[] {
+  static refactorImportClause = (importStatement: ImportDeclaration, usedImportNames: string[], sourceFile: SourceFile): string[] => {
     const moduleSpecifier = importStatement.getModuleSpecifierValue();
     const importedSourceFile = importStatement.isModuleSpecifierRelative() && importStatement.getModuleSpecifierSourceFile();
     if (importedSourceFile) {
@@ -13,7 +13,7 @@ export class ImportClauseRefactor {
     return usedImportNames;
   }
 
-  private static refactorDefaultImport(importStatement: ImportDeclaration, moduleSpecifier: string, importedSourceFile: SourceFile, sourceFile: SourceFile) {
+  private static refactorDefaultImport = (importStatement: ImportDeclaration, moduleSpecifier: string, importedSourceFile: SourceFile, sourceFile: SourceFile) => {
     const defaultImport = importStatement.getDefaultImport()?.getText();
     if (defaultImport && !this.hasDefaultExport(importedSourceFile)) {
       if (importStatement.getNamedImports().length > 0) {
@@ -25,7 +25,7 @@ export class ImportClauseRefactor {
     }
   }
 
-  private static refactorNamedImports(importStatement: ImportDeclaration, usedImportNames: string[], importedSourceFile: SourceFile, sourceFile: SourceFile): string[] {
+  private static refactorNamedImports = (importStatement: ImportDeclaration, usedImportNames: string[], importedSourceFile: SourceFile, sourceFile: SourceFile): string[] => {
     const namedImports = importStatement.getNamedImports();
     if (namedImports.length > 0) {
       const exportedList = this.getExportedList(importedSourceFile);
@@ -48,14 +48,14 @@ export class ImportClauseRefactor {
     return usedImportNames;
   }
 
-  private static getExportedList(importedSourceFile: SourceFile): string[] {
+  private static getExportedList = (importedSourceFile: SourceFile): string[] => {
     return importedSourceFile.getExportDeclarations().reduce((exportedNames, exportDeclaration) => {
       const names = exportDeclaration.getNamedExports().map(named => named.getAliasNode()?.getText() || named.getName());
       return exportedNames.concat(...names);
     }, new Array<string>());
   }
 
-  private static createObjectDestructuring(importStatement: ImportDeclaration, defaultImports: ImportSpecifier[], initializer: string, sourceFile: SourceFile) {
+  private static createObjectDestructuring = (importStatement: ImportDeclaration, defaultImports: ImportSpecifier[], initializer: string, sourceFile: SourceFile) => {
     const index = importStatement.getChildIndex();
     const objectDestructuring = defaultImports.map(_import => _import.getAliasNode() ? `${_import.getName()}: ${_import.getAliasNode()}` : _import.getName()).join(', ');
     sourceFile.insertVariableStatement(index + 1, {
@@ -64,7 +64,7 @@ export class ImportClauseRefactor {
     })
   }
 
-  private static hasDefaultExport(sourceFile: SourceFile): boolean {
+  private static hasDefaultExport = (sourceFile: SourceFile): boolean => {
     return !!sourceFile.getDefaultExportSymbol();
   }
 }

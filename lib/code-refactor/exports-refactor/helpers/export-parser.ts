@@ -8,7 +8,7 @@ import {
 import {ExportedVariableModel} from "../../../models/exported-variable.model";
 
 export class ExportParser {
-  static flatten(node: Node, result: (Identifier | null)[] = []): (Identifier | null)[] {
+  static flatten = (node: Node, result: (Identifier | null)[] = []): (Identifier | null)[] => {
     switch (node.getKind()) {
       case SyntaxKind.PropertyAccessExpression:
         const propertyAccess = node.asKindOrThrow(SyntaxKind.PropertyAccessExpression);
@@ -24,14 +24,14 @@ export class ExportParser {
     }
   }
 
-  static filterExportIdentifiers(identifiers: Identifier[]) {
+  static filterExportIdentifiers = (identifiers: Identifier[]) => {
     if (identifiers[0].getText() === "module") {
       return identifiers.slice(2);
     }
     return identifiers.slice(1);
   }
 
-  static getSourceFileIndex(node: Node): number {
+  static getSourceFileIndex = (node: Node): number => {
     const sourceFile = node.getParent()?.asKind(SyntaxKind.SourceFile);
     if (sourceFile) {
       return node.getChildIndex();
@@ -39,7 +39,7 @@ export class ExportParser {
     return this.getSourceFileIndex(node.getParentOrThrow());
   }
 
-  static exportVariableExists(variableName: string, exportedVariables: ExportedVariableModel[], defaultExport: boolean): ExportedVariableModel | undefined {
+  static exportVariableExists = (variableName: string, exportedVariables: ExportedVariableModel[], defaultExport: boolean): ExportedVariableModel | undefined => {
     if (defaultExport) {
       return exportedVariables.find(exported => !!exported.defaultExport);
     }
@@ -49,12 +49,12 @@ export class ExportParser {
         || (!!exported.alias && exported.alias === variableName));
   }
 
-  static getBaseExport(identifiers: Identifier[]): PropertyAccessExpression {
+  static getBaseExport = (identifiers: Identifier[]): PropertyAccessExpression => {
     const parent = identifiers[0].getParent();
     return parent.asKindOrThrow(SyntaxKind.PropertyAccessExpression);
   }
 
-  static getElementAccessOrDefaultBaseExport(identifiers: Identifier[]): Identifier | PropertyAccessExpression | ElementAccessExpression {
+  static getElementAccessOrDefaultBaseExport = (identifiers: Identifier[]): Identifier | PropertyAccessExpression | ElementAccessExpression => {
     if (identifiers.length === 1) {
       return identifiers[0].getParent().asKind(SyntaxKind.ElementAccessExpression) || identifiers[0];
     }

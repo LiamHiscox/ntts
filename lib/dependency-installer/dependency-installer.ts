@@ -48,12 +48,12 @@ export class DependencyInstaller {
    * @description adds a basic package.json file if none exists
    */
   static getPackageManager = (): PackageManager => {
-    if (existsSync('package-lock.json') || !this.yarnInstalled()) {
-      Logger.info('Using npm as your package manager');
-      return NPM;
-    } else {
+    if (existsSync('yarn.lock') && this.yarnInstalled()) {
       Logger.info('Using yarn as your package manager');
       return Yarn;
+    } else {
+      Logger.info('Using npm as your package manager');
+      return NPM;
     }
   };
 
@@ -78,8 +78,13 @@ export class DependencyInstaller {
     if (!DependencyHandler.isTypeDefinition(packageName) && !DependencyHandler.packageHasTypes(packageName)) {
       const typesName = DependencyHandler.packageToTypesFormat(packageName);
       const typesVersions = VersionHandler.packageVersions(typesName);
-      const closestTypesVersion = VersionCalculator.closestVersion(packageVersion, typesVersions);
-      DependencyInstaller.install(typesName, packageManager, closestTypesVersion);
+      if (typesVersions.length > 0) {
+        const closestTypesVersion = VersionCalculator.closestVersion(packageVersion, typesVersions);
+        DependencyInstaller.install(typesName, packageManager, closestTypesVersion);
+      }
+      else {
+        Logger.warn(`Package ${packageName} has no type definitions`);
+      }
     }
   }
 }

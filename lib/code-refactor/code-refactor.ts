@@ -29,6 +29,7 @@ export class CodeRefactor {
   }
 
   static addSourceFiles = (project: Project, ignores: string[], path: string): Project => {
+    Logger.info('Loading project files');
     const ig = ignore().add(ignores);
     this.readDirectory(project, path || '.', ig);
     return project;

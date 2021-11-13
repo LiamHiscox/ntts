@@ -1,15 +1,14 @@
-import {BinaryExpression, Identifier, Node, SyntaxKind} from "ts-morph";
+import {BinaryExpression, Identifier, SyntaxKind} from "ts-morph";
 import {ExportParser} from "./export-parser";
-import {ExportedVariableModel} from "../../../models/exported-variable.model";
 
 export class ExportValidator {
-  private static isExport(identifiers: (Identifier | null)[]): Identifier[] | undefined {
+  private static isExport = (identifiers: (Identifier | null)[]): Identifier[] | undefined => {
     return this.isDefaultExport(identifiers)
       || this.isNamedExport(identifiers)
       || this.isElementAccessExport(identifiers);
   }
 
-  static isExportAssigment(binary: BinaryExpression): Identifier[] | undefined {
+  static isExportAssigment = (binary: BinaryExpression): Identifier[] | undefined => {
     const left = binary.getLeft().asKind(SyntaxKind.Identifier)
       || binary.getLeft().asKind(SyntaxKind.PropertyAccessExpression)
       || binary.getLeft().asKind(SyntaxKind.ElementAccessExpression);
@@ -17,13 +16,13 @@ export class ExportValidator {
       return;
     }
     const identifiers = this.isExport(ExportParser.flatten(left));
-    if (identifiers && identifiers[0] && identifiers[0].getImplementations().length <= 0) {
+    if (identifiers && identifiers[0]) {
       return identifiers;
     }
     return;
   }
 
-  static isNamedExport(identifiers: (Identifier | null)[]): Identifier[] | undefined {
+  static isNamedExport = (identifiers: (Identifier | null)[]): Identifier[] | undefined => {
     if (identifiers.length > 2
       && identifiers[0] && identifiers[0].getText() === "module"
       && identifiers[1] && identifiers[1].getText() === "exports"
@@ -40,7 +39,7 @@ export class ExportValidator {
     return;
   }
 
-  static isDefaultExport(identifiers: (Identifier | null)[]): Identifier[] | undefined {
+  static isDefaultExport = (identifiers: (Identifier | null)[]): Identifier[] | undefined => {
     if (identifiers.length === 2
       && identifiers[0] && identifiers[0].getText() === "module"
       && identifiers[1] && identifiers[1].getText() === "exports"
@@ -55,7 +54,7 @@ export class ExportValidator {
     return;
   }
 
-  static isElementAccessExport(identifiers: (Identifier | null)[]): Identifier[] | undefined {
+  static isElementAccessExport = (identifiers: (Identifier | null)[]): Identifier[] | undefined => {
     if (identifiers.length > 2
       && identifiers[0] && identifiers[0].getText() === "module"
       && identifiers[1] && identifiers[1].getText() === "exports"
@@ -70,24 +69,5 @@ export class ExportValidator {
       return [identifiers[0]];
     }
     return;
-  }
-
-  static validObjetLiteralExpression(node: Node): boolean {
-    const objectLiteral = node.asKind(SyntaxKind.ObjectLiteralExpression);
-    const validLiteral = objectLiteral?.getProperties().reduce((valid, property) => {
-      switch (property.getKind()) {
-        case SyntaxKind.PropertyAssignment:
-          return valid && !!property.asKindOrThrow(SyntaxKind.PropertyAssignment).getNameNode().asKind(SyntaxKind.Identifier);
-        case SyntaxKind.ShorthandPropertyAssignment:
-          return valid && true;
-        default:
-          return valid && false;
-      }
-    }, true);
-    return !!objectLiteral && !!validLiteral;
-  }
-
-  static hasDefaultExport(exportedVariables: ExportedVariableModel[]): boolean {
-    return !!exportedVariables.find(exported => !!exported.defaultExport);
   }
 }

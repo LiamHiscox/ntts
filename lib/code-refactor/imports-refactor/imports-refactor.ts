@@ -18,21 +18,21 @@ import {TsconfigHandler} from "../../tsconfig-handler/tsconfig-handler";
 import {ImportsReformat} from "./imports-reformat/imports-reformat";
 
 export class ImportsRefactor {
-  static refactorImportClauses(sourceFile: SourceFile) {
+  static refactorImportClauses = (sourceFile: SourceFile) => {
     const importDeclarations = UsedNames.getDeclaredImportNames(sourceFile);
     sourceFile.getImportDeclarations().reduce((usedNames, importStatement) => {
       return ImportClauseRefactor.refactorImportClause(importStatement, usedNames, sourceFile);
     }, importDeclarations);
   }
 
-  static reformatImports(sourceFile: SourceFile, moduleSpecifierResult: ModuleSpecifierRefactorModel): ModuleSpecifierRefactorModel {
+  static reformatImports = (sourceFile: SourceFile, moduleSpecifierResult: ModuleSpecifierRefactorModel): ModuleSpecifierRefactorModel => {
     return sourceFile
       .getImportDeclarations()
       .reduce((moduleSpecifierRefactor: ModuleSpecifierRefactorModel, importStatement) =>
         ImportsReformat.refactorModuleSpecifier(importStatement, moduleSpecifierRefactor, sourceFile), moduleSpecifierResult);
   }
 
-  static resolveModuleSpecifierResults(moduleSpecifierResult: ModuleSpecifierRefactorModel) {
+  static resolveModuleSpecifierResults = (moduleSpecifierResult: ModuleSpecifierRefactorModel) => {
     if (moduleSpecifierResult.declareFileEndingModules.length > 0 || moduleSpecifierResult.declareModules.length > 0) {
       const modules1 = new Set(moduleSpecifierResult.declareFileEndingModules.map(file => `declare module "*.${file}";`));
       const modules2 = new Set(moduleSpecifierResult.declareModules.map(mod => `declare module "${mod}";`));
@@ -45,16 +45,21 @@ export class ImportsRefactor {
     }
   }
 
-  static requiresToImports(sourceFile: SourceFile) {
+  static requiresToImports = (sourceFile: SourceFile) => {
     const usedNames = UsedNames.getDeclaredNames(sourceFile);
     sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression).forEach(callExpression => {
+      if (callExpression.getText().startsWith('require')) {
+        console.log(callExpression.getText());
+        console.log('wasForgotten', callExpression.wasForgotten());
+        console.log('validRequire', ImportValidator.validRequire(callExpression));
+      }
       if (!callExpression.wasForgotten() && ImportValidator.validRequire(callExpression)) {
         this.refactorCallExpression(callExpression, usedNames, sourceFile);
       }
     })
   }
 
-  private static refactorCallExpression(callExpression: CallExpression, usedNames: string[], sourceFile: SourceFile) {
+  private static refactorCallExpression = (callExpression: CallExpression, usedNames: string[], sourceFile: SourceFile) => {
     const importId = ImportValidator.callExpressionFirstArgument(callExpression);
 
     switch (callExpression.getParent()?.getKind()) {

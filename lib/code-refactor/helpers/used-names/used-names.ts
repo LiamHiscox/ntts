@@ -2,14 +2,14 @@ import {ImportClause, Node, ParameterDeclaration, SourceFile, SyntaxKind, Variab
 import {VariableParser} from "../variable-parser/variable-parser";
 
 export class UsedNames {
-  static getDeclaredImportNames(sourceFile: SourceFile): string[] {
+  static getDeclaredImportNames = (sourceFile: SourceFile): string[] => {
     return sourceFile.getDescendantsOfKind(SyntaxKind.ImportClause).reduce((names, importClause) => {
       const clause = importClause.asKindOrThrow(SyntaxKind.ImportClause);
       return names.concat(this.parseImportClause(clause));
     }, new Array<string>());
   }
 
-  static getDeclaredNames(sourceFile: SourceFile): string[] {
+  static getDeclaredNames = (sourceFile: SourceFile): string[] => {
     return sourceFile.getDescendants().reduce((variableNames, descendant) => {
       switch (descendant.getKind()) {
         case SyntaxKind.ImportClause:
@@ -30,7 +30,7 @@ export class UsedNames {
     }, new Array<string>())
   }
 
-  private static parseImportClause(importClause: ImportClause): string[] {
+  private static parseImportClause = (importClause: ImportClause): string[] => {
     return [
       importClause.getDefaultImport()?.getText() || '',
       importClause.getNamespaceImport()?.getText() || '',
@@ -38,7 +38,7 @@ export class UsedNames {
     ].filter(variableName => !!variableName);
   }
 
-  private static parseParameterOrVariable(variable: ParameterDeclaration | VariableDeclaration): string[] | string {
+  private static parseParameterOrVariable = (variable: ParameterDeclaration | VariableDeclaration): string[] | string => {
     const identifier = variable.getNameNode().asKind(SyntaxKind.Identifier);
     if (identifier) {
       return identifier.getText();
@@ -46,7 +46,7 @@ export class UsedNames {
     return VariableParser.getIdentifiers(variable.getNameNode()).map(i => i.getText());
   }
 
-  private static parseFunctionOrClass(node: Node, variableNames: string[]): string[] {
+  private static parseFunctionOrClass = (node: Node, variableNames: string[]): string[] => {
     const typedNode = node.asKind(SyntaxKind.ClassExpression)
       || node.asKind(SyntaxKind.ClassDeclaration)
       || node.asKind(SyntaxKind.FunctionDeclaration)

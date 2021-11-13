@@ -34,6 +34,7 @@ const renameScripts = (target: string) => {
 const refactorJSCode = (target: string, ignores: string[]) => {
   const project = CodeRefactor.addSourceFiles(new Project(), ignores, target);
   CodeRefactor.convertToTypescript(project);
+  project.saveSync();
 }
 
 

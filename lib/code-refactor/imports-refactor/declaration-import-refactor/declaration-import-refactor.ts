@@ -5,12 +5,12 @@ import {ImportCreator} from "../helpers/import-creator";
 
 export class DeclarationImportRefactor {
 
-  static addVariableDeclarationImport(
+  static addVariableDeclarationImport = (
     declaration: VariableDeclaration,
     importId: string,
     usedNames: string[],
     sourceFile: SourceFile
-  ) {
+  ) => {
     if (ImportValidator.isValidImport(declaration)) {
       ImportCreator.addImport(declaration.getNameNode(), importId, sourceFile);
       declaration.remove();

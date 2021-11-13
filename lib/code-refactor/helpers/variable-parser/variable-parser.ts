@@ -9,7 +9,7 @@ import {
 } from "ts-morph";
 
 export class VariableParser {
-  static getIdentifiers(nameNode: BindingName, result: Identifier[] = []): Identifier[] {
+  static getIdentifiers = (nameNode: BindingName, result: Identifier[] = []): Identifier[] => {
     switch (nameNode.getKind()) {
       case SyntaxKind.ObjectBindingPattern:
         return this.parseBindingPattern(nameNode.asKindOrThrow(SyntaxKind.ObjectBindingPattern), result);
@@ -22,7 +22,7 @@ export class VariableParser {
     }
   }
 
-  private static parseBindingPattern (nameNode: ArrayBindingPattern|ObjectBindingPattern, result: Identifier[]): Identifier[] {
+  private static parseBindingPattern = (nameNode: ArrayBindingPattern|ObjectBindingPattern, result: Identifier[]): Identifier[] => {
     const arrayIdentifiers = nameNode
       .getElements()
       .reduce((identifiers: Identifier[], element: BindingElement | OmittedExpression) => {

@@ -56,10 +56,10 @@ export class TsconfigHandler {
     const partialConfig = {include: [path], exclude: ignores}
     if (configName === 'tsconfig.ntts.json') {
       TsconfigHandler.writeToConfig(configName, tsconfig, {...partialConfig, extends: "./tsconfig.json"});
-      Logger.info('Added tsconfig.ntts.json file');
+      Logger.success('Added tsconfig.ntts.json file');
     } else {
       TsconfigHandler.writeToConfig(configName, tsconfig, partialConfig);
-      Logger.info('Added tsconfig.json file');
+      Logger.success('Added tsconfig.json file');
     }
   }
 

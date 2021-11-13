@@ -11,14 +11,14 @@ import {VariableCreator} from "../helpers/variable-creator";
 import {ExportParser} from "../helpers/export-parser";
 
 export class NestedRefactor {
-  static refactorNestedExport(exportName: string,
+  static refactorNestedExport = (exportName: string,
                               binary: BinaryExpression,
                               accessExpression: Identifier | PropertyAccessExpression | ElementAccessExpression,
                               exportedVariables: ExportedVariableModel[],
                               usedNames: string[],
                               defaultExport: boolean,
                               sourceFile: SourceFile
-  ): ExportedVariableModel[] {
+  ): ExportedVariableModel[] => {
     const exported = ExportParser.exportVariableExists(exportName, exportedVariables, defaultExport);
     if (exported) {
       sourceFile.getVariableStatementOrThrow(exported.name).setDeclarationKind(VariableDeclarationKind.Let);

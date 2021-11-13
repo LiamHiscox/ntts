@@ -7,7 +7,7 @@ import {join} from "path";
 export class ImportsReformat {
   private static knownFileEndings = ['json', 'js', 'cjs', 'mjs', 'jsx', 'ts', 'tsx'];
 
-  static refactorModuleSpecifier(importStatement: ImportDeclaration, moduleSpecifierRefactor: ModuleSpecifierRefactorModel, sourceFile: SourceFile): ModuleSpecifierRefactorModel {
+  static refactorModuleSpecifier = (importStatement: ImportDeclaration, moduleSpecifierRefactor: ModuleSpecifierRefactorModel, sourceFile: SourceFile): ModuleSpecifierRefactorModel => {
     const moduleSpecifier = importStatement.getModuleSpecifierValue();
     const isJavaScriptFile = FileRename.isJavaScriptFile(moduleSpecifier);
     if (isJavaScriptFile) {
@@ -37,7 +37,7 @@ export class ImportsReformat {
     return moduleSpecifierRefactor;
   }
 
-  private static unknownFile(file: string): string | undefined {
+  private static unknownFile = (file: string): string | undefined => {
     const paths = file.split('/');
     const split = paths[paths.length - 1].split('.');
     const ending = split[split.length - 1];
