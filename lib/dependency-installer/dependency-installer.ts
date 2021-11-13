@@ -5,6 +5,7 @@ import {DependencyHandler} from "./dependency-handler/dependency-handler";
 import {existsSync} from "fs";
 import {Logger} from "../logger/logger";
 import {NPM, PackageManager, Yarn} from "../models/package-manager";
+import {ModuleDeclarator} from "../module-declarator/module-declarator";
 
 export class DependencyInstaller {
   static installProject = (packageManager: PackageManager) => {
@@ -19,9 +20,9 @@ export class DependencyInstaller {
   static installTypeDependencies = (packageManager: PackageManager) => {
     Logger.info('Installing additional type definitions');
     const installedPackages = DependencyHandler.installedPackages();
-    Object.entries(installedPackages).map(([packageName, {version}]) => {
-      DependencyInstaller.installTypes(packageName, version, packageManager);
-    });
+    const untypedModules = Object.entries(installedPackages).reduce((untypedModules, [packageName, {version}]) =>
+      DependencyInstaller.installTypes(packageName, version, packageManager, untypedModules), new Array<string>());
+    ModuleDeclarator.handleUntypedPackages(untypedModules);
   }
 
   /**
@@ -74,17 +75,17 @@ export class DependencyInstaller {
     DependencyInstaller.install('@types/node', packageManager, closestTypesVersion);
   }
 
-  private static installTypes = (packageName: string, packageVersion: string, packageManager: PackageManager) => {
+  private static installTypes = (packageName: string, packageVersion: string, packageManager: PackageManager, untypedPackages: string[]): string[] => {
     if (!DependencyHandler.isTypeDefinition(packageName) && !DependencyHandler.packageHasTypes(packageName)) {
       const typesName = DependencyHandler.packageToTypesFormat(packageName);
       const typesVersions = VersionHandler.packageVersions(typesName);
-      if (typesVersions.length > 0) {
-        const closestTypesVersion = VersionCalculator.closestVersion(packageVersion, typesVersions);
-        DependencyInstaller.install(typesName, packageManager, closestTypesVersion);
-      }
-      else {
+      if (typesVersions.length <= 0) {
         Logger.warn(`Package ${packageName} has no type definitions`);
+        return untypedPackages.concat(packageName);
       }
+      const closestTypesVersion = VersionCalculator.closestVersion(packageVersion, typesVersions);
+      DependencyInstaller.install(typesName, packageManager, closestTypesVersion);
     }
+    return untypedPackages;
   }
 }

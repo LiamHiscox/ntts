@@ -26,7 +26,7 @@ import module from "my-module";
 import test from "./test.js";
 import json from "./json.json";
 import imports from "./imports.ts";
-import liam from "./imports.md";
+import liam from "./.gitignore";
 `;
 
 const expectedContent =
@@ -35,14 +35,13 @@ import module from "my-module";
 import test from "./test";
 import json from "./json.json";
 import imports from "./imports.ts";
-import liam from "./imports.md";
+import liam from "./.gitignore";
 `;
 
 test('should refactor module specifiers', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', content, {overwrite: true});
-  const modules = ImportsRefactor.reformatImports(sourceFile, {declareFileEndingModules: [], declareModules: []});
+  const modules = ImportsRefactor.reformatImports(sourceFile, {fileEndings: []});
   ImportsRefactor.resolveModuleSpecifierResults(modules);
   expect(sourceFile.getText()).toEqual(expectedContent);
-  expect(["my-module"]).toEqual(modules.declareModules);
-  expect(["md"]).toEqual(modules.declareFileEndingModules);
+  expect(["gitignore"]).toEqual(modules.fileEndings);
 });

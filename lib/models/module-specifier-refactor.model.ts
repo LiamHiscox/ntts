@@ -1,6 +1,5 @@
 export interface ModuleSpecifierRefactorModel {
-  declareModules: string[],
-  declareFileEndingModules: string[],
+  fileEndings: string[],
   allowJson?: boolean,
   allowJs?: boolean
 }

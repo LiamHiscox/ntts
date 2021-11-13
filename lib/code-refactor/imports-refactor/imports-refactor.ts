@@ -12,9 +12,9 @@ import {DeclarationImportRefactor} from "./declaration-import-refactor/declarati
 import {UsedNames} from "../helpers/used-names/used-names";
 import {ImportClauseRefactor} from "./import-clause-refactor/import-clause-refactor";
 import {ModuleSpecifierRefactorModel} from "../../models/module-specifier-refactor.model";
-import {writeFileSync} from "fs";
 import {TsconfigHandler} from "../../tsconfig-handler/tsconfig-handler";
 import {ImportsReformat} from "./imports-reformat/imports-reformat";
+import {ModuleDeclarator} from "../../module-declarator/module-declarator";
 
 export class ImportsRefactor {
   static refactorImportClauses = (sourceFile: SourceFile) => {
@@ -28,17 +28,11 @@ export class ImportsRefactor {
     return sourceFile
       .getImportDeclarations()
       .reduce((moduleSpecifierRefactor: ModuleSpecifierRefactorModel, importStatement) =>
-        ImportsReformat.refactorModuleSpecifier(importStatement, moduleSpecifierRefactor, sourceFile), moduleSpecifierResult);
+        ImportsReformat.refactorModuleSpecifier(importStatement, moduleSpecifierRefactor), moduleSpecifierResult);
   }
 
   static resolveModuleSpecifierResults = (moduleSpecifierResult: ModuleSpecifierRefactorModel) => {
-    if (moduleSpecifierResult.declareFileEndingModules.length > 0 || moduleSpecifierResult.declareModules.length > 0) {
-      const modules1 = new Set(moduleSpecifierResult.declareFileEndingModules.map(file => `declare module "*.${file}";`));
-      const modules2 = new Set(moduleSpecifierResult.declareModules.map(mod => `declare module "${mod}";`));
-      const moduleFile = './ntts-modules.d.ts';
-      writeFileSync(moduleFile, Array.from(modules1).concat(Array.from(modules2)).join('\n'));
-      TsconfigHandler.addModuleFile('./ntts-modules.d.ts');
-    }
+    ModuleDeclarator.handleUntypedPackages(moduleSpecifierResult.fileEndings, true);
     if (moduleSpecifierResult.allowJs || moduleSpecifierResult.allowJson) {
       TsconfigHandler.addCompilerOptions(moduleSpecifierResult);
     }

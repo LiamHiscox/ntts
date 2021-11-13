@@ -19,7 +19,7 @@ export class CodeRefactor {
       ImportsRefactor.requiresToImports(sourceFile);
       ImportsRefactor.refactorImportClauses(sourceFile);
       return ImportsRefactor.reformatImports(sourceFile, moduleSpecifierResult);
-    }, {declareModules: [], declareFileEndingModules: []});
+    }, {fileEndings: []});
     ImportsRefactor.resolveModuleSpecifierResults(modulesResult);
     Logger.success('Requires refactored');
 
