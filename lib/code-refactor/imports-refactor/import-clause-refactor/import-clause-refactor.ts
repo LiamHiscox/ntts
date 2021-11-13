@@ -27,19 +27,21 @@ export class ImportClauseRefactor {
 
   private static refactorNamedImports(importStatement: ImportDeclaration, usedImportNames: string[], importedSourceFile: SourceFile, sourceFile: SourceFile): string[] {
     const namedImports = importStatement.getNamedImports();
-    if (namedImports.length > 0 && !this.hasDefaultExport(importedSourceFile)) {
+    if (namedImports.length > 0) {
       const exportedList = this.getExportedList(importedSourceFile);
       const defaultImports = namedImports.filter(namedImport => !exportedList.includes(namedImport.getName()));
       const defaultImportName = importStatement.getDefaultImport()?.getText();
 
       if (defaultImportName && defaultImports.length > 0) {
         this.createObjectDestructuring(importStatement, defaultImports, defaultImportName, sourceFile);
+        defaultImports.forEach(d => d.remove());
       }
       if (!defaultImportName && defaultImports.length > 0) {
         const importName = VariableNameGenerator.variableNameFromImportId(importStatement.getModuleSpecifierValue());
         const initializer = VariableNameGenerator.getUsableVariableName(importName, usedImportNames);
         importStatement.setDefaultImport(initializer);
         this.createObjectDestructuring(importStatement, defaultImports, initializer, sourceFile);
+        defaultImports.forEach(d => d.remove());
         return usedImportNames.concat(importName);
       }
     }
@@ -56,9 +58,9 @@ export class ImportClauseRefactor {
   private static createObjectDestructuring(importStatement: ImportDeclaration, defaultImports: ImportSpecifier[], initializer: string, sourceFile: SourceFile) {
     const index = importStatement.getChildIndex();
     const objectDestructuring = defaultImports.map(_import => _import.getAliasNode() ? `${_import.getName()}: ${_import.getAliasNode()}` : _import.getName()).join(', ');
-    sourceFile.insertVariableStatement(index, {
+    sourceFile.insertVariableStatement(index + 1, {
       declarationKind: VariableDeclarationKind.Const,
-      declarations: [{name: objectDestructuring, initializer}]
+      declarations: [{name: `{ ${objectDestructuring} }`, initializer}]
     })
   }
 
