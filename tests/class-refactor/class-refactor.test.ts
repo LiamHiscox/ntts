@@ -11,9 +11,10 @@ class Car {
 
   constructor(speed, year, month) {
     this.speed = speed;
-    this.mile = 12;
+    this.mile = {current: 12};
     this.#year = year;
     this.#month = month;
+    this.mile.current = 45;
   }
 
   get showYear () {
@@ -48,9 +49,10 @@ const expectedContent =
 
   constructor(speed, year, month) {
     this.speed = speed;
-    this.mile = 12;
+    this.mile = {current: 12};
     this.year = year;
     this.month = month;
+    this.mile.current = 45;
   }
 
   get showYear () {

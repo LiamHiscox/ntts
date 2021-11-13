@@ -6,7 +6,6 @@ import {
   VariableDeclaration
 } from "ts-morph";
 import {ImportValidator} from "./helpers/import-validator";
-import {BinaryImportsRefactor} from "./binary-import-refactor/binary-imports-refactor";
 import {ExpressionImportsRefactor} from "./expression-import-refactor/expression-imports-refactor";
 import {CallImportsRefactor} from "./call-import-refactor/call-imports-refactor";
 import {DeclarationImportRefactor} from "./declaration-import-refactor/declaration-import-refactor";
@@ -58,19 +57,16 @@ export class ImportsRefactor {
     const importId = ImportValidator.callExpressionFirstArgument(callExpression);
 
     switch (callExpression.getParent()?.getKind()) {
-      case SyntaxKind.BinaryExpression:
-        BinaryImportsRefactor.addBinaryExpressionImport(callExpression, importId, usedNames, sourceFile);
-        break;
       case SyntaxKind.ExpressionStatement:
         const expression = callExpression.getParent()! as ExpressionStatement;
         ExpressionImportsRefactor.addExpressionStatementImport(expression, importId, sourceFile);
         break;
-      case SyntaxKind.CallExpression:
-        CallImportsRefactor.addCallExpressionImport(callExpression, importId, usedNames, sourceFile);
-        break;
       case SyntaxKind.VariableDeclaration:
         const declaration = callExpression.getParent()! as VariableDeclaration;
         DeclarationImportRefactor.addVariableDeclarationImport(declaration, importId, usedNames, sourceFile);
+        break;
+      default:
+        CallImportsRefactor.addCallExpressionImport(callExpression, importId, usedNames, sourceFile);
         break;
     }
   }
