@@ -65,7 +65,7 @@ export class ClassRefactor {
       .getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)
       .reduce((declared, propertyAccess) => {
         const name = propertyAccess.getName();
-        if (!declared.includes(name)) {
+        if (propertyAccess.getExpression().asKind(SyntaxKind.ThisKeyword) && !declared.includes(name)) {
           _class.insertProperty(0, {name});
           return declared.concat(name);
         }

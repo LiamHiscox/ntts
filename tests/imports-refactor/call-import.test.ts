@@ -32,3 +32,9 @@ test('should not refactor call expression with different name', () => {
   ImportsRefactor.requiresToImports(sourceFile);
   expect(sourceFile.getText()).toEqual('import ts_morph from "ts-morph";\nconst app = test("app");');
 });
+
+test('should refactor call expression with ambiguous type', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'const server = require("http").Server(app);', {overwrite: true});
+  ImportsRefactor.requiresToImports(sourceFile);
+  expect(sourceFile.getText()).toEqual('import http from "http";\n\nconst server = http.Server(app);');
+});
