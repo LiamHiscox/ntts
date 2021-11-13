@@ -1,6 +1,7 @@
 import {Project} from "ts-morph";
 import {ImportsRefactor} from "../../lib/code-refactor/imports-refactor/imports-refactor";
 import * as fse from "fs-extra";
+import {writeFileSync} from "fs";
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
@@ -9,6 +10,7 @@ const cwd = process.cwd();
 beforeAll(() => {
   fse.copySync(sample, sampleCopy);
   process.chdir(sampleCopy);
+  writeFileSync('tsconfig.json', '{"compilerOptions": {}}');
 });
 
 afterAll(() => {
