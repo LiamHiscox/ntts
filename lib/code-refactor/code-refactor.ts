@@ -1,16 +1,31 @@
-import {Project, SourceFile} from "ts-morph";
+import {Project} from "ts-morph";
 import {Dirent, readdirSync} from "fs";
 import ignore, {Ignore} from "ignore";
 import {join} from "path";
 import {ImportsRefactor} from "./imports-refactor/imports-refactor";
 import {ClassRefactor} from "./class-refactor/class-refactor";
 import {ExportsRefactor} from "./exports-refactor/exports-refactor";
+import {ModuleSpecifierRefactorModel} from "../models/module-specifier-refactor.model";
+import {Logger} from "../logger/logger";
 
 export class CodeRefactor {
-  static convertToTypescript = (sourceFile: SourceFile) => {
-    ExportsRefactor.moduleExportsToExport(sourceFile);
-    ImportsRefactor.requiresToImports(sourceFile);
-    ClassRefactor.toTypeScriptClasses(sourceFile);
+  static convertToTypescript = (project: Project) => {
+    Logger.info('Refactoring exports');
+    project.getSourceFiles().forEach(ExportsRefactor.moduleExportsToExport);
+    Logger.success('Exports refactored');
+
+    Logger.info('Refactoring requires to imports');
+    const modulesResult = project.getSourceFiles().reduce((moduleSpecifierResult: ModuleSpecifierRefactorModel, sourceFile) => {
+      ImportsRefactor.requiresToImports(sourceFile);
+      ImportsRefactor.refactorImportClauses(sourceFile);
+      return ImportsRefactor.reformatImports(sourceFile, moduleSpecifierResult);
+    }, {declareModules: [], declareFileEndingModules: []});
+    ImportsRefactor.resolveModuleSpecifierResults(modulesResult);
+    Logger.success('Requires refactored');
+
+    Logger.info('Refactoring classes');
+    project.getSourceFiles().forEach(ClassRefactor.toTypeScriptClasses);
+    Logger.success('Classes refactored');
   }
 
   static addSourceFiles = (project: Project, ignores: string[], path: string): Project => {

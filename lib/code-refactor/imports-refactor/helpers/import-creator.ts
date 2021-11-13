@@ -45,6 +45,13 @@ export class ImportCreator {
     }
   }
 
+  static addNamespaceImport(importName: string, moduleSpecifier: string, sourceFile: SourceFile) {
+    sourceFile.addImportDeclaration({
+      namespaceImport: importName,
+      moduleSpecifier
+    });
+  }
+
   private static getPropertyName(element: BindingElement): string|undefined {
     const nameNode = element.getPropertyNameNode();
     switch (nameNode?.getKind()) {

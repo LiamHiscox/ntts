@@ -19,7 +19,7 @@ import {VariableCreator} from "./helpers/variable-creator";
 
 export class ExportsRefactor {
   static moduleExportsToExport(sourceFile: SourceFile) {
-    const usedNames = UsedNames.getDeclaredName(sourceFile);
+    const usedNames = UsedNames.getDeclaredNames(sourceFile);
 
     const exportedVariables = sourceFile.getDescendantsOfKind(SyntaxKind.BinaryExpression).reduce((exportedVariables, node) => {
       if (!node.wasForgotten()) {

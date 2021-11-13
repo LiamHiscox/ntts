@@ -1,7 +1,6 @@
 import {
   CallExpression,
   ExpressionStatement,
-  ImportDeclaration,
   SourceFile,
   SyntaxKind,
   VariableDeclaration
@@ -12,21 +11,47 @@ import {ExpressionImportsRefactor} from "./expression-import-refactor/expression
 import {CallImportsRefactor} from "./call-import-refactor/call-imports-refactor";
 import {DeclarationImportRefactor} from "./declaration-import-refactor/declaration-import-refactor";
 import {UsedNames} from "../helpers/used-names/used-names";
-import {FileRename} from "../../file-rename/file-rename";
-import { join } from "path";
-import {existsSync} from "fs";
+import {ImportClauseRefactor} from "./import-clause-refactor/import-clause-refactor";
+import {ModuleSpecifierRefactorModel} from "../../models/module-specifier-refactor.model";
+import {writeFileSync} from "fs";
+import {TsconfigHandler} from "../../tsconfig-handler/tsconfig-handler";
+import {ImportsReformat} from "./imports-reformat/imports-reformat";
 
 export class ImportsRefactor {
+  static refactorImportClauses(sourceFile: SourceFile) {
+    const importDeclarations = UsedNames.getDeclaredImportNames(sourceFile);
+    sourceFile.getImportDeclarations().reduce((usedNames, importStatement) => {
+      return ImportClauseRefactor.refactorImportClause(importStatement, usedNames, sourceFile);
+    }, importDeclarations);
+  }
+
+  static reformatImports(sourceFile: SourceFile, moduleSpecifierResult: ModuleSpecifierRefactorModel): ModuleSpecifierRefactorModel {
+    return sourceFile
+      .getImportDeclarations()
+      .reduce((moduleSpecifierRefactor: ModuleSpecifierRefactorModel, importStatement) =>
+        ImportsReformat.refactorModuleSpecifier(importStatement, moduleSpecifierRefactor, sourceFile), moduleSpecifierResult);
+  }
+
+  static resolveModuleSpecifierResults(moduleSpecifierResult: ModuleSpecifierRefactorModel) {
+    if (moduleSpecifierResult.declareFileEndingModules.length > 0 || moduleSpecifierResult.declareModules.length > 0) {
+      const modules1 = new Set(moduleSpecifierResult.declareFileEndingModules.map(file => `declare module "*.${file}";`));
+      const modules2 = new Set(moduleSpecifierResult.declareModules.map(mod => `declare module "${mod}";`));
+      const moduleFile = './ntts-modules.d.ts';
+      writeFileSync(moduleFile, Array.from(modules1).concat(Array.from(modules2)).join('\n'));
+      TsconfigHandler.addModuleFile('./ntts-modules.d.ts');
+    }
+    if (moduleSpecifierResult.allowJs || moduleSpecifierResult.allowJson) {
+      TsconfigHandler.addCompilerOptions(moduleSpecifierResult);
+    }
+  }
+
   static requiresToImports(sourceFile: SourceFile) {
-    const usedNames = UsedNames.getDeclaredName(sourceFile);
+    const usedNames = UsedNames.getDeclaredNames(sourceFile);
     sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression).forEach(callExpression => {
       if (!callExpression.wasForgotten() && ImportValidator.validRequire(callExpression)) {
         this.refactorCallExpression(callExpression, usedNames, sourceFile);
       }
     })
-    sourceFile.getImportDeclarations().forEach(importStatement => {
-      this.refactorModuleSpecifier(importStatement, sourceFile);
-    });
   }
 
   private static refactorCallExpression(callExpression: CallExpression, usedNames: string[], sourceFile: SourceFile) {
@@ -47,19 +72,6 @@ export class ImportsRefactor {
         const declaration = callExpression.getParent()! as VariableDeclaration;
         DeclarationImportRefactor.addVariableDeclarationImport(declaration, importId, usedNames, sourceFile);
         break;
-    }
-  }
-
-  private static refactorModuleSpecifier(importStatement: ImportDeclaration, sourceFile: SourceFile) {
-    const moduleSpecifier = importStatement.getModuleSpecifier();
-    if (importStatement.isModuleSpecifierRelative() && FileRename.isJavaScriptFile(moduleSpecifier.getLiteralValue())) {
-      const renamedSpecifier = FileRename.replaceEnding(moduleSpecifier.getLiteralValue());
-      const fullPath = join(sourceFile.getDirectoryPath(), renamedSpecifier);
-      existsSync(`${fullPath}.ts`) && importStatement.setModuleSpecifier(renamedSpecifier);
-    }
-    if (!importStatement.isModuleSpecifierRelative() && FileRename.isJavaScriptFile(moduleSpecifier.getLiteralValue())) {
-      const renamedSpecifier = FileRename.replaceEnding(moduleSpecifier.getLiteralValue());
-      importStatement.setModuleSpecifier(renamedSpecifier);
     }
   }
 }

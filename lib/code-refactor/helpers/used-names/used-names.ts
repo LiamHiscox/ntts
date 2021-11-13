@@ -1,15 +1,15 @@
-import {
-  Node,
-  ImportClause,
-  ParameterDeclaration,
-  SourceFile,
-  SyntaxKind,
-  VariableDeclaration
-} from "ts-morph";
+import {ImportClause, Node, ParameterDeclaration, SourceFile, SyntaxKind, VariableDeclaration} from "ts-morph";
 import {VariableParser} from "../variable-parser/variable-parser";
 
 export class UsedNames {
-  static getDeclaredName(sourceFile: SourceFile): string[] {
+  static getDeclaredImportNames(sourceFile: SourceFile): string[] {
+    return sourceFile.getDescendantsOfKind(SyntaxKind.ImportClause).reduce((names, importClause) => {
+      const clause = importClause.asKindOrThrow(SyntaxKind.ImportClause);
+      return names.concat(this.parseImportClause(clause));
+    }, new Array<string>());
+  }
+
+  static getDeclaredNames(sourceFile: SourceFile): string[] {
     return sourceFile.getDescendants().reduce((variableNames, descendant) => {
       switch (descendant.getKind()) {
         case SyntaxKind.ImportClause:
