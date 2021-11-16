@@ -5,25 +5,25 @@ import {PackageListModel, PackageVersionModel} from "../../models/package.model"
 
 export class DependencyHandler {
   /**
-   * @returns PackageListModel object with all the dependencies pf the project
+   * @returns Promise<PackageListModel> object with all the dependencies pf the project
    */
-  static installedPackages = (): PackageListModel => {
-    return ScriptRunner.runParsed<PackageVersionModel>('npm ls --json').dependencies;
+  static installedPackages = async (): Promise<PackageListModel> => {
+    const packageVersion = await ScriptRunner.runParsed<PackageVersionModel>('npm ls --json');
+    return packageVersion.dependencies;
   }
 
   /**
    * @param packageName the name the package to check if it has types already provided
    * @returns boolean true if the package already provides type definitions
    */
-  static packageHasTypes = (packageName: string): boolean => {
-    const pathToPackage = ScriptRunner.runPipe(`npm ls ${packageName} --parseable --depth=0`);
+  static packageHasTypes = async (packageName: string): Promise<boolean> => {
+    const pathToPackage = await ScriptRunner.runPipe(`npm ls ${packageName} --parseable --depth=0`);
     if (existsSync(join(pathToPackage, 'index.d.ts'))) {
       return true;
-    } else {
-      const fullPath = join(pathToPackage, 'package.json');
-      const packageJSON = JSON.parse(readFileSync(fullPath, {encoding: 'utf-8'})) as { [key: string]: any };
-      return packageJSON.hasOwnProperty('types') || packageJSON.hasOwnProperty('typings');
     }
+    const fullPath = join(pathToPackage, 'package.json');
+    const packageJSON = JSON.parse(readFileSync(fullPath, {encoding: 'utf-8'})) as { [key: string]: any };
+    return packageJSON.hasOwnProperty('types') || packageJSON.hasOwnProperty('typings');
   }
 
   /**

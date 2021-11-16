@@ -39,16 +39,16 @@ test('should format scoped package', () => {
   expect(DependencyHandler.packageToTypesFormat('@babel/core')).toBe('@types/babel__core');
 });
 
-test('should say package has no type definitions', () => {
-  expect(DependencyHandler.packageHasTypes('yargs')).toBeFalsy();
+test('should say package has no type definitions', async () => {
+  expect(await DependencyHandler.packageHasTypes('yargs')).toBeFalsy();
 });
 
-test('should say package has type definitions', () => {
-  expect(DependencyHandler.packageHasTypes('@types/yargs')).toBeTruthy();
+test('should say package has type definitions', async () => {
+  expect(await DependencyHandler.packageHasTypes('@types/yargs')).toBeTruthy();
 });
 
-test('should say package has type definitions because of index.d.ts', () => {
+test('should say package has type definitions because of index.d.ts', async () => {
   writeFileSync('./node_modules/yargs/index.d.ts', '');
-  expect(DependencyHandler.packageHasTypes('yargs')).toBeTruthy();
+  expect(await DependencyHandler.packageHasTypes('yargs')).toBeTruthy();
   unlinkSync('./node_modules/yargs/index.d.ts');
 });

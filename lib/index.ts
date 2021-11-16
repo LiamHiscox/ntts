@@ -9,18 +9,18 @@ import {IgnoreConfigParser} from "./ignore-config-parser/ignore-config-parser";
 import {CodeRefactor} from "./code-refactor/code-refactor";
 import {Project} from "ts-morph";
 
-const basicSetup = (packageManager: PackageManager) => {
+const basicSetup = async (packageManager: PackageManager) => {
   DependencyInstaller.addPackageJson(packageManager);
-  DependencyInstaller.installProject(packageManager);
+  await DependencyInstaller.installProject(packageManager);
 }
 
 const renameFiles = (target: string, ignores: string[]) => {
   FileRename.rename(target, ignores);
 }
 
-const installDependencies = (packageManager: PackageManager) => {
-  DependencyInstaller.installBaseDependencies(packageManager);
-  DependencyInstaller.installTypeDependencies(packageManager);
+const installDependencies = async (packageManager: PackageManager) => {
+  await DependencyInstaller.installBaseDependencies(packageManager);
+  await DependencyInstaller.installTypeDependencies(packageManager);
 }
 
 const addTsconfig = (target: string, ignores: string[]) => {
@@ -38,12 +38,12 @@ const refactorJSCode = (target: string, ignores: string[]) => {
 }
 
 
-const main = (target: string) => {
+const main = async (target: string) => {
   const validTarget = InputValidator.validate(target);
   if (validTarget !== null) {
     const packageManager = DependencyInstaller.getPackageManager();
-    basicSetup(packageManager);
-    installDependencies(packageManager);
+    await basicSetup(packageManager);
+    await installDependencies(packageManager);
     const ignores = IgnoreConfigParser.getIgnores();
     renameFiles(validTarget, ignores);
     addTsconfig(validTarget, ignores);
