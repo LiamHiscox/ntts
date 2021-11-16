@@ -1,9 +1,4 @@
-import {VersionHandler} from "../lib/dependency-installer/version-handler/version-handler";
 import {VersionCalculator} from "../lib/dependency-installer/version-calculator/version-calculator";
-
-test('get correct version of package', () => {
-    expect(VersionHandler.packageVersion('yargs')).toMatch(/^\d+\.\d+\.\d+$/)
-});
 
 test('get closest version with same major version', () => {
     const targetVersion = '3.1.1';

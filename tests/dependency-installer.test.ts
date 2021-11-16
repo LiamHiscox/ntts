@@ -7,12 +7,14 @@ import {NPM} from "../lib/models/package-manager";
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
 const cwd = process.cwd();
+jest.setTimeout(40000);
 
-beforeAll(() => {
-    fse.copySync(sample, sampleCopy);
-    process.chdir(sampleCopy);
-    DependencyInstaller.installBaseDependencies(NPM);
-    DependencyInstaller.installTypeDependencies(NPM);
+fse.copySync(sample, sampleCopy);
+process.chdir(sampleCopy);
+
+beforeAll(async () => {
+    await DependencyInstaller.installBaseDependencies(NPM);
+    await DependencyInstaller.installTypeDependencies(NPM);
 });
 
 afterAll(() => {
@@ -20,15 +22,15 @@ afterAll(() => {
     fse.rmSync(sampleCopy, { recursive: true, force: true });
 });
 
-test('should install base dependency dependency', () => {
-    const installed = DependencyHandler.installedPackages();
+test('should install base dependency dependency', async () => {
+    const installed = await DependencyHandler.installedPackages();
     expect(installed).toHaveProperty('typescript');
     expect(installed).toHaveProperty('@types/node');
     expect(installed).toHaveProperty('ts-node');
 });
 
-test('should install type definitions', () => {
-    const installed = DependencyHandler.installedPackages();
+test('should install type definitions', async  () => {
+    const installed = await DependencyHandler.installedPackages();
     expect(installed).not.toHaveProperty('@types/typescript');
     expect(installed).toHaveProperty('@types/yargs');
 });
