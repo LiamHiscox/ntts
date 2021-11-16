@@ -7,11 +7,11 @@ const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
 const cwd = process.cwd();
 
-beforeAll(() => {
+beforeAll(async () => {
   fse.copySync(sample, sampleCopy);
   process.chdir(sampleCopy);
-  ScriptRunner.runPipe('npm ci');
-  ScriptRunner.runPipe('npm i @types/yargs');
+  await ScriptRunner.runPipe('npm ci');
+  await ScriptRunner.runPipe('npm i @types/yargs');
 });
 
 afterAll(() => {
@@ -19,8 +19,8 @@ afterAll(() => {
   fse.rmSync(sampleCopy, { recursive: true, force: true });
 });
 
-test('should have yargs installed', () => {
-  expect(DependencyHandler.installedPackages()).toHaveProperty('yargs');
+test('should have yargs installed', async () => {
+  expect(await DependencyHandler.installedPackages()).toHaveProperty('yargs');
 });
 
 test('should be type definition package', () => {
