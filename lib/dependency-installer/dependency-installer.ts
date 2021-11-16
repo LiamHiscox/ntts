@@ -6,6 +6,7 @@ import {existsSync} from "fs";
 import {Logger} from "../logger/logger";
 import {NPM, PackageManager, Yarn} from "../models/package-manager";
 import {ModuleDeclarator} from "../module-declarator/module-declarator";
+import {PackageListModel, PackageModel} from "../models/package.model";
 
 export class DependencyInstaller {
   static installProject = (packageManager: PackageManager) => {
@@ -15,13 +16,12 @@ export class DependencyInstaller {
   }
 
   /**
-  * @description installs type definitions of package if necessary and possible
-  */
+   * @description installs type definitions of package if necessary and possible
+   */
   static installTypeDependencies = (packageManager: PackageManager) => {
     Logger.info('Installing additional type definitions');
     const installedPackages = DependencyHandler.installedPackages();
-    const untypedModules = Object.entries(installedPackages).reduce((untypedModules, [packageName, {version}]) =>
-      DependencyInstaller.installTypes(packageName, version, packageManager, untypedModules), new Array<string>());
+    const untypedModules = DependencyInstaller.installTypes(installedPackages, packageManager);
     ModuleDeclarator.handleUntypedPackages(untypedModules);
   }
 
@@ -30,9 +30,13 @@ export class DependencyInstaller {
    */
   static installBaseDependencies = (packageManager: PackageManager) => {
     Logger.info('Installing base dependencies');
-    DependencyInstaller.installNodeTypes(packageManager);
-    DependencyInstaller.install('typescript', packageManager);
-    DependencyInstaller.install('ts-node', packageManager);
+    const typePackage = DependencyInstaller.getClosestNodeTypes();
+    DependencyInstaller.installPackages(
+      packageManager,
+      typePackage,
+      {packageName: 'typescript'},
+      {packageName: 'ts-node'}
+    );
   }
 
   /**
@@ -62,30 +66,41 @@ export class DependencyInstaller {
     return /^\d+\.\d+\.\d+.*$/.test(ScriptRunner.runPipe('yarn --version'));
   }
 
-  private static install = (packageName: string, packageManager: PackageManager, version?: string) => {
-    Logger.info(`Installing ${packageName} ${version || ''}`);
-    const fullPackage = version ? `${packageName}@${version}` : packageName;
-    ScriptRunner.runIgnore(`${packageManager.add} ${fullPackage}`);
-    Logger.success(`${packageName} installed!`);
+  private static installPackages = (packageManager: PackageManager, ...packages: PackageModel[]) => {
+    const fullPackages = packages.map(p => p.version ? `${p.packageName}@${p.version}` : p.packageName).join(' ');
+    Logger.info(`Installing ${fullPackages}`);
+    ScriptRunner.runIgnore(`${packageManager.add} ${fullPackages}`);
+    Logger.success('Packages installed!');
   }
 
-  private static installNodeTypes = (packageManager: PackageManager) => {
+  private static getClosestNodeTypes = (): PackageModel => {
     const typesVersions = VersionHandler.packageVersions('@types/node');
     const closestTypesVersion = VersionCalculator.closestVersion(VersionHandler.nodeVersion(), typesVersions);
-    DependencyInstaller.install('@types/node', packageManager, closestTypesVersion);
+    return {packageName: '@types/node', version: closestTypesVersion};
   }
 
-  private static installTypes = (packageName: string, packageVersion: string, packageManager: PackageManager, untypedPackages: string[]): string[] => {
-    if (!DependencyHandler.isTypeDefinition(packageName) && !DependencyHandler.packageHasTypes(packageName)) {
-      const typesName = DependencyHandler.packageToTypesFormat(packageName);
-      const typesVersions = VersionHandler.packageVersions(typesName);
-      if (typesVersions.length <= 0) {
-        Logger.warn(`Package ${packageName} has no type definitions`);
-        return untypedPackages.concat(packageName);
-      }
-      const closestTypesVersion = VersionCalculator.closestVersion(packageVersion, typesVersions);
-      DependencyInstaller.install(typesName, packageManager, closestTypesVersion);
-    }
-    return untypedPackages;
+  private static getTypesToInstall = (packageList: PackageListModel): { untyped: string[], typed: PackageModel[] } => {
+    return Object
+      .entries(packageList)
+      .reduce((acc: { untyped: string[], typed: PackageModel[] }, [packageName, {version}]) => {
+        if (!DependencyHandler.isTypeDefinition(packageName) && !DependencyHandler.packageHasTypes(packageName)) {
+          const typesName = DependencyHandler.packageToTypesFormat(packageName);
+          const typesVersions = VersionHandler.packageVersions(typesName);
+
+          if (typesVersions.length <= 0) {
+            Logger.warn(`Package ${packageName} has no type definitions`);
+            return {...acc, untyped: acc.untyped.concat(packageName)};
+          }
+          const closestTypesVersion = VersionCalculator.closestVersion(version, typesVersions);
+          return {...acc, typed: acc.typed.concat({packageName: typesName, version: closestTypesVersion})};
+        }
+        return acc;
+      }, {untyped: [], typed: []});
+  }
+
+  private static installTypes = (packageList: PackageListModel, packageManager: PackageManager): string[] => {
+    const {untyped, typed} = this.getTypesToInstall(packageList);
+    DependencyInstaller.installPackages(packageManager, ...typed);
+    return untyped;
   }
 }

@@ -5,5 +5,9 @@ export interface PackageVersionModel {
 }
 
 export interface PackageListModel {
-  [packageName: string]: { version: PackageVersion }
+  [packageName: string]: { version: PackageVersion };
+}
+
+export interface PackageModel {
+  packageName: string, version?: PackageVersion;
 }
