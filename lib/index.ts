@@ -7,7 +7,6 @@ import {InputValidator} from "./input-validator/input-validator";
 import {PackageManager} from "./models/package-manager";
 import {IgnoreConfigParser} from "./ignore-config-parser/ignore-config-parser";
 import {CodeRefactor} from "./code-refactor/code-refactor";
-import {Project} from "ts-morph";
 
 const basicSetup = async (packageManager: PackageManager) => {
   DependencyInstaller.addPackageJson(packageManager);
@@ -32,11 +31,10 @@ const renameScripts = (target: string) => {
 }
 
 const refactorJSCode = (target: string, ignores: string[]) => {
-  const project = CodeRefactor.addSourceFiles(new Project(), ignores, target);
+  const project = CodeRefactor.addSourceFiles(ignores, target);
   CodeRefactor.convertToTypescript(project);
   project.saveSync();
 }
-
 
 const main = async (target: string) => {
   const validTarget = InputValidator.validate(target);
@@ -66,5 +64,5 @@ yargs
           default: '.'
         })
     },
-    ({target}: Arguments<{ target: string }>) => main(target))
+    async ({target}: Arguments<{ target: string }>) => await main(target))
   .argv;

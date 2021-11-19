@@ -11,6 +11,7 @@ import {
   SyntaxKind
 } from "ts-morph";
 import {MethodFunctionHandler} from "./method-function-handler/method-function-handler";
+import {Logger} from "../../logger/logger";
 
 type NamedMember =
   MethodDeclaration
@@ -21,22 +22,16 @@ type NamedMember =
 
 export class ClassRefactor {
   static toTypeScriptClasses = (sourceFile: SourceFile) => {
-    this.getClassDescendants(sourceFile).forEach(_class => {
-      this.addMissingProperties(_class);
-      this.refactorClass(_class);
-    });
-  }
-
-  private static getClassDescendants = (sourceFile: SourceFile): (ClassDeclaration | ClassExpression)[] => {
-    return sourceFile.getDescendants().reduce((classes, descendant) => {
+    Logger.info(sourceFile.getFilePath());
+    sourceFile.getDescendants().forEach(descendant => {
       switch (descendant.getKind()) {
         case SyntaxKind.ClassDeclaration:
         case SyntaxKind.ClassExpression:
-          return classes.concat(descendant as ClassExpression | ClassDeclaration);
-        default:
-          return classes;
+          const _class = descendant.asKind(SyntaxKind.ClassExpression) || descendant.asKindOrThrow(SyntaxKind.ClassDeclaration);
+          this.addMissingProperties(_class);
+          this.refactorClass(_class);
       }
-    }, new Array<ClassDeclaration | ClassExpression>());
+    })
   }
 
   private static refactorClass = (_class: ClassExpression | ClassDeclaration) => {

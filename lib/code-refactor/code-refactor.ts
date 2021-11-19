@@ -7,6 +7,7 @@ import {ClassRefactor} from "./class-refactor/class-refactor";
 import {ExportsRefactor} from "./exports-refactor/exports-refactor";
 import {ModuleSpecifierRefactorModel} from "../models/module-specifier-refactor.model";
 import {Logger} from "../logger/logger";
+import {TsconfigHandler} from "../tsconfig-handler/tsconfig-handler";
 
 export class CodeRefactor {
   static convertToTypescript = (project: Project) => {
@@ -16,6 +17,7 @@ export class CodeRefactor {
 
     Logger.info('Refactoring requires to imports');
     const modulesResult = project.getSourceFiles().reduce((moduleSpecifierResult: ModuleSpecifierRefactorModel, sourceFile) => {
+      Logger.info(sourceFile.getFilePath());
       ImportsRefactor.requiresToImports(sourceFile);
       ImportsRefactor.refactorImportClauses(sourceFile);
       return ImportsRefactor.reformatImports(sourceFile, moduleSpecifierResult);
@@ -28,7 +30,11 @@ export class CodeRefactor {
     Logger.success('Classes refactored');
   }
 
-  static addSourceFiles = (project: Project, ignores: string[], path: string): Project => {
+  static addSourceFiles = (ignores: string[], path: string): Project => {
+    const project = new Project({
+      tsConfigFilePath: TsconfigHandler.tsconfigFileName(),
+      skipAddingFilesFromTsConfig: true
+    });
     Logger.info('Loading project files');
     const ig = ignore().add(ignores);
     this.readDirectory(project, path || '.', ig);

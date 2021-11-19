@@ -1,7 +1,10 @@
 import {Project} from "ts-morph";
 import {ExportsRefactor} from "../../lib/code-refactor/exports-refactor/exports-refactor";
 
-const project = new Project();
+const project = new Project({
+  tsConfigFilePath: 'tsconfig.json',
+  skipAddingFilesFromTsConfig: true
+});
 
 test('should refactor element access export', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'exports.item = {};\nexports.item["item"] = 4;', {overwrite: true});

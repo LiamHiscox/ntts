@@ -18,7 +18,10 @@ afterAll(() => {
   fse.rmSync(sampleCopy, {recursive: true, force: true});
 });
 
-const project = new Project();
+const project = new Project({
+  tsConfigFilePath: 'tsconfig.json',
+  skipAddingFilesFromTsConfig: true
+});
 
 const content = `
 import morph from "ts-morph";
