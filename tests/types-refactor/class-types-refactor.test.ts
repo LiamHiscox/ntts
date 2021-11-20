@@ -44,8 +44,8 @@ const content =
 }
 `;
 
-const expectedContent = `
-class Car {
+const expectedContent =
+  `class Car {
   mile: { current: number; };
   speed: number;
   private year;
