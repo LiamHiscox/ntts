@@ -24,7 +24,7 @@ export class ClassRefactor {
   static toTypeScriptClasses = (sourceFile: SourceFile) => {
     Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach(descendant => {
-      switch (descendant.getKind()) {
+      switch (!descendant.wasForgotten() && descendant.getKind()) {
         case SyntaxKind.ClassDeclaration:
         case SyntaxKind.ClassExpression:
           const _class = descendant.asKind(SyntaxKind.ClassExpression) || descendant.asKindOrThrow(SyntaxKind.ClassDeclaration);

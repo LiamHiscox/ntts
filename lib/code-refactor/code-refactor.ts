@@ -8,6 +8,7 @@ import {ExportsRefactor} from "./exports-refactor/exports-refactor";
 import {ModuleSpecifierRefactorModel} from "../models/module-specifier-refactor.model";
 import {Logger} from "../logger/logger";
 import {TsconfigHandler} from "../tsconfig-handler/tsconfig-handler";
+import {TypesRefactor} from "./types-refactor/types-refactor";
 
 export class CodeRefactor {
   static convertToTypescript = (project: Project) => {
@@ -28,6 +29,10 @@ export class CodeRefactor {
     Logger.info('Refactoring classes');
     project.getSourceFiles().forEach(ClassRefactor.toTypeScriptClasses);
     Logger.success('Classes refactored');
+
+    Logger.info('Declaring initial types');
+    project.getSourceFiles().forEach(TypesRefactor.declareInitialTypes);
+    Logger.success('Initial Types set');
   }
 
   static addSourceFiles = (ignores: string[], path: string): Project => {
