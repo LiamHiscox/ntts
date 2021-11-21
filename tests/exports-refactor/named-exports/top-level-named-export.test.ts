@@ -65,3 +65,21 @@ test('should refactor name collision exports', () => {
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText()).toEqual('const item = 1;\nconst item0 = 2;\nconst item1 = 3;\nconst item00 = 4;\n\nexport { item1 as item, item00 as item0 };\n');
 });
+
+test('should refactor named class expression export', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'exports.Car = class Car {};', {overwrite: true});
+  ExportsRefactor.moduleExportsToExport(sourceFile);
+  expect(sourceFile.getText()).toEqual('class Car {}\n\nexport { Car };\n');
+});
+
+test('should refactor named class expression export with different class name', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'exports.Car = class {};', {overwrite: true});
+  ExportsRefactor.moduleExportsToExport(sourceFile);
+  expect(sourceFile.getText()).toEqual('class Car {}\n\nexport { Car };\n');
+});
+
+test('should refactor named class expression export with usage', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'exports.Car = class {};\nconst _class = new exports.Car();', {overwrite: true});
+  ExportsRefactor.moduleExportsToExport(sourceFile);
+  expect(sourceFile.getText()).toEqual('class Car {}\n\nconst _class = new Car();\n\nexport { Car };\n');
+});

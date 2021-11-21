@@ -15,10 +15,8 @@ export class UsedNames {
         case SyntaxKind.ImportClause:
           const importClause = descendant.asKindOrThrow(SyntaxKind.ImportClause);
           return variableNames.concat(this.parseImportClause(importClause));
-        case SyntaxKind.ClassExpression:
         case SyntaxKind.ClassDeclaration:
         case SyntaxKind.FunctionDeclaration:
-        case SyntaxKind.FunctionExpression:
           return this.parseFunctionOrClass(descendant, variableNames);
         case SyntaxKind.Parameter:
         case SyntaxKind.VariableDeclaration:

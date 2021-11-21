@@ -65,3 +65,21 @@ test('should refactor re-assignment of class default export', () => {
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText()).toEqual('class Car {};\n\nlet Car0 = Car;\n\nCar0 = 12;\n\nexport default Car0;\n');
 });
+
+test('should refactor default class expression export', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'exports = class Car {};', {overwrite: true});
+  ExportsRefactor.moduleExportsToExport(sourceFile);
+  expect(sourceFile.getText()).toEqual('class Car {}\n\nexport default Car;\n');
+});
+
+test('should refactor default class expression export with no class name', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'exports = class {};', {overwrite: true});
+  ExportsRefactor.moduleExportsToExport(sourceFile);
+  expect(sourceFile.getText()).toEqual('class _default {}\n\nexport default _default;\n');
+});
+
+test('should refactor default class expression export with usage', () => {
+  const sourceFile = project.createSourceFile('standard-require.ts', 'exports = class Car {};\nconst _class = new exports();', {overwrite: true});
+  ExportsRefactor.moduleExportsToExport(sourceFile);
+  expect(sourceFile.getText()).toEqual('class Car {}\n\nconst _class = new Car();\n\nexport default Car;\n');
+});
