@@ -23,12 +23,14 @@ export class ExportsRefactor {
     Logger.info(sourceFile.getFilePath());
     const usedNames = UsedNames.getDeclaredNames(sourceFile);
 
-    const exportedVariables = sourceFile.getDescendantsOfKind(SyntaxKind.BinaryExpression).reduce((exportedVariables, node) => {
-      if (!node.wasForgotten()) {
-        return this.refactorExport(node, exportedVariables, usedNames, sourceFile);
-      }
-      return exportedVariables;
-    }, new Array<ExportedVariableModel>());
+    const exportedVariables = sourceFile
+      .getDescendantsOfKind(SyntaxKind.BinaryExpression)
+      .reduce((exportedVariables, node) => {
+        if (!node.wasForgotten()) {
+          return this.refactorExport(node, exportedVariables, usedNames, sourceFile);
+        }
+        return exportedVariables;
+      }, new Array<ExportedVariableModel>());
 
     this.insertExports(exportedVariables, sourceFile);
     ExportRename.refactorExportReadAccess(exportedVariables, sourceFile);

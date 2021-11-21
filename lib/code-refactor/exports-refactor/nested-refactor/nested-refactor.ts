@@ -1,6 +1,7 @@
 import {
   BinaryExpression,
-  ElementAccessExpression, Identifier,
+  ElementAccessExpression,
+  Identifier,
   PropertyAccessExpression,
   SourceFile,
   VariableDeclarationKind
@@ -12,20 +13,20 @@ import {ExportParser} from "../helpers/export-parser";
 
 export class NestedRefactor {
   static refactorNestedExport = (exportName: string,
-                              binary: BinaryExpression,
-                              accessExpression: Identifier | PropertyAccessExpression | ElementAccessExpression,
-                              exportedVariables: ExportedVariableModel[],
-                              usedNames: string[],
-                              defaultExport: boolean,
-                              sourceFile: SourceFile
+                                 binary: BinaryExpression,
+                                 accessExpression: Identifier | PropertyAccessExpression | ElementAccessExpression,
+                                 exportedVariables: ExportedVariableModel[],
+                                 usedNames: string[],
+                                 defaultExport: boolean,
+                                 sourceFile: SourceFile
   ): ExportedVariableModel[] => {
     const exported = ExportParser.exportVariableExists(exportName, exportedVariables, defaultExport);
+    const exportedNames = exportedVariables.map(e => e.name);
     if (exported) {
       sourceFile.getVariableStatementOrThrow(exported.name).setDeclarationKind(VariableDeclarationKind.Let);
       accessExpression.replaceWithText(exported.name);
       return exportedVariables;
     }
-    const exportedNames = exportedVariables.map(e => e.name);
     const usableName = VariableNameGenerator.getUsableVariableName(exportName, usedNames.concat(exportedNames));
     VariableCreator.createEmptyVariable(usableName, ExportParser.getSourceFileIndex(binary), VariableDeclarationKind.Let, sourceFile);
     accessExpression.replaceWithText(usableName);

@@ -40,11 +40,11 @@ const main = async (target: string) => {
   const validTarget = InputValidator.validate(target);
   if (validTarget !== null) {
     const packageManager = DependencyInstaller.getPackageManager();
+    const ignores = IgnoreConfigParser.getIgnores();
+    addTsconfig(validTarget, ignores);
     await basicSetup(packageManager);
     await installDependencies(packageManager);
-    const ignores = IgnoreConfigParser.getIgnores();
     renameFiles(validTarget, ignores);
-    addTsconfig(validTarget, ignores);
     renameScripts(validTarget);
     refactorJSCode(validTarget, ignores);
   }
