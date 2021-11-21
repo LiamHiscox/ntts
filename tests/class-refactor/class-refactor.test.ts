@@ -1,7 +1,10 @@
 import {Project} from "ts-morph";
 import {ClassRefactor} from "../../lib/code-refactor/class-refactor/class-refactor";
 
-const project = new Project();
+const project = new Project({
+  tsConfigFilePath: 'tsconfig.json',
+  skipAddingFilesFromTsConfig: true
+});
 
 const content = `
 class Car {

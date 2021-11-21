@@ -1,7 +1,10 @@
 import {Project} from "ts-morph";
 import {ImportsRefactor} from "../../lib/code-refactor/imports-refactor/imports-refactor";
 
-const project = new Project();
+const project = new Project({
+  tsConfigFilePath: 'tsconfig.json',
+  skipAddingFilesFromTsConfig: true
+});
 
 test('should refactor imports with no default export', () => {
   project.createSourceFile('exports.ts', 'export const item = 12', {overwrite: true});
