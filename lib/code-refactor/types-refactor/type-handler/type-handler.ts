@@ -2,14 +2,14 @@ import {Node, ParameterDeclaration, SyntaxKind, Type, VariableDeclaration} from 
 
 export class TypeHandler {
   static setType = (node: Node, type: Type): Node => {
-    Node.isTypedNode(node);
+    Node.isTyped(node);
     switch (node.getKind()) {
       case SyntaxKind.VariableDeclaration:
         return this.setBindingNameType(node.asKindOrThrow(SyntaxKind.VariableDeclaration), type);
       case SyntaxKind.Parameter:
         return this.setBindingNameType(node.asKindOrThrow(SyntaxKind.Parameter), type);
       default:
-        if (Node.isTypedNode(node)) {
+        if (Node.isTyped(node)) {
           return node.setType(type.getText());
         }
         return node;
