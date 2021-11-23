@@ -1,6 +1,6 @@
 import * as fse from "fs-extra";
 import {PackageJsonHandler} from "../lib/package-json-handler/package-json-handler";
-import {readFileSync} from "fs";
+import {readFileSync, writeFileSync} from "fs";
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
@@ -36,7 +36,13 @@ test('should include build and watch scripts', () => {
 
 test('should rename a single script', () => {
   const scripts = PackageJsonHandler.addTsScripts({"start": "node js-ts.js"}, '');
-  expect(scripts['start']).toEqual("ts-node js-ts.ts");
+  expect(scripts['start']).toEqual("ts-node -P tsconfig.json js-ts.ts");
+});
+
+test('should rename a single script with ntts tsconfig', () => {
+  writeFileSync('tsconfig.ntts.json', '');
+  const scripts = PackageJsonHandler.addTsScripts({"start": "node js-ts.js"}, '');
+  expect(scripts['start']).toEqual("ts-node -P tsconfig.ntts.json js-ts.ts");
 });
 
 test('should rename a multiple scripts', () => {
@@ -44,8 +50,8 @@ test('should rename a multiple scripts', () => {
     "start": "node js-ts.js",
     "build": "node test.js"
   }, '');
-  expect(scripts['start']).toEqual("ts-node js-ts.ts");
-  expect(scripts['build']).toEqual("ts-node test.ts");
+  expect(scripts['start']).toEqual("ts-node -P tsconfig.json js-ts.ts");
+  expect(scripts['build']).toEqual("ts-node -P tsconfig.json test.ts");
 });
 
 test('should not rename script outside target', () => {
@@ -54,12 +60,12 @@ test('should not rename script outside target', () => {
     "build": "node src/test.js"
   }, 'src');
   expect(scripts['start']).toEqual("node js-ts.js");
-  expect(scripts['build']).toEqual("ts-node src/test.ts");
+  expect(scripts['build']).toEqual("ts-node -P tsconfig.json src/test.ts");
 });
 
 test('should rename chained scripts', () => {
   const scripts = PackageJsonHandler.addTsScripts({
     "start": "node js-ts.js && node index.js -t asd & echo test",
   }, '');
-  expect(scripts['start']).toEqual("ts-node js-ts.ts && ts-node index.ts -t asd & echo test");
+  expect(scripts['start']).toEqual("ts-node -P tsconfig.json js-ts.ts && ts-node -P tsconfig.json index.ts -t asd & echo test");
 });

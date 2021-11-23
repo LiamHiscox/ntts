@@ -40,14 +40,14 @@ export class PackageJsonHandler {
     return !!file && resolve(file).startsWith(resolve(path));
   }
 
-  private static transformNodeScript = (script: string, path: string): string => {
+  private static transformNodeScript = (script: string, path: string, tsconfig: string): string => {
     const trimmed = script.trim();
     if (!this.isNodeScript(trimmed)) {
       return trimmed;
     }
     const parsedScript = this.parseNodeScript(trimmed);
     if (this.fileInTargetPath(path, parsedScript.scriptFile)) {
-      return (`${parsedScript.preNodeArguments.join(' ')} ts-node ${parsedScript.scriptFile} ${parsedScript.arguments.join(' ')}`).trim();
+      return (`${parsedScript.preNodeArguments.join(' ')} ts-node -P ${tsconfig} ${parsedScript.scriptFile} ${parsedScript.arguments.join(' ')}`).trim();
     }
     return trimmed;
   }
@@ -105,7 +105,7 @@ export class PackageJsonHandler {
       .entries(fullScripts)
       .reduce((acc: Scripts, [name, script]: [string, string]) => {
         const connectors = script.match(/ +[&]{1,2} +/g);
-        const transformed = this.splitScript(script).map(s => this.transformNodeScript(s, path));
+        const transformed = this.splitScript(script).map(s => this.transformNodeScript(s, path, tsconfig));
         const result = this.joinScripts(transformed, connectors);
         return {...acc, [name]: result};
       }, {});
