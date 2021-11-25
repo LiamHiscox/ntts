@@ -28,7 +28,7 @@ export class ExportParser {
   static getSourceFileIndex = (node: Node): number => {
     const parent = node.getParent();
     if (Node.isSourceFile(parent)) {
-      return parent.getChildIndex();
+      return node.getChildIndex();
     }
     return this.getSourceFileIndex(node.getParentOrThrow());
   }
