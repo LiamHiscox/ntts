@@ -9,7 +9,7 @@ const project = new Project({
 test('refactor importType with named identifier as qualifier', () => {
   const sourceFile = project.createSourceFile(
     'simple-types.ts',
-    'let a: import("C:/Users/liamh/FH/MSE/Master_Thesis/nodejs-to-ts/node_modules/@types/express-serve-static-core/index").Request;',
+    'let a: import("node_modules/@types/express-serve-static-core/index").Request;',
     {overwrite: true}
   );
   ImportTypeRefactor.refactor(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile);
@@ -19,7 +19,7 @@ test('refactor importType with named identifier as qualifier', () => {
 test('refactor importType with named qualified name as qualifier', () => {
   const sourceFile = project.createSourceFile(
     'simple-types.ts',
-    'let a: import("C:/Users/liamh/FH/MSE/Master_Thesis/nodejs-to-ts/node_modules/@types/express-serve-static-core/index").Request.Collator;',
+    'let a: import("node_modules/@types/express-serve-static-core/index").Request.Collator;',
     {overwrite: true}
   );
   ImportTypeRefactor.refactor(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile);
@@ -29,7 +29,7 @@ test('refactor importType with named qualified name as qualifier', () => {
 test('refactor importType with named identifier and type arguments as qualifier', () => {
   const sourceFile = project.createSourceFile(
     'simple-types.ts',
-    'let a: import("C:/Users/liamh/FH/MSE/Master_Thesis/nodejs-to-ts/node_modules/@types/express-serve-static-core/index").Request<{}>;',
+    'let a: import("node_modules/@types/express-serve-static-core/index").Request<{}>;',
     {overwrite: true}
   );
   ImportTypeRefactor.refactor(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile);
@@ -39,7 +39,7 @@ test('refactor importType with named identifier and type arguments as qualifier'
 test('refactor importType with default identifier', () => {
   const sourceFile = project.createSourceFile(
     'simple-types.ts',
-    'let a: import("C:/Users/liamh/FH/MSE/Master_Thesis/nodejs-to-ts/node_modules/@types/express-serve-static-core/index").default;',
+    'let a: import("node_modules/@types/express-serve-static-core/index").default;',
     {overwrite: true}
   );
   ImportTypeRefactor.refactor(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile);
@@ -49,7 +49,7 @@ test('refactor importType with default identifier', () => {
 test('refactor importType with no identifier', () => {
   const sourceFile = project.createSourceFile(
     'simple-types.ts',
-    'let a: import("C:/Users/liamh/FH/MSE/Master_Thesis/nodejs-to-ts/node_modules/@types/express-serve-static-core/index");',
+    'let a: import("node_modules/@types/express-serve-static-core/index");',
     {overwrite: true}
   );
   ImportTypeRefactor.refactor(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile);
@@ -69,7 +69,7 @@ test('refactor importType with node import path', () => {
 test('refactor importType with relative import path', () => {
   const sourceFile = project.createSourceFile(
     'simple-types.ts',
-    'let a: import("C:/Users/liamh/FH/MSE/Master_Thesis/nodejs-to-ts/lib/index").Liam;',
+    'let a: import("lib/index").Liam;',
     {overwrite: true}
   );
   ImportTypeRefactor.refactor(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile);
@@ -79,7 +79,7 @@ test('refactor importType with relative import path', () => {
 test('refactor importType with taken import name', () => {
   const sourceFile = project.createSourceFile(
     'simple-types.ts',
-    'import { Liam } from "./lib/liam";\nlet a: import("C:/Users/liamh/FH/MSE/Master_Thesis/nodejs-to-ts/lib/index").Liam;',
+    'import { Liam } from "./lib/liam";\nlet a: import("lib/index").Liam;',
     {overwrite: true}
   );
   ImportTypeRefactor.refactor(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile);
