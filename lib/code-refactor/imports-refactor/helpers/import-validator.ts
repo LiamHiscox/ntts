@@ -26,7 +26,7 @@ export class ImportValidator {
 
   private static validPropertyNameNode = (element: BindingElement): boolean => {
     const nameNode = element.getPropertyNameNode();
-    if (Node.isIdentifier(nameNode))
+    if (!nameNode || Node.isIdentifier(nameNode))
       return true;
     if (Node.isStringLiteral(nameNode))
       return VariableValidator.validVariableName(nameNode.getLiteralValue());
