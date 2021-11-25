@@ -1,5 +1,5 @@
 import {DependencyHandler} from "../lib/dependency-installer/dependency-handler/dependency-handler";
-import {ScriptRunner} from "../lib/script-runner/script-runner";
+import {ScriptRunner} from "../lib/helpers/script-runner/script-runner";
 import * as fse from "fs-extra";
 import {unlinkSync, writeFileSync} from "fs";
 

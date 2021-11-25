@@ -1,4 +1,4 @@
-import {ScriptRunner} from "../../script-runner/script-runner";
+import {ScriptRunner} from "../../helpers/script-runner/script-runner";
 import {existsSync, readFileSync} from "fs";
 import {join} from "path";
 import {PackageListModel, PackageVersionModel} from "../../models/package.model";

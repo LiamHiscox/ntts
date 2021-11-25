@@ -1,4 +1,4 @@
-import {ScriptRunner} from "../lib/script-runner/script-runner";
+import {ScriptRunner} from "../lib/helpers/script-runner/script-runner";
 
 test('should pipe simple script', async () => {
     expect(await ScriptRunner.runPipe('npm --version')).toMatch(/^\d+\.\d+\.\d+$/);

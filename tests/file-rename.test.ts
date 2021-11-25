@@ -2,7 +2,7 @@ import {FileRename} from "../lib/file-rename/file-rename";
 import * as fse from "fs-extra";
 import {writeFileSync} from "fs";
 import globby from "globby";
-import {IgnoreConfigParser} from "../lib/ignore-config-parser/ignore-config-parser";
+import {IgnoreConfigParser} from "../lib/helpers/ignore-config-parser/ignore-config-parser";
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';

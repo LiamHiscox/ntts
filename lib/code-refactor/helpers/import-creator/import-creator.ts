@@ -7,6 +7,8 @@ import {
   SourceFile,
   SyntaxKind
 } from "ts-morph";
+import {VariableNameGenerator} from "../variable-name-generator/variable-name-generator";
+import {ImportFinder} from "../import-finder/import-finder";
 
 export class ImportCreator {
   static addEmptyImport = (moduleSpecifier: string, sourceFile: SourceFile) => {
@@ -17,7 +19,7 @@ export class ImportCreator {
   }
 
   static addSimpleImport = (importName: string, moduleSpecifier: string, sourceFile: SourceFile): string => {
-    const importDeclaration = sourceFile.getImportDeclaration(moduleSpecifier);
+    const importDeclaration = ImportFinder.getNonNamespaceImportDeclaration(moduleSpecifier, sourceFile);
     const defaultImport = importDeclaration?.getDefaultImport()?.getText();
     if (importDeclaration && defaultImport) {
       return defaultImport;
@@ -33,8 +35,28 @@ export class ImportCreator {
     }
   }
 
+  static addNamedImport = (importName: string, moduleSpecifier: string, usedNames: string[], sourceFile: SourceFile): string => {
+    const importDeclaration = ImportFinder.getNonNamespaceImportDeclaration(moduleSpecifier, sourceFile);
+    const importSpecifier = importDeclaration?.getNamedImports().find(named => importName === named.getName());
+    if (importDeclaration && importSpecifier) {
+      return importSpecifier.getAliasNode()?.getText() || importSpecifier.getName();
+    }
+    const newImportName = VariableNameGenerator.getUsableVariableName(importName, usedNames);
+    const namedImport = newImportName === importName ? importName : `${importName} as ${newImportName}`;
+    if (importDeclaration) {
+      importDeclaration.addNamedImport(namedImport);
+      return newImportName;
+    } else {
+      sourceFile.addImportDeclaration({
+        namedImports: [namedImport],
+        moduleSpecifier
+      });
+      return newImportName;
+    }
+  }
+
   static addImport = (nameNode: BindingName, moduleSpecifier: string, sourceFile: SourceFile) => {
-    const importDeclaration = sourceFile.getImportDeclaration(moduleSpecifier);
+    const importDeclaration = ImportFinder.getNonNamespaceImportDeclaration(moduleSpecifier, sourceFile);
     switch (nameNode.getKind()) {
       case SyntaxKind.Identifier:
         this.addDefaultImportStatement(importDeclaration, nameNode as Identifier, moduleSpecifier, sourceFile);
@@ -45,11 +67,12 @@ export class ImportCreator {
     }
   }
 
-  static addNamespaceImport = (importName: string, moduleSpecifier: string, sourceFile: SourceFile) => {
+  static addNamespaceImport = (importName: string, moduleSpecifier: string, sourceFile: SourceFile): string => {
     sourceFile.addImportDeclaration({
       namespaceImport: importName,
       moduleSpecifier
     });
+    return importName;
   }
 
   private static getPropertyName = (element: BindingElement): string|undefined => {
@@ -75,7 +98,7 @@ export class ImportCreator {
       .getElements()
       .map(binding => {
         const propertyName = this.getPropertyName(binding);
-        const bindingName = (binding.getNameNode() as Identifier).getText();
+        const bindingName = binding.getNameNode().getText();
         if (propertyName) {
           return `${propertyName} as ${bindingName}`;
         }

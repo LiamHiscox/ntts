@@ -1,4 +1,4 @@
-import {ScriptRunner} from "../script-runner/script-runner";
+import {ScriptRunner} from "../helpers/script-runner/script-runner";
 import {VersionHandler} from "./version-handler/version-handler";
 import {VersionCalculator} from "./version-calculator/version-calculator";
 import {DependencyHandler} from "./dependency-handler/dependency-handler";

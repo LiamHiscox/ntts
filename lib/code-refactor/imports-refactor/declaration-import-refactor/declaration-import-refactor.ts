@@ -1,7 +1,7 @@
 import {SourceFile, VariableDeclaration} from "ts-morph";
 import {ImportValidator} from "../helpers/import-validator";
 import {VariableNameGenerator} from "../../helpers/variable-name-generator/variable-name-generator";
-import {ImportCreator} from "../helpers/import-creator";
+import {ImportCreator} from "../../helpers/import-creator/import-creator";
 
 export class DeclarationImportRefactor {
 
