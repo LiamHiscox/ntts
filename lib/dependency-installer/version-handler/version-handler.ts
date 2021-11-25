@@ -1,4 +1,4 @@
-import {ScriptRunner} from "../../script-runner/script-runner";
+import {ScriptRunner} from "../../helpers/script-runner/script-runner";
 import {PackageVersion} from "../../models/package.model";
 
 

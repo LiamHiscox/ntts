@@ -1,5 +1,5 @@
 import {ImportDeclaration, ImportSpecifier, SourceFile, VariableDeclarationKind} from "ts-morph";
-import {ImportCreator} from "../helpers/import-creator";
+import {ImportCreator} from "../../helpers/import-creator/import-creator";
 import {VariableNameGenerator} from "../../helpers/variable-name-generator/variable-name-generator";
 
 export class ImportClauseRefactor {

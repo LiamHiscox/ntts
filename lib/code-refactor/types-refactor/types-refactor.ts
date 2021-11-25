@@ -20,7 +20,8 @@ export class TypesRefactor {
       switch (!descendant.wasForgotten() && descendant.getKind()) {
         case SyntaxKind.VariableDeclaration:
         case SyntaxKind.PropertyDeclaration:
-          const variable = descendant.asKind(SyntaxKind.PropertyDeclaration)
+          const variable =
+            descendant.asKind(SyntaxKind.PropertyDeclaration)
             || descendant.asKindOrThrow(SyntaxKind.VariableDeclaration);
           return TypesRefactor.refactorVariableOrProperty(variable);
         case SyntaxKind.ArrowFunction:
@@ -31,7 +32,8 @@ export class TypesRefactor {
         case SyntaxKind.MethodDeclaration:
         case SyntaxKind.GetAccessor:
         case SyntaxKind.SetAccessor:
-          const _function = descendant.asKind(SyntaxKind.FunctionExpression)
+          const _function =
+            descendant.asKind(SyntaxKind.FunctionExpression)
             || descendant.asKind(SyntaxKind.FunctionDeclaration)
             || descendant.asKind(SyntaxKind.MethodDeclaration)
             || descendant.asKind(SyntaxKind.GetAccessor)

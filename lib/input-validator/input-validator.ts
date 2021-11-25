@@ -1,11 +1,12 @@
 import {resolve} from "path";
 import {Logger} from "../logger/logger";
 import {existsSync} from "fs";
+import {PathParser} from "../helpers/path-parser/path-parser";
 
 export class InputValidator {
   static validate = (path: string): string|null => {
-    const fullPath = resolve(path).split('\\').join('/');
-    const cwd = process.cwd().split('\\').join('/');
+    const fullPath = PathParser.win32ToPosixPath(resolve(path));
+    const cwd = PathParser.win32ToPosixPath(process.cwd());
     if (!existsSync(fullPath)) {
       Logger.error('The given target does not exist!');
       return null;
