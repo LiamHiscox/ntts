@@ -56,6 +56,6 @@ export class ImportValidator {
       && identifier.getText() === "require"
       && argumentList
       && argumentList.length > 0
-      && argumentList[0].getKind() === SyntaxKind.StringLiteral;
+      && Node.isStringLiteral(argumentList[0]);
   }
 }
