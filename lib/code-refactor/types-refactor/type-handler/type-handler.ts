@@ -1,60 +1,42 @@
-import {Node, ParameterDeclaration, SyntaxKind, Type, VariableDeclaration} from "ts-morph";
+import {Node, ParameterDeclaration, Type, VariableDeclaration} from "ts-morph";
 
 export class TypeHandler {
   static setType = (node: Node, type: Type): Node => {
-    Node.isTyped(node);
-    switch (node.getKind()) {
-      case SyntaxKind.VariableDeclaration:
-        return this.setBindingNameType(node.asKindOrThrow(SyntaxKind.VariableDeclaration), type);
-      case SyntaxKind.Parameter:
-        return this.setBindingNameType(node.asKindOrThrow(SyntaxKind.Parameter), type);
-      default:
-        if (Node.isTyped(node)) {
-          return node.setType(type.getText());
-        }
-        return node;
-    }
+    if (Node.isVariableDeclaration(node) || Node.isParameterDeclaration(node))
+      return this.setBindingNameType(node, type);
+    if (Node.isTyped(node))
+      return node.setType(type.getText());
+    return node;
   }
 
   static getType = (node: Node): Type => {
-    switch (node.getKind()) {
-      case SyntaxKind.VariableDeclaration:
-        return this.getVariableDeclarationType(node.asKindOrThrow(SyntaxKind.VariableDeclaration));
-      default:
-        return node.getType();
-    }
+    if (Node.isVariableDeclaration(node))
+      return this.getVariableDeclarationType(node);
+    return node.getType();
   }
 
   private static setBindingNameType = (declaration: VariableDeclaration | ParameterDeclaration, type: Type): Node => {
+    /*
+    * declaration.setType() causes an error due to a bug in ts-morph
+    * const {a, b} = simpleFunction();
+    */
     const nameNode = declaration.getNameNode();
-    switch (nameNode.getKind()) {
-      /*
-      * declaration.setType() causes an error due to a bug in ts-morph
-      * const {a, b} = simpleFunction();
-      */
-      case SyntaxKind.ArrayBindingPattern:
-      case SyntaxKind.ObjectBindingPattern:
-        return nameNode
-          .replaceWithText(`${nameNode.getText()}: ${type.getText()}`)
-          .getParentOrThrow();
-      case SyntaxKind.Identifier:
-      default:
-        return declaration.setType(type.getText());
+    if (Node.isArrayBindingPattern(nameNode) || Node.isObjectBindingPattern(nameNode)) {
+      return nameNode
+        .replaceWithText(`${nameNode.getText()}: ${type.getText()}`)
+        .getParentOrThrow();
     }
+    return declaration.setType(type.getText());
   }
 
   private static getVariableDeclarationType = (declaration: VariableDeclaration): Type => {
-    switch (declaration.getNameNode().getKind()) {
-      /*
-      * declaration.getType() causes an error due to a bug in the typescript api
-      * const {a, b} = simpleFunction();
-      */
-      case SyntaxKind.ArrayBindingPattern:
-      case SyntaxKind.ObjectBindingPattern:
-        return declaration.getInitializerOrThrow().getType();
-      case SyntaxKind.Identifier:
-      default:
-        return declaration.getType();
+    /*
+    * declaration.getType() causes an error due to a bug in the typescript api
+    * const {a, b} = simpleFunction();
+    */
+    if (Node.isArrayBindingPattern(declaration.getNameNode()) || Node.isObjectBindingPattern(declaration.getNameNode())) {
+      return declaration.getInitializerOrThrow().getType();
     }
+    return declaration.getType();
   }
 }

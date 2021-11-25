@@ -9,19 +9,13 @@ import {ExportedVariableModel} from "../../../models/exported-variable.model";
 
 export class ExportParser {
   static flatten = (node: Node, result: (Identifier | null)[] = []): (Identifier | null)[] => {
-    switch (node.getKind()) {
-      case SyntaxKind.PropertyAccessExpression:
-        const propertyAccess = node.asKindOrThrow(SyntaxKind.PropertyAccessExpression);
-        return this.flatten(propertyAccess.getExpression(), [propertyAccess.getNameNode(), ...result]);
-      case SyntaxKind.ElementAccessExpression:
-        const elementAccess = node.asKindOrThrow(SyntaxKind.ElementAccessExpression);
-        elementAccess.getExpression();
-        return this.flatten(elementAccess.getExpression(), [null, ...result]);
-      case SyntaxKind.Identifier:
-        return [node.asKindOrThrow(SyntaxKind.Identifier), ...result];
-      default:
-        return result;
-    }
+    if (Node.isPropertyAccessExpression(node))
+      return this.flatten(node.getExpression(), [node.getNameNode(), ...result]);
+    if (Node.isElementAccessExpression(node))
+      return this.flatten(node.getExpression(), [null, ...result]);
+    if (Node.isIdentifier(node))
+      return [node, ...result];
+    return result;
   }
 
   static filterExportIdentifiers = (identifiers: Identifier[]) => {
@@ -32,9 +26,9 @@ export class ExportParser {
   }
 
   static getSourceFileIndex = (node: Node): number => {
-    const sourceFile = node.getParent()?.asKind(SyntaxKind.SourceFile);
-    if (sourceFile) {
-      return node.getChildIndex();
+    const parent = node.getParent();
+    if (Node.isSourceFile(parent)) {
+      return parent.getChildIndex();
     }
     return this.getSourceFileIndex(node.getParentOrThrow());
   }

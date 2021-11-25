@@ -1,10 +1,4 @@
-import {
-  CallExpression,
-  ExpressionStatement,
-  SourceFile,
-  SyntaxKind,
-  VariableDeclaration
-} from "ts-morph";
+import {CallExpression, Node, SourceFile, SyntaxKind} from "ts-morph";
 import {ImportValidator} from "./helpers/import-validator";
 import {ExpressionImportsRefactor} from "./expression-import-refactor/expression-imports-refactor";
 import {CallImportsRefactor} from "./call-import-refactor/call-imports-refactor";
@@ -47,21 +41,13 @@ export class ImportsRefactor {
     })
   }
 
-  private static refactorCallExpression = (callExpression: CallExpression, usedNames: string[], sourceFile: SourceFile) => {
+  private static refactorCallExpression = (callExpression: CallExpression, usedNames: string[], sourceFile: SourceFile): void => {
     const importId = ImportValidator.callExpressionFirstArgument(callExpression);
-
-    switch (callExpression.getParent()?.getKind()) {
-      case SyntaxKind.ExpressionStatement:
-        const expression = callExpression.getParent()! as ExpressionStatement;
-        ExpressionImportsRefactor.addExpressionStatementImport(expression, importId, sourceFile);
-        break;
-      case SyntaxKind.VariableDeclaration:
-        const declaration = callExpression.getParent()! as VariableDeclaration;
-        DeclarationImportRefactor.addVariableDeclarationImport(declaration, importId, usedNames, sourceFile);
-        break;
-      default:
-        CallImportsRefactor.addCallExpressionImport(callExpression, importId, usedNames, sourceFile);
-        break;
-    }
+    const parent = callExpression.getParent();
+    if (Node.isExpressionStatement(parent))
+      return ExpressionImportsRefactor.addExpressionStatementImport(parent, importId, sourceFile);
+    if (Node.isVariableDeclaration(parent))
+      return DeclarationImportRefactor.addVariableDeclarationImport(parent, importId, usedNames, sourceFile);
+    return CallImportsRefactor.addCallExpressionImport(callExpression, importId, usedNames, sourceFile);
   }
 }

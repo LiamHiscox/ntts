@@ -1,6 +1,6 @@
 import {
   BindingElement,
-  CallExpression,
+  CallExpression, Node,
   ObjectBindingPattern,
   StringLiteral,
   SyntaxKind,
@@ -17,38 +17,24 @@ export class ImportValidator {
 
   static isValidImport = (declaration: VariableDeclaration): boolean => {
     const nameNode = declaration.getNameNode();
-    switch (nameNode.getKind()) {
-      case SyntaxKind.Identifier:
-        return !WriteAccessChecker.hasValueChanged(declaration);
-      case SyntaxKind.ObjectBindingPattern:
-        return (
-          this.validDestructingFormat(nameNode.asKindOrThrow(SyntaxKind.ObjectBindingPattern))
-          && !WriteAccessChecker.hasValueChanged(declaration));
-      case SyntaxKind.ArrayBindingPattern:
-      default:
-        return false;
-    }
+    if (Node.isIdentifier(nameNode))
+      return !WriteAccessChecker.hasValueChanged(declaration);
+    if (Node.isObjectBindingPattern(nameNode))
+      return this.validDestructingFormat(nameNode) && !WriteAccessChecker.hasValueChanged(declaration);
+    return false;
   }
 
   private static validPropertyNameNode = (element: BindingElement): boolean => {
     const nameNode = element.getPropertyNameNode();
-    switch (nameNode?.getKind()) {
-      case undefined:
-      case SyntaxKind.Identifier:
-        return true;
-      case SyntaxKind.StringLiteral:
-        const stringName = nameNode.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue();
-        return !!stringName && VariableValidator.validVariableName(stringName);
-      case SyntaxKind.NoSubstitutionTemplateLiteral:
-        const subName = nameNode.asKindOrThrow(SyntaxKind.NoSubstitutionTemplateLiteral).getLiteralValue();
-        return !!subName && VariableValidator.validVariableName(subName);
-      case SyntaxKind.ComputedPropertyName:
-        const computed = nameNode.asKindOrThrow(SyntaxKind.ComputedPropertyName);
-        const literal = computed.getFirstChildByKind(SyntaxKind.StringLiteral) || computed.getFirstChildByKind(SyntaxKind.NoSubstitutionTemplateLiteral);
-        return !!literal?.getLiteralValue() && VariableValidator.validVariableName(literal.getLiteralValue());
-      default:
-        return false;
+    if (Node.isIdentifier(nameNode))
+      return true;
+    if (Node.isStringLiteral(nameNode))
+      return VariableValidator.validVariableName(nameNode.getLiteralValue());
+    if (Node.isComputedPropertyName(nameNode)) {
+      const literal = nameNode.getFirstChildByKind(SyntaxKind.StringLiteral) || nameNode.getFirstChildByKind(SyntaxKind.NoSubstitutionTemplateLiteral);
+      return !!literal?.getLiteralValue() && VariableValidator.validVariableName(literal.getLiteralValue());
     }
+    return false;
   }
 
   private static validDestructingFormat = (nameNode: ObjectBindingPattern) => {

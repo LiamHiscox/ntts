@@ -3,7 +3,7 @@ import {
   ClassExpression,
   ElementAccessExpression,
   ExpressionStatement,
-  Identifier,
+  Identifier, Node,
   PropertyAccessExpression,
   SourceFile,
   SyntaxKind,
@@ -32,10 +32,10 @@ export class TopLevelRefactor {
     } else if (exported) {
       this.refactorExistingExport(exported, accessExpression, sourceFile);
       return exportedVariables;
-    } else if (binary.getRight().asKind(SyntaxKind.Identifier)) {
+    } else if (Node.isIdentifier(binary.getRight())) {
       const newExport = this.refactorIdentifierAssignment(exportName, binary, expression, usedNames.concat(exportedNames), defaultExport, sourceFile);
       return exportedVariables.concat(newExport);
-    } else if (binary.getRight().asKind(SyntaxKind.ClassExpression)) {
+    } else if (Node.isClassExpression(binary.getRight())) {
       const newExport = this.refactorClassAssignment(exportName, binary, expression, usedNames.concat(exportedNames), defaultExport, sourceFile);
       return exportedVariables.concat(newExport);
     } else {
@@ -148,14 +148,10 @@ export class TopLevelRefactor {
   private static canExportDirectly = (identifier: Identifier, sourceFile: SourceFile): boolean => {
     const nodeName = identifier.getText();
     const implementation = sourceFile.getVariableDeclaration(nodeName) || sourceFile.getFunction(nodeName) || sourceFile.getClass(nodeName);
-    switch (implementation?.getKind()) {
-      case SyntaxKind.FunctionDeclaration:
-      case SyntaxKind.ClassDeclaration:
-        return true;
-      case SyntaxKind.VariableDeclaration:
-        return !WriteAccessChecker.hasValueChanged(implementation!.asKindOrThrow(SyntaxKind.VariableDeclaration));
-      default:
-        return false;
-    }
+    if (Node.isFunctionDeclaration(implementation) || Node.isClassDeclaration(implementation))
+      return true;
+    if (Node.isVariableDeclaration(implementation))
+      return !WriteAccessChecker.hasValueChanged(implementation);
+    return false;
   }
 }

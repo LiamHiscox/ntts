@@ -3,7 +3,7 @@ import {
   FunctionDeclaration,
   FunctionExpression,
   GetAccessorDeclaration,
-  MethodDeclaration,
+  MethodDeclaration, Node,
   PropertyDeclaration,
   SetAccessorDeclaration,
   SourceFile,
@@ -17,29 +17,19 @@ export class TypesRefactor {
   static declareInitialTypes = (sourceFile: SourceFile) => {
     Logger.info(sourceFile.getFilePath())
     sourceFile.getDescendants().forEach(descendant => {
-      switch (!descendant.wasForgotten() && descendant.getKind()) {
-        case SyntaxKind.VariableDeclaration:
-        case SyntaxKind.PropertyDeclaration:
-          const variable =
-            descendant.asKind(SyntaxKind.PropertyDeclaration)
-            || descendant.asKindOrThrow(SyntaxKind.VariableDeclaration);
-          return TypesRefactor.refactorVariableOrProperty(variable);
-        case SyntaxKind.ArrowFunction:
-          const arrowFunction = descendant.asKindOrThrow(SyntaxKind.ArrowFunction);
-          return TypesRefactor.refactorArrowFunction(arrowFunction);
-        case SyntaxKind.FunctionExpression:
-        case SyntaxKind.FunctionDeclaration:
-        case SyntaxKind.MethodDeclaration:
-        case SyntaxKind.GetAccessor:
-        case SyntaxKind.SetAccessor:
-          const _function =
-            descendant.asKind(SyntaxKind.FunctionExpression)
-            || descendant.asKind(SyntaxKind.FunctionDeclaration)
-            || descendant.asKind(SyntaxKind.MethodDeclaration)
-            || descendant.asKind(SyntaxKind.GetAccessor)
-            || descendant.asKindOrThrow(SyntaxKind.SetAccessor);
-          return TypesRefactor.refactorFunction(_function);
-      }
+      if (descendant.wasForgotten())
+        return;
+      if (Node.isVariableDeclaration(descendant)
+        || Node.isPropertyDeclaration(descendant)
+      ) return TypesRefactor.refactorVariableOrProperty(descendant);
+      if (Node.isArrowFunction(descendant))
+        return TypesRefactor.refactorArrowFunction(descendant);
+      if (Node.isFunctionExpression(descendant)
+        || Node.isFunctionDeclaration(descendant)
+        || Node.isMethodDeclaration(descendant)
+        || Node.isGetAccessorDeclaration(descendant)
+        || Node.isSetAccessorDeclaration(descendant)
+      ) return TypesRefactor.refactorFunction(descendant);
     })
   }
 
@@ -59,18 +49,16 @@ export class TypesRefactor {
 
   private static refactorVariableOrProperty = (declaration: VariableDeclaration | PropertyDeclaration) => {
     const initializer = declaration.getInitializer();
-    switch (initializer?.getKind()) {
-      case SyntaxKind.ArrowFunction:
-      case SyntaxKind.ClassExpression:
-      case SyntaxKind.FunctionExpression:
-        return;
-      default:
-        const type = TypeHandler.getType(declaration);
-        if (type.isLiteral()) {
-          TypeHandler.setType(declaration, type.getBaseTypeOfLiteralType());
-        } else if (!type.isAny()) {
-          TypeHandler.setType(declaration, type);
-        }
+    if (!Node.isArrowFunction(initializer)
+      && !Node.isClassExpression(initializer)
+      && !Node.isFunctionExpression(initializer)
+    ) {
+      const type = TypeHandler.getType(declaration);
+      if (type.isLiteral()) {
+        TypeHandler.setType(declaration, type.getBaseTypeOfLiteralType());
+      } else if (!type.isAny()) {
+        TypeHandler.setType(declaration, type);
+      }
     }
   }
 

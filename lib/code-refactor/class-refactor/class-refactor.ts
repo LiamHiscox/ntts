@@ -1,35 +1,24 @@
 import {
   ClassDeclaration,
   ClassExpression,
-  ClassStaticBlockDeclaration,
-  GetAccessorDeclaration,
-  MethodDeclaration,
-  PropertyDeclaration,
+  Node,
   Scope,
-  SetAccessorDeclaration,
   SourceFile,
   SyntaxKind
 } from "ts-morph";
 import {MethodFunctionHandler} from "./method-function-handler/method-function-handler";
 import {Logger} from "../../logger/logger";
 
-type NamedMember =
-  MethodDeclaration
-  | PropertyDeclaration
-  | GetAccessorDeclaration
-  | SetAccessorDeclaration
-  | ClassStaticBlockDeclaration;
-
 export class ClassRefactor {
   static toTypeScriptClasses = (sourceFile: SourceFile) => {
     Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach(descendant => {
-      switch (!descendant.wasForgotten() && descendant.getKind()) {
-        case SyntaxKind.ClassDeclaration:
-        case SyntaxKind.ClassExpression:
-          const _class = descendant.asKind(SyntaxKind.ClassExpression) || descendant.asKindOrThrow(SyntaxKind.ClassDeclaration);
-          this.addMissingProperties(_class);
-          this.refactorClass(_class);
+      if (!descendant.wasForgotten() && (
+        Node.isClassExpression(descendant) ||
+        Node.isClassDeclaration(descendant))
+      ) {
+        this.addMissingProperties(descendant);
+        this.refactorClass(descendant);
       }
     })
   }
@@ -46,10 +35,10 @@ export class ClassRefactor {
 
   private static getDeclaredMembers = (_class: ClassExpression | ClassDeclaration): string[] => {
     return _class.getMembers().map((p) => {
-      if (p.asKind(SyntaxKind.Constructor)) {
+      if (Node.isConstructorDeclaration(p)) {
         return 'constructor';
       }
-      return (p as NamedMember).getName();
+      return p.getName();
     });
 
   }
