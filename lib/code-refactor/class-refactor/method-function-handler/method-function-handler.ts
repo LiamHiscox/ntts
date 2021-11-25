@@ -3,9 +3,9 @@ import {
   ClassExpression,
   GetAccessorDeclaration,
   MethodDeclaration,
+  Node,
   PropertyDeclaration,
-  SetAccessorDeclaration,
-  SyntaxKind
+  SetAccessorDeclaration
 } from "ts-morph";
 
 type MethodFunction = MethodDeclaration | PropertyDeclaration | GetAccessorDeclaration | SetAccessorDeclaration;
@@ -13,29 +13,18 @@ type MethodFunction = MethodDeclaration | PropertyDeclaration | GetAccessorDecla
 export class MethodFunctionHandler {
   static getMethodFunctionNames = (_class: ClassExpression | ClassDeclaration): string[] => {
     return _class.getMembers().reduce((names, member) => {
-      switch (member.getKind()) {
-        case SyntaxKind.MethodDeclaration:
-        case SyntaxKind.PropertyDeclaration:
-        case SyntaxKind.GetAccessor:
-        case SyntaxKind.SetAccessor:
-          const methodMember = member as MethodFunction;
-          return names.concat(methodMember.getName());
-        default:
-          return names;
+      if (Node.isConstructorDeclaration(member) || Node.isClassStaticBlockDeclaration(member)) {
+        return names;
       }
+      return names.concat(member.getName());
     }, new Array<string>())
   }
 
   static getMethodFunction = (name: string, _class: ClassExpression | ClassDeclaration): MethodFunction | undefined => {
     const member = _class.getMember(name);
-    switch (member?.getKind()) {
-      case SyntaxKind.MethodDeclaration:
-      case SyntaxKind.PropertyDeclaration:
-      case SyntaxKind.GetAccessor:
-      case SyntaxKind.SetAccessor:
-        return member as MethodFunction;
-      default:
-        return;
+    if (Node.isConstructorDeclaration(member) || Node.isClassStaticBlockDeclaration(member)) {
+      return;
     }
+    return member;
   }
 }

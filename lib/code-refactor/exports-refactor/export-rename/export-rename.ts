@@ -1,4 +1,4 @@
-import {ElementAccessExpression, Identifier, PropertyAccessExpression, SourceFile, SyntaxKind} from "ts-morph";
+import {ElementAccessExpression, Identifier, Node, PropertyAccessExpression, SourceFile, SyntaxKind} from "ts-morph";
 import {ExportedVariableModel} from "../../../models/exported-variable.model";
 import {ExportParser} from "../helpers/export-parser";
 import {ExportValidator} from "../helpers/export-validator";
@@ -28,15 +28,14 @@ export class ExportRename {
   }
 
   private static getDefaultExport = (identifier: Identifier): Identifier | PropertyAccessExpression => {
-    const parent = identifier.getParent().asKind(SyntaxKind.PropertyAccessExpression);
-    return parent ? parent : identifier;
+    const parent = identifier.getParent();
+    return Node.isPropertyAccessExpression(parent) ? parent : identifier;
   }
 
   private static getLastPropertyAccess = (identifier: Identifier | PropertyAccessExpression | ElementAccessExpression): Identifier | PropertyAccessExpression | ElementAccessExpression => {
     const parent = identifier.getParent();
-    const access = parent && (parent.asKind(SyntaxKind.PropertyAccessExpression) || parent.asKind(SyntaxKind.ElementAccessExpression));
-    if (access) {
-      return this.getLastPropertyAccess(access);
+    if (Node.isPropertyAccessExpression(parent) || Node.isElementAccessExpression(parent)) {
+      return this.getLastPropertyAccess(parent);
     }
     return identifier;
   }

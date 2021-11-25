@@ -2,6 +2,7 @@ import {
   BinaryExpression,
   ElementAccessExpression,
   Identifier,
+  Node,
   PropertyAccessExpression,
   SourceFile,
   SyntaxKind,
@@ -82,9 +83,9 @@ export class ExportsRefactor {
                                                  usedNames: string[],
                                                  sourceFile: SourceFile
   ): ExportedVariableModel[] => {
-    const parent = binary.getParent()?.asKind(SyntaxKind.ExpressionStatement);
-    const grandParent = binary.getParent()?.getParent()?.asKind(SyntaxKind.SourceFile);
-    if (parent && grandParent) {
+    const parent = binary.getParent();
+    const grandParent = parent?.getParent();
+    if (Node.isExpressionStatement(parent) && Node.isSourceFile(grandParent)) {
       return TopLevelRefactor.refactorTopLevelExport(exportName, binary, parent, accessExpression, exportedVariables, usedNames, false, sourceFile);
     } else {
       return NestedRefactor.refactorNestedExport(exportName, binary, accessExpression, exportedVariables, usedNames, false, sourceFile);
@@ -97,9 +98,8 @@ export class ExportsRefactor {
                                                          usedNames: string[],
                                                          sourceFile: SourceFile
   ): ExportedVariableModel[] => {
-    const elementAccess = accessExpression.asKind(SyntaxKind.ElementAccessExpression);
-    if (elementAccess && !ExportParser.exportVariableExists("_default", exportedVariables, true)) {
-      return this.refactorNewElementAccessDefaultExport(binary, elementAccess, exportedVariables, usedNames, sourceFile);
+    if (Node.isElementAccessExpression(accessExpression) && !ExportParser.exportVariableExists("_default", exportedVariables, true)) {
+      return this.refactorNewElementAccessDefaultExport(binary, accessExpression, exportedVariables, usedNames, sourceFile);
     }
     return this.refactorDefaultAssignmentExport(binary, accessExpression, exportedVariables, usedNames, sourceFile);
   }
@@ -110,9 +110,9 @@ export class ExportsRefactor {
                                                     usedNames: string[],
                                                     sourceFile: SourceFile
   ): ExportedVariableModel[] => {
-    const parent = binary.getParent()?.asKind(SyntaxKind.ExpressionStatement);
-    const grandParent = binary.getParent()?.getParent()?.asKind(SyntaxKind.SourceFile);
-    if (parent && grandParent) {
+    const parent = binary.getParent();
+    const grandParent = parent?.getParent();
+    if (Node.isExpressionStatement(parent) && Node.isSourceFile(grandParent)) {
       return TopLevelRefactor.refactorTopLevelExport("_default", binary, parent, accessExpression, exportedVariables, usedNames, true, sourceFile);
     } else {
       return NestedRefactor.refactorNestedExport("_default", binary, accessExpression, exportedVariables, usedNames, true, sourceFile);
