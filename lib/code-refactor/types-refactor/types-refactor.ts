@@ -9,14 +9,17 @@ export class TypesRefactor {
     sourceFile.getDescendants().forEach(descendant => {
       if (descendant.wasForgotten())
         return;
+      if (Node.isSetAccessorDeclaration(descendant))
+        return TypeInference.inferSetAccessorParameterTypes(descendant);
       if (Node.isPropertyAssignment(descendant)
         || Node.isVariableDeclaration(descendant)
         || Node.isPropertyDeclaration(descendant)
       ) return TypeInference.inferFunctionAssignmentParameterTypes(descendant);
       if (Node.isFunctionDeclaration(descendant)
         || Node.isMethodDeclaration(descendant)
-        || Node.isConstructorDeclaration(descendant)
       ) return TypeInference.inferFunctionDeclarationParameterTypes(descendant);
+      if (Node.isConstructorDeclaration(descendant))
+        return TypeInference.inferConstructorParameterTypes(descendant);
     })
   }
 

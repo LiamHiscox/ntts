@@ -31,7 +31,7 @@ export class CodeRefactor {
     Logger.success('Classes refactored');
 
     Logger.info('Declaring parameter types by usage');
-    project.getSourceFiles().forEach(TypesRefactor.declareInitialTypes);
+    project.getSourceFiles().forEach(TypesRefactor.inferParameterTypes);
     Logger.success('Parameter type declared where possible');
 
     // Logger.info('Declaring initial types');
