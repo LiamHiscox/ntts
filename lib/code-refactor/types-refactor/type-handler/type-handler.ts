@@ -3,9 +3,17 @@ import {Node, ParameterDeclaration, Type, VariableDeclaration} from "ts-morph";
 export class TypeHandler {
   static setType = (node: Node, type: Type): Node => {
     if (Node.isVariableDeclaration(node) || Node.isParameterDeclaration(node))
-      return this.setBindingNameType(node, type);
+      return this.setBindingNameType(node, type.getText());
     if (Node.isTyped(node))
       return node.setType(type.getText());
+    return node;
+  }
+
+  static setSimpleType = (node: Node, type: string): Node => {
+    if (Node.isVariableDeclaration(node) || Node.isParameterDeclaration(node))
+      return this.setBindingNameType(node, type);
+    if (Node.isTyped(node))
+      return node.setType(type);
     return node;
   }
 
@@ -15,7 +23,7 @@ export class TypeHandler {
     return node.getType();
   }
 
-  private static setBindingNameType = (declaration: VariableDeclaration | ParameterDeclaration, type: Type): Node => {
+  private static setBindingNameType = (declaration: VariableDeclaration | ParameterDeclaration, type: string): Node => {
     /*
     * declaration.setType() causes an error due to a bug in ts-morph
     * const {a, b} = simpleFunction();
@@ -23,10 +31,10 @@ export class TypeHandler {
     const nameNode = declaration.getNameNode();
     if (Node.isArrayBindingPattern(nameNode) || Node.isObjectBindingPattern(nameNode)) {
       return nameNode
-        .replaceWithText(`${nameNode.getText()}: ${type.getText()}`)
+        .replaceWithText(`${nameNode.getText()}: ${type}`)
         .getParentOrThrow();
     }
-    return declaration.setType(type.getText());
+    return declaration.setType(type);
   }
 
   private static getVariableDeclarationType = (declaration: VariableDeclaration): Type => {

@@ -30,9 +30,13 @@ export class CodeRefactor {
     project.getSourceFiles().forEach(ClassRefactor.toTypeScriptClasses);
     Logger.success('Classes refactored');
 
-    Logger.info('Declaring initial types');
-    project.getSourceFiles().forEach(TypesRefactor.declareInitialTypes);
-    Logger.success('Initial Types set');
+    Logger.info('Declaring parameter types by usage');
+    project.getSourceFiles().forEach(TypesRefactor.inferParameterTypes);
+    Logger.success('Parameter type declared where possible');
+
+    // Logger.info('Declaring initial types');
+    // project.getSourceFiles().forEach(TypesRefactor.declareInitialTypes);
+    // Logger.success('Initial Types set');
   }
 
   static addSourceFiles = (ignores: string[], path: string): Project => {
