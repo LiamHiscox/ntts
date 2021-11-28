@@ -15,7 +15,7 @@ import {TypeHandler} from "../type-handler/type-handler";
 import {TypeChecker} from "../helpers/type-checker/type-checker";
 import {TypeInferenceValidator} from "./type-inference-validator/type-inference-validator";
 
-export class TypeInference {
+export class ParameterTypeInference {
   static inferSetAccessorParameterTypes = (setter: SetAccessorDeclaration) => {
     setter.findReferencesAsNodes().forEach(ref => {
       const parent = TypeInferenceValidator.validateSetAccessorParent(ref);
