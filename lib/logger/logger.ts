@@ -1,8 +1,8 @@
-import {green, redBright, yellow} from "chalk";
+import chalk from "chalk";
 
 export class Logger {
   static success = (text: string) => {
-    console.log(green('SUCCESS'), text);
+    console.log(chalk.green('SUCCESS'), text);
   }
 
   static info = (text: string) => {
@@ -10,10 +10,10 @@ export class Logger {
   }
 
   static warn = (text: string) => {
-    console.log(yellow('WARN'), text);
+    console.log(chalk.yellow('WARN'), text);
   }
 
   static error = (text: string) => {
-    console.log(redBright('ERROR'), text);
+    console.log(chalk.redBright('ERROR'), text);
   }
 }

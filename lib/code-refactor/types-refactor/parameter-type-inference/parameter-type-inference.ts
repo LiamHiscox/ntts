@@ -73,7 +73,7 @@ export class ParameterTypeInference {
     const parameterType = (typeNodeType && !TypeChecker.isAny(typeNodeType) && typeNodeType.isArray()) ?
       typeNodeType.getArrayElementTypeOrThrow() : TypeHandler.getType(parameter).getArrayElementTypeOrThrow();
 
-    const parameterArrayType = this.getFilteredUnionTypes(parameterType);
+    const parameterArrayType = TypeHandler.getFilteredUnionTypes(parameterType);
     const filteredParameterType = parameterArrayType.filter(t => !TypeChecker.isAny(t)).map(t => t.getText());
 
     const uniqueArgumentTypes = _arguments.reduce((list, node) => {
@@ -111,8 +111,8 @@ export class ParameterTypeInference {
   }
 
   private static getUniqueTypes = (parameterType: Type, argumentType: Type): string => {
-    const parameterUnionTypes = this.getFilteredUnionTypes(parameterType);
-    const argumentUnionTypes = this.getFilteredUnionTypes(argumentType);
+    const parameterUnionTypes = TypeHandler.getFilteredUnionTypes(parameterType);
+    const argumentUnionTypes = TypeHandler.getFilteredUnionTypes(argumentType);
     const filtered = argumentUnionTypes.filter(a => !parameterUnionTypes.find(u => u.getText() === a.getText()));
 
     if (filtered.length <= 0) {
@@ -125,10 +125,5 @@ export class ParameterTypeInference {
       const filteredArguments = argumentType.getText().split('|').filter(a => !parameterTypes.includes(a.trim())).join(' | ');
       return `${parameterType.getText()} | ${filteredArguments}`;
     }
-  }
-
-  private static getFilteredUnionTypes = (type: Type): Type[] => {
-    const unionTypes = type.isUnion() ? type.getUnionTypes() : [type];
-    return unionTypes.filter(t => !TypeChecker.isAny(t));
   }
 }

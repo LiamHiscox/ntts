@@ -3,18 +3,18 @@ import {BinaryExpression, CallExpression, NewExpression, Node, SyntaxKind} from 
 export class TypeInferenceValidator {
   static validateSetAccessorParent = (node: Node): Node | undefined => {
     const parent = node.getParent();
-    if (Node.isBinaryExpression(parent) && parent.getLeft().getText() === node.getText())
+    if (Node.isBinaryExpression(parent) && parent.getLeft().getPos() === node.getPos())
       return parent;
-    if (Node.isPropertyAccessExpression(parent) && parent.getName() === node.getText())
+    if (Node.isPropertyAccessExpression(parent) && parent.getNameNode().getPos() === node.getPos())
       return parent;
     return;
   }
 
   static validateCallExpressionParent = (node: Node): Node | undefined => {
     const parent = node.getParent();
-    if (Node.isCallExpression(parent) && parent.getExpression().getText() === node.getText())
+    if (Node.isCallExpression(parent) && parent.getExpression().getPos() === node.getPos())
       return parent;
-    if (Node.isPropertyAccessExpression(parent) && parent.getName() === node.getText())
+    if (Node.isPropertyAccessExpression(parent) && parent.getNameNode().getPos() === node.getPos())
       return parent;
     return;
   }

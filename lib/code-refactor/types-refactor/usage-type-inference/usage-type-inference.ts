@@ -1,10 +1,15 @@
-import {BindingName, Identifier, Node, ReferencedSymbol, SyntaxKind, Type, VariableDeclaration} from "ts-morph";
+import {Node, PropertySignature, TypeNode, VariableDeclaration} from "ts-morph";
 import {TypeHandler} from "../type-handler/type-handler";
+import {ReferenceChecker} from "./reference-checker/reference-checker";
+import {ObjectLiteralHandler} from "../helpers/object-literal-handler/object-literal-handler";
+import {ArrayTypeHandler} from "../helpers/array-type-handler/array-type-handler";
+import {BindingNameHandler} from "../helpers/binding-name-handler/binding-name-handler";
+import {TypeChecker} from "../helpers/type-checker/type-checker";
+
 
 export class UsageTypeInference {
   // PropertyDeclaration
   static inferDeclarationType = (declaration: VariableDeclaration) => {
-
     const initializer = declaration.getInitializer();
     if (Node.isFunctionExpression(initializer)
       || Node.isArrowFunction(initializer)
@@ -13,78 +18,96 @@ export class UsageTypeInference {
       return;
     }
 
+    const initialType = declaration.getInitializer()?.getType();
+    if (initialType?.isArray()) {
+      this.handleArray(declaration);
+    } else {
+      this.handleType(declaration);
+    }
+  }
+
+  private static handleArray = (declaration: VariableDeclaration) => {
     const nameNode = declaration.getNameNode();
     if (Node.isIdentifier(nameNode)) {
-      const newType = this.checkIdentifierReferences(nameNode);
-      newType && TypeHandler.setSimpleType(declaration, newType);
+      const newType = ReferenceChecker.checkIdentifierReferences(nameNode);
+      this.setNewTypeAndCheckArrayReferences(declaration, newType);
+    } else if (BindingNameHandler.hasRestVariable(nameNode)) {
+      const currentType = TypeHandler.getType(declaration);
+      this.setNewTypeAndCheckReferences(declaration, currentType.getText());
     } else {
-      /*
-      * this possibly doesn't make sense anyway
-      * as a object destructuring has to be initialized anyway
-      *
-      * this is still valid
-      * could collect all the possible types and construct a TypeLiteral from that
-      * if all the types equal their initial type or are any then there is not need to set the type
-      * const fun = (): {a: number, b: string, c: boolean} => ({ a: 12, b: "qwe", c: true });
-      * let {a, b}: { a: number; b: string; } = fun();
-      * */
-      const typeNode = declaration.getTypeNode();
-      const type = this.getIdentifiers(declaration.getNameNode());
-      if (!typeNode || typeNode.getText() !== type) {
-        TypeHandler.setSimpleType(declaration, type);
+      const newType = ReferenceChecker.checkIdentifiers(declaration.getNameNode());
+      const currentType = TypeHandler.getType(declaration);
+      if (newType) {
+        const combinedTypes = TypeChecker.isAny(currentType) ? newType : `${currentType.getText()} | ${newType}`;
+        this.setNewTypeAndCheckArrayReferences(declaration, combinedTypes);
+      } else {
+        const combinedTypes = TypeChecker.isAny(currentType) ? newType : currentType.getText();
+        this.setNewTypeAndCheckArrayReferences(declaration, combinedTypes);
       }
     }
   }
 
-  static getIdentifiers = (bindingName: BindingName): string => {
-    if (Node.isIdentifier(bindingName)) {
-      return this.checkIdentifierReferences(bindingName) || bindingName.getType().getText();
+  private static handleType = (declaration: VariableDeclaration) => {
+    const nameNode = declaration.getNameNode();
+    if (Node.isIdentifier(nameNode)) {
+      const newType = ReferenceChecker.checkIdentifierReferences(nameNode);
+      this.setNewTypeAndCheckReferences(declaration, newType);
+    } else if (BindingNameHandler.hasRestVariable(nameNode)) {
+      const currentType = TypeHandler.getType(declaration);
+      this.setNewTypeAndCheckReferences(declaration, currentType.getText());
+    } else {
+      const newType = ReferenceChecker.checkIdentifiers(declaration.getNameNode());
+      const currentType = TypeHandler.getType(declaration);
+      if (newType) {
+        this.setNewTypeAndCheckReferences(declaration, newType);
+      } else {
+        this.setNewTypeAndCheckReferences(declaration, currentType.getText());
+      }
     }
-    if (Node.isArrayBindingPattern(bindingName)) {
-      const newTypes = bindingName.getElements().map(element => {
-        if (Node.isOmittedExpression(element)) {
-          return element.getType().getText();
-        }
-        return this.getIdentifiers(element.getNameNode());
+  }
+
+  private static setNewTypeAndCheckArrayReferences = (declaration: VariableDeclaration | PropertySignature, newType: string | undefined) => {
+    newType && TypeHandler.setTypeFiltered(declaration, newType);
+    const typeNode = declaration.getTypeNode();
+    if (newType && typeNode) {
+      const simplified = ArrayTypeHandler.combineArrayTypes(typeNode);
+      simplified && TypeHandler.setTypeFiltered(declaration, simplified);
+    }
+    const newTypeNode = declaration.getTypeNode();
+    newTypeNode && this.checkTypeNodeReferences(newTypeNode);
+  }
+
+  private static setNewTypeAndCheckReferences = (declaration: VariableDeclaration | PropertySignature, newType: string | undefined) => {
+    newType && TypeHandler.setTypeFiltered(declaration, newType);
+    const typeNode = declaration.getTypeNode();
+    if (newType && typeNode) {
+      const simplified = ObjectLiteralHandler.simplifyTypeNode(typeNode);
+      simplified && TypeHandler.setTypeFiltered(declaration, simplified);
+    }
+    const newTypeNode = declaration.getTypeNode();
+    newTypeNode && this.checkTypeNodeReferences(newTypeNode);
+  }
+
+  private static checkTypeNodeReferences = (typeNode: TypeNode) => {
+    if (Node.isTypeLiteral(typeNode)) {
+      typeNode.getProperties().forEach(property => {
+        const newType = ReferenceChecker.checkIdentifierReferences(property);
+        this.setNewTypeAndCheckReferences(property, newType);
+      });
+    }
+    if (Node.isUnionTypeNode(typeNode)) {
+      typeNode.getTypeNodes().forEach(node => {
+        this.checkTypeNodeReferences(node);
       })
-      return `[${newTypes.join(', ')}]`;
     }
-    const newTypes = bindingName.getElements().map(element => {
-      const propertyName = element.getPropertyNameNode()?.getText() || element.getName();
-      const newType = this.getIdentifiers(element.getNameNode());
-      return `${propertyName}: ${newType};`;
-    })
-    return `{ ${newTypes.join(' ')} }`;
-  }
-
-  private static checkIdentifierReferences = (identifier: Identifier): string | undefined => {
-    const initialType = TypeHandler.getType(identifier);
-    const newTypes = identifier.findReferences().reduce((types, ref) =>
-      types.concat(...this.checkReferenceEntries(ref, initialType)), new Array<Type>());
-
-    const uniqueTypes = newTypes.reduce((acc, cur) =>
-      cur.isAny() || acc.includes(cur.getText()) ? acc : acc.concat(cur.getText()), new Array<string>());
-    if (uniqueTypes.length > 0)
-      return initialType.isAny() ? uniqueTypes.join(' | ') : `${initialType.getText()} | ${uniqueTypes.join(' | ')}`;
-    return;
-  }
-
-  private static checkReferenceEntries = (symbol: ReferencedSymbol, initialType: Type) => {
-    return symbol.getReferences().reduce((types, entry) => {
-      if (!entry.isDefinition() && entry.isWriteAccess()) {
-        const type = this.getWriteAccessType(entry.getNode(), initialType);
-        return type ? types.concat(type) : types;
-      }
-      return types;
-    }, new Array<Type>());
-  }
-
-  private static getWriteAccessType = (node: Node, initialType: Type): Type | undefined => {
-    const binary = node.getFirstAncestorByKind(SyntaxKind.BinaryExpression);
-    if (binary && binary.getOperatorToken().asKind(SyntaxKind.EqualsToken) && binary.getLeft()) {
-      const assignedType = TypeHandler.getType(binary.getRight()).getBaseTypeOfLiteralType();
-      return !assignedType.isAny() && assignedType.getText() !== initialType.getText() ? assignedType : undefined;
+    if (Node.isArrayTypeNode(typeNode)) {
+      const node = typeNode.getElementTypeNode()
+      this.checkTypeNodeReferences(node);
     }
-    return;
+    if (Node.isTupleTypeNode(typeNode)) {
+      typeNode.getElements().forEach(node => {
+        this.checkTypeNodeReferences(node);
+      })
+    }
   }
 }
