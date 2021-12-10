@@ -84,6 +84,6 @@ const expectedContent =
 
 test('should type simple class', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', content, {overwrite: true});
-  TypesRefactor.declareInitialTypes(sourceFile);
+  TypesRefactor.setInitialTypes(sourceFile);
   expect(sourceFile.getText()).toEqual(expectedContent);
 });

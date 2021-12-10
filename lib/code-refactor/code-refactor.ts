@@ -30,9 +30,25 @@ export class CodeRefactor {
     project.getSourceFiles().forEach(ClassRefactor.toTypeScriptClasses);
     Logger.success('Classes refactored');
 
-    Logger.info('Declaring parameter types by usage');
-    project.getSourceFiles().forEach(TypesRefactor.inferParameterTypes);
-    Logger.success('Parameter type declared where possible');
+    Logger.info('Declaring variable and property types by initialization');
+    project.getSourceFiles().forEach(TypesRefactor.setInitialTypes);
+    Logger.success('Declared variable and property types by initialization');
+
+    Logger.info('Propagating class and interface types through usage');
+    project.getSourceFiles().forEach(TypesRefactor.propagateClassOrInterfaceType);
+    Logger.success('Propagated class and interface types where possible');
+
+    Logger.info('Declaring variable and property types by write access');
+    project.getSourceFiles().forEach(TypesRefactor.inferWriteAccessType);
+    Logger.success('Variable and Property type declared where possible');
+
+    // Logger.info('Declaring variable and property types by usage');
+    // project.getSourceFiles().forEach(TypesRefactor.inferUsageTypes);
+    // Logger.success('Declared type declared where possible');
+
+    // Logger.info('Declaring parameter types by usage');
+    // project.getSourceFiles().forEach(TypesRefactor.inferParameterTypes);
+    // Logger.success('Parameter type declared where possible');
 
     // Logger.info('Declaring initial types');
     // project.getSourceFiles().forEach(TypesRefactor.declareInitialTypes);

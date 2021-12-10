@@ -3,17 +3,49 @@ import {Logger} from "../../logger/logger";
 import {InitialTypeHandler} from "./initial-type-handler/initial-type-handler";
 import {ParameterTypeInference} from "./parameter-type-inference/parameter-type-inference";
 import {UsageTypeInference} from "./usage-type-inference/usage-type-inference";
+import {isFieldDeclaration} from "../helpers/combined-types/combined-types";
+import {DeepTypeInference} from "./deep-type-inference/deep-type-inference";
+import {WriteAccessTypeInference} from "./write-access-type-inference/write-access-type-inference";
+import {ContextualTypeInference} from "./contextual-type-inference/contextual-type-inference";
 
 export class TypesRefactor {
+  static inferContextualType = (sourceFile: SourceFile) => {
+    Logger.info(sourceFile.getFilePath());
+    sourceFile.getDescendants().forEach(descendant => {
+      if (descendant.wasForgotten())
+        return;
+      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant) || Node.isParameterDeclaration(descendant))
+        return ContextualTypeInference.inferTypeByContextualType(descendant);
+    })
+  }
+
+  static inferWriteAccessType = (sourceFile: SourceFile) => {
+    Logger.info(sourceFile.getFilePath());
+    sourceFile.getDescendants().forEach(descendant => {
+      if (descendant.wasForgotten())
+        return;
+      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
+        return WriteAccessTypeInference.inferTypeByWriteAccess(descendant);
+    })
+  }
+
+  static propagateClassOrInterfaceType = (sourceFile: SourceFile) => {
+    Logger.info(sourceFile.getFilePath());
+    sourceFile.getDescendants().forEach(descendant => {
+      if (descendant.wasForgotten())
+        return;
+      if (isFieldDeclaration(descendant))
+        return DeepTypeInference.propagateClassOrInterfaceType(descendant);
+    })
+  }
+
   static inferUsageTypes = (sourceFile: SourceFile) => {
     Logger.info(sourceFile.getFilePath())
     sourceFile.getDescendants().forEach(descendant => {
       if (descendant.wasForgotten())
         return;
-      // Node.isPropertyAssignment(descendant) ||
-      if (Node.isVariableDeclaration(descendant)
-        // || Node.isPropertyDeclaration(descendant)
-      ) return UsageTypeInference.inferDeclarationType(descendant);
+      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
+        return UsageTypeInference.inferDeclarationType(descendant);
     })
   }
 
@@ -36,22 +68,13 @@ export class TypesRefactor {
     })
   }
 
-  static declareInitialTypes = (sourceFile: SourceFile) => {
+  static setInitialTypes = (sourceFile: SourceFile) => {
     Logger.info(sourceFile.getFilePath())
     sourceFile.getDescendants().forEach(descendant => {
       if (descendant.wasForgotten())
         return;
-      if (Node.isVariableDeclaration(descendant)
-        || Node.isPropertyDeclaration(descendant)
-      ) return InitialTypeHandler.refactorVariableOrProperty(descendant);
-      if (Node.isArrowFunction(descendant))
-        return InitialTypeHandler.refactorArrowFunction(descendant);
-      if (Node.isFunctionExpression(descendant)
-        || Node.isFunctionDeclaration(descendant)
-        || Node.isMethodDeclaration(descendant)
-        || Node.isGetAccessorDeclaration(descendant)
-        || Node.isSetAccessorDeclaration(descendant)
-      ) return InitialTypeHandler.refactorFunction(descendant);
+      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
+        return InitialTypeHandler.setInitialType(descendant);
     })
   }
 }

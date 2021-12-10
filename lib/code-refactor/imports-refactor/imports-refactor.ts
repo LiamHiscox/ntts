@@ -35,9 +35,10 @@ export class ImportsRefactor {
   static requiresToImports = (sourceFile: SourceFile) => {
     const usedNames = UsedNames.getDeclaredNames(sourceFile);
     sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression).forEach(callExpression => {
-      if (!callExpression.wasForgotten() && ImportValidator.validRequire(callExpression)) {
+      if (callExpression.wasForgotten())
+        return;
+      if (ImportValidator.validRequire(callExpression))
         this.refactorCallExpression(callExpression, usedNames, sourceFile);
-      }
     })
   }
 

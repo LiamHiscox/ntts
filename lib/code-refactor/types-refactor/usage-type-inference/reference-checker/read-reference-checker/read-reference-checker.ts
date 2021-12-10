@@ -20,8 +20,8 @@ export class ReadReferenceChecker {
   }
 
   private static getPropertyOrElementAccess = (node: Node | undefined, identifierPos: number): PropertyAccessExpression | ElementAccessExpression | undefined => {
-    if (Node.isElementAccessExpression(node) ||
-      (Node.isPropertyAccessExpression(node) && node.getNameNode().getPos() !== identifierPos)
+    if ((Node.isElementAccessExpression(node) && node.getArgumentExpression()?.getPos() !== identifierPos)
+      || (Node.isPropertyAccessExpression(node) && node.getNameNode().getPos() !== identifierPos)
     ) return node;
     if (Node.isPropertyAccessExpression(node))
       return this.getPropertyOrElementAccess(node.getParent(), identifierPos);

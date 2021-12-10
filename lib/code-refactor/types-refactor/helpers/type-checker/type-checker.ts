@@ -8,4 +8,12 @@ export class TypeChecker {
       return type.getTupleElements().reduce((a: boolean, t) => a && this.isAny(t), true);
     return type.isAny();
   }
+
+  static isAnyOrUnknown = (type: Type): boolean => {
+    return type.isAny() || type.isUnknown();
+  }
+
+  static isBaseType = (type: Type): boolean => {
+    return type.isNumber() || type.isString() || type.isBoolean();
+  }
 }

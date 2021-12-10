@@ -14,10 +14,11 @@ import {
 import {TypeHandler} from "../type-handler/type-handler";
 import {TypeChecker} from "../helpers/type-checker/type-checker";
 import {TypeInferenceValidator} from "./type-inference-validator/type-inference-validator";
+import {findReferencesAsNodes} from "../../helpers/reference-finder/reference-finder";
 
 export class ParameterTypeInference {
   static inferSetAccessorParameterTypes = (setter: SetAccessorDeclaration) => {
-    setter.findReferencesAsNodes().forEach(ref => {
+    findReferencesAsNodes(setter).forEach(ref => {
       const parent = TypeInferenceValidator.validateSetAccessorParent(ref);
       const binary = TypeInferenceValidator.getBinaryAssignmentExpression(parent);
       binary && this.inferParameterTypes(setter.getParameters(), [binary.getRight()]);
@@ -34,7 +35,7 @@ export class ParameterTypeInference {
   }
 
   static inferFunctionDeclarationParameterTypes = (declaration: FunctionDeclaration | MethodDeclaration) => {
-    declaration.findReferencesAsNodes().forEach(ref => {
+    findReferencesAsNodes(declaration).forEach(ref => {
       const parent = TypeInferenceValidator.validateCallExpressionParent(ref);
       const expression = TypeInferenceValidator.getCallExpression(parent);
       expression && this.inferParameterTypes(declaration.getParameters(), expression.getArguments());
@@ -42,14 +43,14 @@ export class ParameterTypeInference {
   }
 
   static inferConstructorParameterTypes = (declaration:  ConstructorDeclaration) => {
-    declaration.findReferencesAsNodes().forEach(ref => {
+    findReferencesAsNodes(declaration).forEach(ref => {
       const parent = TypeInferenceValidator.getNewExpression(ref.getParent());
       parent && this.inferParameterTypes(declaration.getParameters(), parent.getArguments());
     });
   }
 
   private static inferFunctionExpressionParameterTypes = (identifier: Identifier, parameters: ParameterDeclaration[]) => {
-    identifier.findReferencesAsNodes().forEach(ref => {
+    findReferencesAsNodes(identifier).forEach(ref => {
       const parent = TypeInferenceValidator.validateCallExpressionParent(ref);
       const expression = TypeInferenceValidator.getCallExpression(parent);
       expression && this.inferParameterTypes(parameters, expression.getArguments());

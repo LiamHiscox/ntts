@@ -3,15 +3,18 @@ import {
   ElementAccessExpression,
   Identifier,
   Node,
+  PropertyDeclaration,
   PropertySignature,
   ReferencedSymbol,
-  ReferenceEntry, SyntaxKind,
+  ReferenceEntry,
+  SyntaxKind,
   Type
 } from "ts-morph";
 import {TypeHandler} from "../../type-handler/type-handler";
 import {WriteReferenceChecker} from "./write-reference-checker/write-reference-checker";
 import {ReadReferenceChecker} from "./read-reference-checker/read-reference-checker";
 import {TypeChecker} from "../../helpers/type-checker/type-checker";
+import {findReferences} from "../../../helpers/reference-finder/reference-finder";
 
 export class ReferenceChecker {
   static checkIdentifiers = (bindingName: BindingName): string => {
@@ -38,11 +41,10 @@ export class ReferenceChecker {
     return `{ ${newTypes.join(' ')} }`;
   }
 
-  static checkIdentifierReferences = (identifier: Identifier | PropertySignature): string | undefined => {
+  static checkIdentifierReferences = (identifier: Identifier | PropertySignature | PropertyDeclaration): string | undefined => {
     const initialType = TypeHandler.getType(identifier);
     const initialTypeList: string[] = TypeChecker.isAny(initialType) ? [] : [initialType.getText()];
-    const newTypes = identifier
-      .findReferences()
+    const newTypes = findReferences(identifier)
       .reduce((types, ref) => types.concat(...this.checkReferenceEntries(ref, initialType)), new Array<string>())
       .concat(...initialTypeList);
     if (newTypes.length === 1 && initialTypeList.length === 1)

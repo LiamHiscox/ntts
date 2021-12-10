@@ -1,11 +1,12 @@
 import {ReferencedSymbol, ReferenceEntry, VariableDeclaration} from "ts-morph";
 import {VariableParser} from "../variable-parser/variable-parser";
+import {findReferences} from "../reference-finder/reference-finder";
 
 export class WriteAccessChecker {
   static hasValueChanged = (declaration: VariableDeclaration): boolean => {
     return VariableParser
       .getIdentifiers(declaration.getNameNode())
-      .reduce((acc: boolean, identifier) => acc || this.symbolsHaveWriteAccess(identifier.findReferences()), false);
+      .reduce((acc: boolean, identifier) => acc || this.symbolsHaveWriteAccess(findReferences(identifier)), false);
   }
 
   private static symbolsHaveWriteAccess = (referencedSymbols: ReferencedSymbol[]): boolean => {

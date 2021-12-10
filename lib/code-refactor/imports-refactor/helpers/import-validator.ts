@@ -1,6 +1,6 @@
 import {
   BindingElement,
-  CallExpression, Node,
+  CallExpression, NewExpression, Node,
   ObjectBindingPattern,
   StringLiteral,
   SyntaxKind,
@@ -8,6 +8,7 @@ import {
 } from "ts-morph";
 import {WriteAccessChecker} from "../../helpers/write-access-checker/write-access-checker";
 import {VariableValidator} from "../../helpers/variable-validator/variable-validator";
+import {getInnerExpression} from "../../helpers/expression-handler/expression-handler";
 
 
 export class ImportValidator {
@@ -48,12 +49,11 @@ export class ImportValidator {
         , true)
   }
 
-  static validRequire = (initializer: CallExpression): boolean => {
+  static validRequire = (initializer: CallExpression | NewExpression): boolean => {
     const argumentList = initializer.getArguments();
-    const identifier = initializer.getFirstChildByKind(SyntaxKind.Identifier);
-
-    return !!identifier
-      && identifier.getText() === "require"
+    const innerExpression = getInnerExpression(initializer.getExpression());
+    return Node.isIdentifier(innerExpression)
+      && innerExpression.getText() === "require"
       && argumentList
       && argumentList.length > 0
       && Node.isStringLiteral(argumentList[0]);

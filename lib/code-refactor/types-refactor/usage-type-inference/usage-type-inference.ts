@@ -1,4 +1,4 @@
-import {Node, PropertySignature, TypeNode, VariableDeclaration} from "ts-morph";
+import {Node, PropertyDeclaration, PropertySignature, TypeNode, VariableDeclaration} from "ts-morph";
 import {TypeHandler} from "../type-handler/type-handler";
 import {ReferenceChecker} from "./reference-checker/reference-checker";
 import {ObjectLiteralHandler} from "../helpers/object-literal-handler/object-literal-handler";
@@ -8,8 +8,7 @@ import {TypeChecker} from "../helpers/type-checker/type-checker";
 
 
 export class UsageTypeInference {
-  // PropertyDeclaration
-  static inferDeclarationType = (declaration: VariableDeclaration) => {
+  static inferDeclarationType = (declaration: VariableDeclaration | PropertyDeclaration) => {
     const initializer = declaration.getInitializer();
     if (Node.isFunctionExpression(initializer)
       || Node.isArrowFunction(initializer)
@@ -26,16 +25,20 @@ export class UsageTypeInference {
     }
   }
 
-  private static handleArray = (declaration: VariableDeclaration) => {
-    const nameNode = declaration.getNameNode();
-    if (Node.isIdentifier(nameNode)) {
-      const newType = ReferenceChecker.checkIdentifierReferences(nameNode);
-      this.setNewTypeAndCheckArrayReferences(declaration, newType);
-    } else if (BindingNameHandler.hasRestVariable(nameNode)) {
+  private static getNameNode = (declaration: VariableDeclaration | PropertyDeclaration) => {
+    if (Node.isVariableDeclaration(declaration))
+      return declaration.getNameNode();
+    else
+      return declaration;
+  }
+
+  private static handleArray = (declaration: VariableDeclaration | PropertyDeclaration) => {
+    const nameNode = this.getNameNode(declaration);
+    if ((Node.isArrayBindingPattern(nameNode) || Node.isObjectBindingPattern(nameNode)) && BindingNameHandler.hasRestVariable(nameNode)) {
       const currentType = TypeHandler.getType(declaration);
       this.setNewTypeAndCheckReferences(declaration, currentType.getText());
-    } else {
-      const newType = ReferenceChecker.checkIdentifiers(declaration.getNameNode());
+    } else if (Node.isArrayBindingPattern(nameNode) || Node.isObjectBindingPattern(nameNode)) {
+      const newType = ReferenceChecker.checkIdentifiers(nameNode);
       const currentType = TypeHandler.getType(declaration);
       if (newType) {
         const combinedTypes = TypeChecker.isAny(currentType) ? newType : `${currentType.getText()} | ${newType}`;
@@ -44,29 +47,32 @@ export class UsageTypeInference {
         const combinedTypes = TypeChecker.isAny(currentType) ? newType : currentType.getText();
         this.setNewTypeAndCheckArrayReferences(declaration, combinedTypes);
       }
+    } else {
+      const newType = ReferenceChecker.checkIdentifierReferences(nameNode);
+      this.setNewTypeAndCheckArrayReferences(declaration, newType);
     }
   }
 
-  private static handleType = (declaration: VariableDeclaration) => {
-    const nameNode = declaration.getNameNode();
-    if (Node.isIdentifier(nameNode)) {
-      const newType = ReferenceChecker.checkIdentifierReferences(nameNode);
-      this.setNewTypeAndCheckReferences(declaration, newType);
-    } else if (BindingNameHandler.hasRestVariable(nameNode)) {
+  private static handleType = (declaration: VariableDeclaration | PropertyDeclaration) => {
+    const nameNode = this.getNameNode(declaration);
+    if ((Node.isArrayBindingPattern(nameNode) || Node.isObjectBindingPattern(nameNode)) && BindingNameHandler.hasRestVariable(nameNode)) {
       const currentType = TypeHandler.getType(declaration);
       this.setNewTypeAndCheckReferences(declaration, currentType.getText());
-    } else {
-      const newType = ReferenceChecker.checkIdentifiers(declaration.getNameNode());
+    } else if (Node.isArrayBindingPattern(nameNode) || Node.isObjectBindingPattern(nameNode)) {
+      const newType = ReferenceChecker.checkIdentifiers(nameNode);
       const currentType = TypeHandler.getType(declaration);
       if (newType) {
         this.setNewTypeAndCheckReferences(declaration, newType);
       } else {
         this.setNewTypeAndCheckReferences(declaration, currentType.getText());
       }
+    } else {
+      const newType = ReferenceChecker.checkIdentifierReferences(nameNode);
+      this.setNewTypeAndCheckReferences(declaration, newType);
     }
   }
 
-  private static setNewTypeAndCheckArrayReferences = (declaration: VariableDeclaration | PropertySignature, newType: string | undefined) => {
+  private static setNewTypeAndCheckArrayReferences = (declaration: VariableDeclaration | PropertySignature | PropertyDeclaration, newType: string | undefined) => {
     newType && TypeHandler.setTypeFiltered(declaration, newType);
     const typeNode = declaration.getTypeNode();
     if (newType && typeNode) {
@@ -77,7 +83,7 @@ export class UsageTypeInference {
     newTypeNode && this.checkTypeNodeReferences(newTypeNode);
   }
 
-  private static setNewTypeAndCheckReferences = (declaration: VariableDeclaration | PropertySignature, newType: string | undefined) => {
+  private static setNewTypeAndCheckReferences = (declaration: VariableDeclaration | PropertySignature | PropertyDeclaration, newType: string | undefined) => {
     newType && TypeHandler.setTypeFiltered(declaration, newType);
     const typeNode = declaration.getTypeNode();
     if (newType && typeNode) {

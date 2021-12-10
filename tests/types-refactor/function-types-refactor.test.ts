@@ -12,7 +12,7 @@ test('should set types of arrow function', () => {
     'const a = (cb: (route: string) => void): void => cb("abc");\na(qwe => console.log(qwe));',
     {overwrite: true}
   );
-  TypesRefactor.declareInitialTypes(sourceFile);
+  TypesRefactor.setInitialTypes(sourceFile);
   expect(sourceFile.getText()).toEqual('const a = (cb: (route: string) => void): void => cb("abc");\na((qwe: string): void => console.log(qwe));');
 });
 
@@ -22,7 +22,7 @@ test('should set types of arrow function with array binding pattern', () => {
     'const c = ([a, b]) => a * b;',
     {overwrite: true}
   );
-  TypesRefactor.declareInitialTypes(sourceFile);
+  TypesRefactor.setInitialTypes(sourceFile);
   expect(sourceFile.getText()).toEqual('const c = ([a, b]: [any, any]): number => a * b;');
 });
 
