@@ -1,7 +1,7 @@
 import {Node, PropertyDeclaration, PropertySignature, TypeNode, VariableDeclaration} from "ts-morph";
 import {TypeHandler} from "../type-handler/type-handler";
 import {ReferenceChecker} from "./reference-checker/reference-checker";
-import {ObjectLiteralHandler} from "../helpers/object-literal-handler/object-literal-handler";
+import {TypeSimplifier} from "../helpers/type-simplifier/type-simplifier";
 import {ArrayTypeHandler} from "../helpers/array-type-handler/array-type-handler";
 import {BindingNameHandler} from "../helpers/binding-name-handler/binding-name-handler";
 import {TypeChecker} from "../helpers/type-checker/type-checker";
@@ -87,7 +87,7 @@ export class UsageTypeInference {
     newType && TypeHandler.setTypeFiltered(declaration, newType);
     const typeNode = declaration.getTypeNode();
     if (newType && typeNode) {
-      const simplified = ObjectLiteralHandler.simplifyTypeNode(typeNode);
+      const simplified = TypeSimplifier.simplifyTypeNode(typeNode);
       simplified && TypeHandler.setTypeFiltered(declaration, simplified);
     }
     const newTypeNode = declaration.getTypeNode();

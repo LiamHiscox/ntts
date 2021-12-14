@@ -14,7 +14,7 @@ import {
 } from "ts-morph";
 import {createInterface, getInterface, getSourceFile} from "./interface-creator/interface-creator";
 import {TypeHandler} from "../type-handler/type-handler";
-import {ObjectLiteralHandler} from "../helpers/object-literal-handler/object-literal-handler";
+import {TypeSimplifier} from "../helpers/type-simplifier/type-simplifier";
 import {ImportTypeParser} from "../helpers/import-type-parser/import-type-parser";
 
 export class InterfaceHandler {
@@ -59,7 +59,7 @@ export class InterfaceHandler {
                                              declaration: PropertyDeclaration | VariableDeclaration
   ) => {
     if (typeLiterals.length > 0) {
-      const combined = typeLiterals.reduce((combined: InterfaceDeclaration, literal) => ObjectLiteralHandler.combineTypeLiterals(combined, literal), interfaceDeclaration);
+      const combined = typeLiterals.reduce((combined: InterfaceDeclaration, literal) => TypeSimplifier.combineTypeLiterals(combined, literal), interfaceDeclaration);
       const simplifiedType = nonTypeLiterals.map(c => c.getText()).concat(combined.getType().getText()).join(' | ');
       TypeHandler.setTypeFiltered(declaration, simplifiedType);
     }

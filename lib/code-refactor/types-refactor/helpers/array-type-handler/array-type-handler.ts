@@ -1,5 +1,5 @@
 import {TypeNode, Node, ArrayTypeNode} from "ts-morph";
-import {ObjectLiteralHandler} from "../object-literal-handler/object-literal-handler";
+import {TypeSimplifier} from "../type-simplifier/type-simplifier";
 import {TypeChecker} from "../type-checker/type-checker";
 
 export class ArrayTypeHandler {
@@ -9,7 +9,7 @@ export class ArrayTypeHandler {
       const nonArrayLiterals = typeNodes.filter(node => !Node.isArrayTypeNode(node)).map(node => node.getText());
       const typeLiterals = typeNodes.reduce((acc, cur) =>
         Node.isArrayTypeNode(cur) ? acc.concat(cur.getElementTypeNode()) : acc, new Array<TypeNode>());
-      const simplifiedList = ObjectLiteralHandler.simplifyTypeNodeList(typeLiterals);
+      const simplifiedList = TypeSimplifier.simplifyTypeNodeList(typeLiterals);
       if (simplifiedList && nonArrayLiterals.length > 0) {
         return `(${simplifiedList} | ${nonArrayLiterals.join(' | ')})[]`;
       }
@@ -26,7 +26,7 @@ export class ArrayTypeHandler {
   }
 
   static combineArrayTypeList = (...typeNodes: ArrayTypeNode[]) => {
-    const simplifiedList = ObjectLiteralHandler.simplifyTypeNodeList(typeNodes);
+    const simplifiedList = TypeSimplifier.simplifyTypeNodeList(typeNodes);
     return (/[&| ]+/).test(simplifiedList) ? `(${simplifiedList})[]` : `${simplifiedList}[]`;
   }
 }

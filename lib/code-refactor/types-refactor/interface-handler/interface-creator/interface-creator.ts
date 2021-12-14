@@ -7,7 +7,7 @@ import {
 } from "ts-morph";
 import {VariableNameGenerator} from "../../../helpers/variable-name-generator/variable-name-generator";
 import {existsSync, writeFileSync} from "fs";
-import {ObjectLiteralHandler} from "../../helpers/object-literal-handler/object-literal-handler";
+import {TypeSimplifier} from "../../helpers/type-simplifier/type-simplifier";
 import {TypeHandler} from "../../type-handler/type-handler";
 
 const generatedFileName = 'ntts-generated-models.ts';
@@ -26,11 +26,11 @@ export const createInterface = (name: string, project: Project, members?: TypeEl
   members?.forEach(member => {
     const newMember = declaration.addMember(member.getText());
     if (Node.isPropertySignature(newMember)) {
-      const stringSimplified = ObjectLiteralHandler.simplifyTypeNode(TypeHandler.getTypeNode(newMember));
+      const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(newMember));
       stringSimplified && TypeHandler.setTypeFiltered(newMember, stringSimplified);
     }
     if (Node.isIndexSignatureDeclaration(newMember)) {
-      const stringSimplified = ObjectLiteralHandler.simplifyTypeNode(TypeHandler.getReturnTypeNode(newMember));
+      const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getReturnTypeNode(newMember));
       stringSimplified && TypeHandler.setReturnTypeFiltered(newMember, stringSimplified);
     }
   })

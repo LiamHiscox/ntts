@@ -1,6 +1,6 @@
 import {InterfaceDeclaration, PropertySignature, TypeLiteralNode} from "ts-morph";
 import {TypeHandler} from "../../../type-handler/type-handler";
-import {ObjectLiteralHandler} from "../object-literal-handler";
+import {TypeSimplifier} from "../type-simplifier";
 
 export class PropertyHandler {
   static updateProperties = (left: TypeLiteralNode | InterfaceDeclaration, right: TypeLiteralNode) => {
@@ -21,7 +21,7 @@ export class PropertyHandler {
       if (currentProperty.getType().getText() !== property.getType().getText()) {
         const combined = TypeHandler.combineTypes(currentProperty.getType(), property.getType());
         const newProperty = TypeHandler.setTypeFiltered(currentProperty, combined);
-        const stringSimplified = ObjectLiteralHandler.simplifyTypeNode(TypeHandler.getTypeNode(newProperty));
+        const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(newProperty));
         stringSimplified && TypeHandler.setTypeFiltered(newProperty, stringSimplified);
       }
     });

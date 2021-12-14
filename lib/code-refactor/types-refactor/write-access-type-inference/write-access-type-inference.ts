@@ -12,7 +12,7 @@ import {
 import {findReferences} from "../../helpers/reference-finder/reference-finder";
 import {TypeHandler} from "../type-handler/type-handler";
 import {isWriteAccess} from "../../helpers/expression-handler/expression-handler";
-import {ObjectLiteralHandler} from "../helpers/object-literal-handler/object-literal-handler";
+import {TypeSimplifier} from "../helpers/type-simplifier/type-simplifier";
 
 export class WriteAccessTypeInference {
   static inferTypeByWriteAccess = (declaration: VariableDeclaration | PropertyDeclaration) => {
@@ -31,11 +31,12 @@ export class WriteAccessTypeInference {
     if (TypeHandler.getType(declaration).isUnion()) {
       const typeNode = declaration.getTypeNode();
       if (typeNode) {
-        const simplified = ObjectLiteralHandler.simplifyTypeNode(typeNode);
+        const simplified = TypeSimplifier.simplifyTypeNode(typeNode);
         simplified && TypeHandler.setTypeFiltered(declaration, simplified);
       } else {
         const newTypeNode = TypeHandler.getTypeNode(declaration);
-        const simplified = ObjectLiteralHandler.simplifyTypeNode(newTypeNode);
+        const newTypeNodeText = newTypeNode.getText();
+        const simplified = TypeSimplifier.simplifyTypeNode(newTypeNode);
         if (simplified) {
           TypeHandler.setTypeFiltered(declaration, simplified);
           const simplifiedTypeNode = TypeHandler.getTypeNode(declaration);

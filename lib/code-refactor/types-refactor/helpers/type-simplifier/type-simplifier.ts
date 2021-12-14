@@ -9,7 +9,7 @@ import {TypeHandler} from "../../type-handler/type-handler";
 import {PropertyHandler} from "./property-handler/property-handler";
 import {IndexSignatureHandler} from "./index-signature-handler/index-signature-handler";
 
-export class ObjectLiteralHandler {
+export class TypeSimplifier {
   static simplifyTypeNode = (typeNode: TypeNode): string | undefined => {
     if (Node.isUnionTypeNode(typeNode)) {
       const typeNodes = typeNode.getTypeNodes();
