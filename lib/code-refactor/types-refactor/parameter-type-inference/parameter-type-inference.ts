@@ -3,7 +3,6 @@ import {
   FunctionDeclaration,
   ParameterDeclaration,
   Type,
-  Identifier,
   MethodDeclaration,
   ConstructorDeclaration,
   PropertyAssignment,
@@ -28,9 +27,9 @@ export class ParameterTypeInference {
   static inferFunctionAssignmentParameterTypes = (assignment: PropertyAssignment | VariableDeclaration | PropertyDeclaration) => {
     const initializer = assignment.getInitializer();
     const nameNode = assignment.getNameNode();
-    if (Node.isIdentifier(nameNode) && (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer))) {
+    if (!Node.isArrayBindingPattern(nameNode) && Node.isObjectBindingPattern(nameNode) && (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer))) {
       const parameters = initializer.getParameters();
-      this.inferFunctionExpressionParameterTypes(nameNode, parameters);
+      this.inferFunctionExpressionParameterTypes(assignment, parameters);
     }
   }
 
@@ -49,8 +48,8 @@ export class ParameterTypeInference {
     });
   }
 
-  private static inferFunctionExpressionParameterTypes = (identifier: Identifier, parameters: ParameterDeclaration[]) => {
-    findReferencesAsNodes(identifier).forEach(ref => {
+  private static inferFunctionExpressionParameterTypes = (assignment: PropertyAssignment | VariableDeclaration | PropertyDeclaration, parameters: ParameterDeclaration[]) => {
+    findReferencesAsNodes(assignment).forEach(ref => {
       const parent = TypeInferenceValidator.validateCallExpressionParent(ref);
       const expression = TypeInferenceValidator.getCallExpression(parent);
       expression && this.inferParameterTypes(parameters, expression.getArguments());
@@ -63,7 +62,7 @@ export class ParameterTypeInference {
         this.setRestParameterType(parameter, _arguments.slice(i));
       } else if (i < _arguments.length) {
         this.setParameterType(parameter, _arguments[i]);
-      } else if (!parameter.isOptional()) {
+      } else if (!parameter.hasQuestionToken()) {
         parameter.setHasQuestionToken(true);
       }
     });
@@ -87,9 +86,9 @@ export class ParameterTypeInference {
     if (uniqueArgumentTypes.length <= 0) {
       return;
     }
-    if (TypeChecker.isAny(parameterType) && uniqueArgumentTypes.length === 1 && !(/[&| ]+/).test(uniqueArgumentTypes[0].trim())) {
+    if (TypeChecker.isAnyOrUnknown(parameterType) && uniqueArgumentTypes.length === 1 && !(/[&| ]+/).test(uniqueArgumentTypes[0])) {
       TypeHandler.setSimpleType(parameter, `${uniqueArgumentTypes[0]}[]`);
-    } else if (TypeChecker.isAny(parameterType)) {
+    } else if (TypeChecker.isAnyOrUnknown(parameterType)) {
       TypeHandler.setSimpleType(parameter, `(${uniqueArgumentTypes.join(' | ')})[]`);
     } else {
       TypeHandler.setSimpleType(parameter, `(${parameterType} | ${uniqueArgumentTypes.join(' | ')})[]`);

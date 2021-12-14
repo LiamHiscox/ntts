@@ -7,13 +7,17 @@ import {
   PropertyAccessExpression,
   ElementAccessExpression,
   ParameterDeclaration,
-  ConstructorDeclaration, CallExpression, NewExpression, Expression
+  ConstructorDeclaration,
+  CallExpression,
+  NewExpression,
+  Expression
 } from "ts-morph";
 import {TypeHandler} from "../type-handler/type-handler";
 import {DeclarationFinder} from "../../helpers/declaration-finder/declaration-finder";
 import {FieldDeclarationKind, FunctionKind, isFieldDeclaration} from "../../helpers/combined-types/combined-types";
 import {findReferencesAsNodes} from "../../helpers/reference-finder/reference-finder";
 import {getExpressionParent, getInnerExpression} from "../../helpers/expression-handler/expression-handler";
+import {TypeChecker} from "../helpers/type-checker/type-checker";
 
 type LeftExpression =
   FunctionExpression
@@ -26,8 +30,14 @@ type FunctionTypes = ConstructorDeclaration | FunctionKind;
 
 export class DeepTypeInference {
   static propagateClassOrInterfaceType = (declaration: FieldDeclarationKind) => {
-    const type = declaration.getType();
+    const type = TypeHandler.getType(declaration);
     if (isFieldDeclaration(declaration) && type.isClassOrInterface())
+      this.checkDeclarationUsage(declaration);
+  }
+
+  static propagatePrimitiveType = (declaration: FieldDeclarationKind) => {
+    const type = TypeHandler.getType(declaration);
+    if (isFieldDeclaration(declaration) && TypeChecker.isBaseOrLiteralType(type))
       this.checkDeclarationUsage(declaration);
   }
 
@@ -39,7 +49,9 @@ export class DeepTypeInference {
         const _arguments = parent.getArguments();
         const index = _arguments.findIndex(node => node.getPos() === innerExpression.getPos());
         const expression = this.getLeftExpression(parent.getExpression());
-        this.checkCallOrNewExpressionTarget(expression, index, _arguments[index].getType());
+        const argumentType = _arguments[index].getType();
+        if (!TypeChecker.isAnyOrUnknown(argumentType))
+          this.checkCallOrNewExpressionTarget(expression, index, argumentType);
       } else if (isFieldDeclaration(parent) && parent.getInitializer()?.getPos() === ref.getPos()) {
         this.checkDeclarationUsage(parent);
       }

@@ -1,4 +1,4 @@
-import {Node, SourceFile} from "ts-morph";
+import {Node, Project, SourceFile} from "ts-morph";
 import {Logger} from "../../logger/logger";
 import {InitialTypeHandler} from "./initial-type-handler/initial-type-handler";
 import {ParameterTypeInference} from "./parameter-type-inference/parameter-type-inference";
@@ -7,8 +7,19 @@ import {isFieldDeclaration} from "../helpers/combined-types/combined-types";
 import {DeepTypeInference} from "./deep-type-inference/deep-type-inference";
 import {WriteAccessTypeInference} from "./write-access-type-inference/write-access-type-inference";
 import {ContextualTypeInference} from "./contextual-type-inference/contextual-type-inference";
+import {InterfaceHandler} from "./interface-handler/interface-handler";
 
 export class TypesRefactor {
+  static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project) => {
+    Logger.info(sourceFile.getFilePath());
+    sourceFile.getDescendants().forEach(descendant => {
+      if (descendant.wasForgotten())
+        return;
+      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
+        return InterfaceHandler.createInterfaceFromObjectLiterals(descendant, project);
+    })
+  }
+
   static inferContextualType = (sourceFile: SourceFile) => {
     Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach(descendant => {

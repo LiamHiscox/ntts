@@ -13,7 +13,8 @@ export class TypeChecker {
     return type.isAny() || type.isUnknown();
   }
 
-  static isBaseType = (type: Type): boolean => {
-    return type.isNumber() || type.isString() || type.isBoolean();
+  static isBaseOrLiteralType = (type: Type): boolean => {
+    const baseType = type.getBaseTypeOfLiteralType();
+    return baseType.isNumber() || baseType.isString() || baseType.isBoolean();
   }
 }

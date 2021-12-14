@@ -1,4 +1,4 @@
-import {Identifier, ImportTypeNode, Node, QualifiedName, SourceFile, SyntaxKind} from "ts-morph";
+import {Identifier, ImportTypeNode, SourceFile, SyntaxKind} from "ts-morph";
 import {relative} from "path";
 import {PathParser} from "../../../helpers/path-parser/path-parser";
 import {UsedNames} from "../../helpers/used-names/used-names";
@@ -6,6 +6,7 @@ import {ImportCreator} from "../../helpers/import-creator/import-creator";
 import {VariableNameGenerator} from "../../helpers/variable-name-generator/variable-name-generator";
 import {ImportFinder} from "../../helpers/import-finder/import-finder";
 import {existsSync} from "fs";
+import {ImportTypeParser} from "../helpers/import-type-parser/import-type-parser";
 
 export class ImportTypeRefactor {
   static refactor = (importType: ImportTypeNode, sourceFile: SourceFile) => {
@@ -25,27 +26,23 @@ export class ImportTypeRefactor {
     const moduleSpecifier = this.parseImportPath(relativePath);
     const qualifier = importType.getQualifier();
 
-    if (qualifier && Node.isIdentifier(qualifier)){
+    if (!qualifier) {
       const newImportName = this.addImport(qualifier, moduleSpecifier, usedNames, sourceFile);
-      qualifier.replaceWithText(newImportName);
-      importType.replaceWithText(importType.getText().replace(/^import\(.*?\)\./, ''));
-    } else if (qualifier && Node.isQualifiedName(qualifier)) {
-      const identifier = this.getFirstIdentifier(qualifier);
+      importType.replaceWithText(newImportName);
+    } else {
+      const identifier = ImportTypeParser.getFirstIdentifier(qualifier);
       const newImportName = this.addImport(identifier, moduleSpecifier, usedNames, sourceFile);
       identifier.replaceWithText(newImportName);
       importType.replaceWithText(importType.getText().replace(/^import\(.*?\)\./, ''));
-    } else {
-      const newImportName = this.addImport(qualifier, moduleSpecifier, usedNames, sourceFile);
-      importType.replaceWithText(newImportName);
     }
   }
 
   private static addImport = (identifier: Identifier | undefined, moduleSpecifier: string, usedNames: string[], sourceFile: SourceFile): string => {
     const namespaceImport = !identifier && ImportFinder.getNamespaceImportDeclaration(moduleSpecifier, sourceFile);
     if (!identifier && !namespaceImport) {
-        const defaultImport = VariableNameGenerator.variableNameFromImportId(moduleSpecifier);
-        const usableName = VariableNameGenerator.getUsableVariableName(defaultImport, usedNames);
-        return ImportCreator.addNamespaceImport(usableName, moduleSpecifier, sourceFile);
+      const defaultImport = VariableNameGenerator.variableNameFromImportId(moduleSpecifier);
+      const usableName = VariableNameGenerator.getUsableVariableName(defaultImport, usedNames);
+      return ImportCreator.addNamespaceImport(usableName, moduleSpecifier, sourceFile);
     }
     if (!identifier && namespaceImport) {
       return namespaceImport.getNamespaceImportOrThrow().getText();
@@ -56,14 +53,6 @@ export class ImportTypeRefactor {
       return ImportCreator.addSimpleImport(usableName, moduleSpecifier, sourceFile);
     }
     return ImportCreator.addNamedImport(identifier!.getText(), moduleSpecifier, usedNames, sourceFile);
-  }
-
-  private static getFirstIdentifier = (qualifer: QualifiedName): Identifier => {
-    const left = qualifer.getLeft();
-    if (Node.isQualifiedName(left)) {
-      return this.getFirstIdentifier(left);
-    }
-    return left;
   }
 
   private static parseImportPath = (relativePath: string) => {
@@ -81,9 +70,8 @@ export class ImportTypeRefactor {
   }
 
   private static toRelativeModuleSpecifier = (moduleSpecifier: string): string => {
-    if (moduleSpecifier.match(/^..?\//)) {
+    if (moduleSpecifier.match(/^..?\//))
       return moduleSpecifier;
-    }
     return `./${moduleSpecifier}`;
   }
 }

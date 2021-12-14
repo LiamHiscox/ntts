@@ -1,7 +1,8 @@
 import {
   Node,
   ParameterDeclaration,
-  PropertyDeclaration, ReturnTypedNode,
+  PropertyDeclaration,
+  ReturnTypedNode,
   Type,
   TypedNode,
   TypeNode,
@@ -10,41 +11,41 @@ import {
 import {TypeChecker} from "../helpers/type-checker/type-checker";
 
 export class TypeHandler {
-  static setType = (node: TypedNode & Node, type: Type): TypedNode & Node => {
+  static setType = <T extends Node & TypedNode>(node: T, type: Type): T => {
     if (Node.isVariableDeclaration(node) || Node.isParameterDeclaration(node) || Node.isPropertyDeclaration(node))
       return this.setBindingNameType(node, type.getBaseTypeOfLiteralType().getText());
     return node.setType(type.getBaseTypeOfLiteralType().getText());
   }
 
-  static setTypeFiltered = (node: TypedNode & Node, type: string): TypedNode & Node => {
+  static setTypeFiltered = <T extends Node & TypedNode>(node: T, type: string): T => {
     if (Node.isVariableDeclaration(node) || Node.isParameterDeclaration(node) || Node.isPropertyDeclaration(node))
       return this.setBindingNameType(node, this.getType(this.setBindingNameType(node, type)).getText());
     return this.setType(node, this.getType(this.setSimpleType(node, type)));
   }
 
-  static setSimpleType = (node: TypedNode & Node, type: string): TypedNode & Node => {
+  static setSimpleType = <T extends Node & TypedNode>(node: T, type: string): T => {
     if (Node.isVariableDeclaration(node) || Node.isParameterDeclaration(node) || Node.isPropertyDeclaration(node))
       return this.setBindingNameType(node, type);
     return node.setType(type);
   }
 
-  static addTypes = (node: TypedNode & Node, ...types: string[]): TypedNode & Node => {
+  static addTypes = <T extends Node & TypedNode>(node: T, ...types: string[]): T => {
     const type = TypeHandler.getType(node).getBaseTypeOfLiteralType();
-    if (type.isAny() && types.length > 0)
+    if (TypeChecker.isAnyOrUnknown(type) && types.length > 0)
       return TypeHandler.setTypeFiltered(node, types.join(' | '));
     if (types.length > 0)
       return TypeHandler.setTypeFiltered(node, `${type.getText()} | ${types.join(' | ')}`);
     return node;
   }
 
-  static addType = (node: TypedNode & Node, type: string): TypedNode & Node => {
+  static addType = <T extends Node & TypedNode>(node: T, type: string): T => {
     const existingType = this.getType(node).getBaseTypeOfLiteralType();
     if (!TypeChecker.isAny(existingType) && existingType.getText() !== type)
       return this.setTypeFiltered(node, `${existingType.getText()} | ${type}`);
     return this.setTypeFiltered(node, type);
   }
 
-  static addArrayType = (node: TypedNode & Node, type: string): TypedNode & Node => {
+  static addArrayType = <T extends Node & TypedNode>(node: T, type: string): T => {
     const existingType = this.getType(node).getBaseTypeOfLiteralType();
     if (TypeChecker.isAny(existingType)) {
       return this.setTypeFiltered(node, type);
@@ -81,9 +82,17 @@ export class TypeHandler {
     return typeNode;
   }
 
-  static setReturnTypeFiltered = (node: ReturnTypedNode & Node, type: string): ReturnTypedNode & Node => {
+  static setReturnTypeFiltered = <T extends Node & ReturnTypedNode>(node: T, type: string): T => {
     const returnType = node.setReturnType(type).getReturnType();
     return node.setReturnType(returnType.getText());
+  }
+
+  static combineTypes = (type1: Type, type2: Type): string => {
+    if (TypeChecker.isAnyOrUnknown(type1))
+      return type2.getText();
+    if (TypeChecker.isAnyOrUnknown(type2))
+      return type1.getText();
+    return `${type1.getText()} | ${type2.getText()}`;
   }
 
   static combineTypeWithList = (type: Type, ...types: string[]): string | undefined => {
@@ -100,7 +109,7 @@ export class TypeHandler {
     return unionTypes.filter(t => !TypeChecker.isAny(t)).map(t => t.getBaseTypeOfLiteralType());
   }
 
-  private static setBindingNameType = (declaration: VariableDeclaration | ParameterDeclaration | PropertyDeclaration, type: string): TypedNode & Node => {
+  private static setBindingNameType = <T extends (VariableDeclaration | ParameterDeclaration | PropertyDeclaration)>(declaration: T, type: string): T => {
     /*
     * declaration.setType() causes an error due to a bug in ts-morph
     * const {a, b} = simpleFunction();
@@ -115,9 +124,9 @@ export class TypeHandler {
     ) {
       return nameNode
         .replaceWithText(`${nameNode.getText()}: ${type}`)
-        .getParentOrThrow() as TypedNode & Node;
+        .getParentOrThrow() as T;
     }
-    return declaration.setType(type);
+    return declaration.setType(type) as T;
   }
 
   private static getVariableDeclarationType = (declaration: VariableDeclaration): Type => {
