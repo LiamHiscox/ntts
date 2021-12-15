@@ -2,7 +2,6 @@ import {
   Node,
   FunctionDeclaration,
   ParameterDeclaration,
-  Type,
   MethodDeclaration,
   ConstructorDeclaration,
   PropertyAssignment,
@@ -14,6 +13,8 @@ import {TypeHandler} from "../type-handler/type-handler";
 import {TypeChecker} from "../helpers/type-checker/type-checker";
 import {TypeInferenceValidator} from "./type-inference-validator/type-inference-validator";
 import {findReferencesAsNodes} from "../../helpers/reference-finder/reference-finder";
+import {DeepTypeInference} from "../deep-type-inference/deep-type-inference";
+import {TypeSimplifier} from "../helpers/type-simplifier/type-simplifier";
 
 export class ParameterTypeInference {
   static inferSetAccessorParameterTypes = (setter: SetAccessorDeclaration) => {
@@ -22,14 +23,19 @@ export class ParameterTypeInference {
       const binary = TypeInferenceValidator.getBinaryAssignmentExpression(parent);
       binary && this.inferParameterTypes(setter.getParameters(), [binary.getRight()]);
     });
+    const parameters = setter.getParameters();
+    this.simplifyParameterTypes(parameters);
+    DeepTypeInference.propagateParameterTypes(parameters);
   }
 
   static inferFunctionAssignmentParameterTypes = (assignment: PropertyAssignment | VariableDeclaration | PropertyDeclaration) => {
     const initializer = assignment.getInitializer();
     const nameNode = assignment.getNameNode();
-    if (!Node.isArrayBindingPattern(nameNode) && Node.isObjectBindingPattern(nameNode) && (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer))) {
+    if (!Node.isArrayBindingPattern(nameNode) && !Node.isObjectBindingPattern(nameNode) && (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer))) {
       const parameters = initializer.getParameters();
       this.inferFunctionExpressionParameterTypes(assignment, parameters);
+      this.simplifyParameterTypes(parameters);
+      DeepTypeInference.propagateParameterTypes(parameters);
     }
   }
 
@@ -39,12 +45,25 @@ export class ParameterTypeInference {
       const expression = TypeInferenceValidator.getCallExpression(parent);
       expression && this.inferParameterTypes(declaration.getParameters(), expression.getArguments());
     });
+    const parameters = declaration.getParameters();
+    this.simplifyParameterTypes(parameters);
+    DeepTypeInference.propagateParameterTypes(parameters);
   }
 
-  static inferConstructorParameterTypes = (declaration:  ConstructorDeclaration) => {
+  static inferConstructorParameterTypes = (declaration: ConstructorDeclaration) => {
     findReferencesAsNodes(declaration).forEach(ref => {
       const parent = TypeInferenceValidator.getNewExpression(ref.getParent());
       parent && this.inferParameterTypes(declaration.getParameters(), parent.getArguments());
+    });
+    const parameters = declaration.getParameters();
+    this.simplifyParameterTypes(parameters);
+    DeepTypeInference.propagateParameterTypes(parameters);
+  }
+
+  private static simplifyParameterTypes = (parameters: ParameterDeclaration[]) => {
+    parameters.forEach(parameter => {
+      const simplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(parameter));
+      simplified && TypeHandler.setTypeFiltered(parameter, simplified);
     });
   }
 
@@ -69,10 +88,7 @@ export class ParameterTypeInference {
   }
 
   private static setRestParameterType = (parameter: ParameterDeclaration, _arguments: Node[]) => {
-    const typeNodeType = parameter.getTypeNode()?.getType();
-    const parameterType = (typeNodeType && !TypeChecker.isAny(typeNodeType) && typeNodeType.isArray()) ?
-      typeNodeType.getArrayElementTypeOrThrow() : TypeHandler.getType(parameter).getArrayElementTypeOrThrow();
-
+    const parameterType = TypeHandler.getType(parameter).getArrayElementType() || TypeHandler.setTypeFiltered(parameter, 'any[]').getType().getArrayElementTypeOrThrow();
     const parameterArrayType = TypeHandler.getFilteredUnionTypes(parameterType);
     const filteredParameterType = parameterArrayType.filter(t => !TypeChecker.isAny(t)).map(t => t.getText());
 
@@ -83,47 +99,14 @@ export class ParameterTypeInference {
       return list;
     }, new Array<string>());
 
-    if (uniqueArgumentTypes.length <= 0) {
-      return;
-    }
-    if (TypeChecker.isAnyOrUnknown(parameterType) && uniqueArgumentTypes.length === 1 && !(/[&| ]+/).test(uniqueArgumentTypes[0])) {
-      TypeHandler.setSimpleType(parameter, `${uniqueArgumentTypes[0]}[]`);
-    } else if (TypeChecker.isAnyOrUnknown(parameterType)) {
-      TypeHandler.setSimpleType(parameter, `(${uniqueArgumentTypes.join(' | ')})[]`);
-    } else {
-      TypeHandler.setSimpleType(parameter, `(${parameterType} | ${uniqueArgumentTypes.join(' | ')})[]`);
-    }
+    const newType = TypeHandler.combineTypeWithList(parameterType, ...uniqueArgumentTypes);
+    newType && TypeHandler.setTypeFiltered(parameter, `(${newType})[]`);
   }
 
   private static setParameterType = (parameter: ParameterDeclaration, argument: Node) => {
-    const argumentType = TypeHandler.getType(argument).getBaseTypeOfLiteralType();
-    const typeNodeType = parameter.getTypeNode()?.getType();
-    const parameterType = typeNodeType && !TypeChecker.isAny(typeNodeType) ? typeNodeType : TypeHandler.getType(parameter).getBaseTypeOfLiteralType();
-
-    if (TypeChecker.isAny(argumentType)) {
-      return;
-    }
-    if (TypeChecker.isAny(parameterType)) {
-      return TypeHandler.setType(parameter, argumentType);
-    }
-    const type = this.getUniqueTypes(parameterType, argumentType);
-    return TypeHandler.setSimpleType(parameter, type);
-  }
-
-  private static getUniqueTypes = (parameterType: Type, argumentType: Type): string => {
-    const parameterUnionTypes = TypeHandler.getFilteredUnionTypes(parameterType);
-    const argumentUnionTypes = TypeHandler.getFilteredUnionTypes(argumentType);
-    const filtered = argumentUnionTypes.filter(a => !parameterUnionTypes.find(u => u.getText() === a.getText()));
-
-    if (filtered.length <= 0) {
-      return parameterType.getText();
-    }
-    if (filtered >= argumentUnionTypes) {
-      return `${parameterType.getText()} | ${argumentType.getText()}`;
-    } else {
-      const parameterTypes = parameterUnionTypes.map(union => union.getBaseTypeOfLiteralType().getText());
-      const filteredArguments = argumentType.getText().split('|').filter(a => !parameterTypes.includes(a.trim())).join(' | ');
-      return `${parameterType.getText()} | ${filteredArguments}`;
-    }
+    const argumentType = TypeHandler.getType(argument);
+    const parameterType = TypeHandler.getType(parameter);
+    const type = TypeHandler.combineTypes(parameterType, argumentType);
+    return TypeHandler.setTypeFiltered(parameter, type);
   }
 }

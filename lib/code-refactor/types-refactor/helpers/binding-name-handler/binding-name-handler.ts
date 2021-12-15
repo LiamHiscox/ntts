@@ -1,4 +1,4 @@
-import {BindingName, Node} from "ts-morph";
+import {BindingName, Identifier, Node} from "ts-morph";
 
 export class BindingNameHandler {
   static hasRestVariable = (bindingName: BindingName, result: boolean = false): boolean => {
@@ -14,5 +14,16 @@ export class BindingNameHandler {
     }
     return result || bindingName.getElements().reduce((all: boolean, element) =>
       all || !!element.getDotDotDotToken() || this.hasRestVariable(element.getNameNode()), result)
+  }
+
+  static getIdentifiers = (bindingName: BindingName): Identifier[] => {
+    if (Node.isIdentifier(bindingName)) {
+      return [bindingName];
+    }
+    return bindingName.getElements().reduce((acc: Identifier[], node) => {
+      if (Node.isOmittedExpression(node))
+        return acc;
+      return acc.concat(...this.getIdentifiers(node.getNameNode()));
+    }, new Array<Identifier>());
   }
 }

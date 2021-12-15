@@ -1,9 +1,13 @@
 import {
-  ArrowFunction, ClassDeclaration, ClassExpression, Expression,
+  ArrowFunction,
+  ClassDeclaration,
+  ClassExpression,
+  Expression,
   FunctionDeclaration,
   FunctionExpression,
   Identifier,
-  ImportDeclaration, MethodDeclaration,
+  ImportDeclaration,
+  MethodDeclaration,
   Node,
   PropertyAccessExpression
 } from "ts-morph";

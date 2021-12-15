@@ -17,7 +17,7 @@ test('should set function parameter as optional by usage', () => {
   const sourceFile = project.createSourceFile('simple-types.ts', 'function fun (param1, param2) { return param1 + param2; };\nfun(12);\nfun(10, "asd");', {overwrite: true});
   const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.FunctionDeclaration);
   ParameterTypeInference.inferFunctionDeclarationParameterTypes(_function);
-  expect(sourceFile.getText()).toEqual('function fun (param1: number, param2?: string) { return param1 + param2; };\nfun(12);\nfun(10, "asd");');
+  expect(sourceFile.getText()).toEqual('function fun (param1: number, param2?: string | undefined) { return param1 + param2; };\nfun(12);\nfun(10, "asd");');
 });
 
 test('should set function parameter as union type by usage', () => {
@@ -87,26 +87,40 @@ test('should set union types of function rest parameter by usage', () => {
   const sourceFile = project.createSourceFile('simple-types.ts', 'function fun (param1, ...param2) { return param1 + param2; };\nfun(12, "asd", true, 12);', {overwrite: true});
   const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.FunctionDeclaration);
   ParameterTypeInference.inferFunctionDeclarationParameterTypes(_function);
-  expect(sourceFile.getText()).toEqual('function fun (param1: number, ...param2: (string | boolean | number)[]) { return param1 + param2; };\nfun(12, "asd", true, 12);');
+  expect(sourceFile.getText()).toEqual('function fun (param1: number, ...param2: (string | number | boolean)[]) { return param1 + param2; };\nfun(12, "asd", true, 12);');
 });
 
 test('should set union types of function rest parameter by usage', () => {
   const sourceFile = project.createSourceFile('simple-types.ts', 'function fun (param1, ...param2) { return param1 + param2; };\nfun(12, "asd", true, 12);', {overwrite: true});
   const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.FunctionDeclaration);
   ParameterTypeInference.inferFunctionDeclarationParameterTypes(_function);
-  expect(sourceFile.getText()).toEqual('function fun (param1: number, ...param2: (string | boolean | number)[]) { return param1 + param2; };\nfun(12, "asd", true, 12);');
+  expect(sourceFile.getText()).toEqual('function fun (param1: number, ...param2: (string | number | boolean)[]) { return param1 + param2; };\nfun(12, "asd", true, 12);');
 });
 
 test('should set type of class setter method parameter by usage', () => {
-  const sourceFile = project.createSourceFile('simple-types.ts', 'class cls { set name (param1) { this.value = param1 }; }\nconst _cls = new cls();\n_cls.name = 12;', {overwrite: true});
+  const sourceFile = project.createSourceFile('simple-types.ts', 'class cls { set name (param1: any) { this.value = param1 }; }\nconst _cls = new cls();\n_cls.name = 12;', {overwrite: true});
   const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.SetAccessor);
   ParameterTypeInference.inferSetAccessorParameterTypes(_function);
   expect(sourceFile.getText()).toEqual('class cls { set name (param1: number) { this.value = param1 }; }\nconst _cls = new cls();\n_cls.name = 12;');
 });
 
 test('should not set type of wrong call expression format', () => {
-  const sourceFile = project.createSourceFile('simple-types.ts', 'function fun(value) { value + 12; }\nother(fun);', {overwrite: true});
+  const sourceFile = project.createSourceFile('simple-types.ts', 'function fun(value: any) { value + 12; }\nother(fun);', {overwrite: true});
   const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.FunctionDeclaration);
   ParameterTypeInference.inferFunctionDeclarationParameterTypes(_function);
-  expect(sourceFile.getText()).toEqual('function fun(value) { value + 12; }\nother(fun);');
+  expect(sourceFile.getText()).toEqual('function fun(value: any) { value + 12; }\nother(fun);');
+});
+
+test('should parenthesise function property types', () => {
+  const sourceFile = project.createSourceFile('simple-types.ts', `
+function fun (a) {}
+fun ((resolve) => {})
+fun ((resolve, reject) => { return 12; })`,
+    {overwrite: true});
+  const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.FunctionDeclaration);
+  ParameterTypeInference.inferFunctionDeclarationParameterTypes(_function);
+  expect(sourceFile.getText()).toEqual(
+    `function fun (a: (resolve: any, reject?: any) => number | void) {}
+fun ((resolve) => {})
+fun ((resolve, reject) => { return 12; })`);
 });

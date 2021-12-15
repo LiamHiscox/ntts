@@ -13,6 +13,10 @@ export class TypeChecker {
     return type.isAny() || type.isUnknown();
   }
 
+  static isNullOrUndefined = (type: Type): boolean => {
+    return type.isNull() || type.isUndefined();
+  }
+
   static isBaseOrLiteralType = (type: Type): boolean => {
     const baseType = type.getBaseTypeOfLiteralType();
     return baseType.isNumber() || baseType.isString() || baseType.isBoolean();

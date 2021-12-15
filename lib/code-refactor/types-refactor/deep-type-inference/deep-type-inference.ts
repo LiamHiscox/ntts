@@ -10,7 +10,8 @@ import {
   ConstructorDeclaration,
   CallExpression,
   NewExpression,
-  Expression
+  Expression,
+  ReferenceFindableNode
 } from "ts-morph";
 import {TypeHandler} from "../type-handler/type-handler";
 import {DeclarationFinder} from "../../helpers/declaration-finder/declaration-finder";
@@ -18,6 +19,7 @@ import {FieldDeclarationKind, FunctionKind, isFieldDeclaration} from "../../help
 import {findReferencesAsNodes} from "../../helpers/reference-finder/reference-finder";
 import {getExpressionParent, getInnerExpression} from "../../helpers/expression-handler/expression-handler";
 import {TypeChecker} from "../helpers/type-checker/type-checker";
+import {BindingNameHandler} from "../helpers/binding-name-handler/binding-name-handler";
 
 type LeftExpression =
   FunctionExpression
@@ -41,7 +43,19 @@ export class DeepTypeInference {
       this.checkDeclarationUsage(declaration);
   }
 
-  private static checkDeclarationUsage = (declaration: FieldDeclarationKind | ParameterDeclaration) => {
+  static propagateParameterTypes = (parameters: ParameterDeclaration[]) => {
+    parameters.forEach(parameter => {
+      const nameNode = parameter.getNameNode();
+      if (Node.isObjectBindingPattern(nameNode) || Node.isArrayBindingPattern(nameNode))
+        BindingNameHandler.getIdentifiers(nameNode).forEach(identifier => {
+          !TypeChecker.isAnyOrUnknown(identifier.getType()) && this.checkDeclarationUsage(identifier)
+        })
+      else if (!TypeChecker.isAnyOrUnknown(parameter.getType()))
+        this.checkDeclarationUsage(parameter);
+    });
+  }
+
+  private static checkDeclarationUsage = (declaration: ReferenceFindableNode & Node) => {
     findReferencesAsNodes(declaration).forEach(ref => {
       const innerExpression = getExpressionParent(ref);
       const parent = innerExpression?.getParent();

@@ -23,7 +23,7 @@ export class TypeHandler {
     return this.setType(node, this.getType(this.setSimpleType(node, type)));
   }
 
-  static setSimpleType = <T extends Node & TypedNode>(node: T, type: string): T => {
+  private static setSimpleType = <T extends Node & TypedNode>(node: T, type: string): T => {
     if (Node.isVariableDeclaration(node) || Node.isParameterDeclaration(node) || Node.isPropertyDeclaration(node))
       return this.setBindingNameType(node, type);
     return node.setType(type);
@@ -32,9 +32,9 @@ export class TypeHandler {
   static addTypes = <T extends Node & TypedNode>(node: T, ...types: string[]): T => {
     const type = TypeHandler.getType(node).getBaseTypeOfLiteralType();
     if (TypeChecker.isAnyOrUnknown(type) && types.length > 0)
-      return TypeHandler.setTypeFiltered(node, types.join(' | '));
+      return TypeHandler.setTypeFiltered(node, types.map(t => `(${t})`).join(' | '));
     if (types.length > 0)
-      return TypeHandler.setTypeFiltered(node, `${type.getText()} | ${types.join(' | ')}`);
+      return TypeHandler.setTypeFiltered(node, `(${type.getText()}) | ${types.map(t => `(${t})`).join(' | ')}`);
     return node;
   }
 
@@ -77,9 +77,9 @@ export class TypeHandler {
     const typeNode = node.getReturnTypeNode();
     if (!typeNode) {
       const type = this.getType(node).getBaseTypeOfLiteralType();
-      return node.setReturnType(type.getText()).getReturnTypeNodeOrThrow();
+      return this.getNonParenthesizedType(node.setReturnType(type.getText()).getReturnTypeNodeOrThrow());
     }
-    return typeNode;
+    return this.getNonParenthesizedType(typeNode);
   }
 
   static setReturnTypeFiltered = <T extends Node & ReturnTypedNode>(node: T, type: string): T => {
@@ -92,21 +92,27 @@ export class TypeHandler {
       return type2.getText();
     if (TypeChecker.isAnyOrUnknown(type2))
       return type1.getText();
-    return `${type1.getText()} | ${type2.getText()}`;
+    return `(${type1.getText()}) | (${type2.getText()})`;
   }
 
   static combineTypeWithList = (type: Type, ...types: string[]): string | undefined => {
     const baseType = type.getBaseTypeOfLiteralType();
-    if (baseType.isAny() && types.length > 0)
-      return types.join(' | ');
+    if (TypeChecker.isAnyOrUnknown(baseType) && types.length > 0)
+      return types.map(t => `(${t})`).join(' | ');
     if (types.length > 0)
-      return `${baseType.getText()} | ${types.join(' | ')}`;
+      return `(${baseType.getText()}) | ${types.map(t => `(${t})`).join(' | ')}`;
     return;
   }
 
   static getFilteredUnionTypes = (type: Type): Type[] => {
     const unionTypes = type.isUnion() ? type.getUnionTypes() : [type];
     return unionTypes.filter(t => !TypeChecker.isAny(t)).map(t => t.getBaseTypeOfLiteralType());
+  }
+
+  static getNonParenthesizedType = (typeNode: TypeNode): TypeNode => {
+    if (Node.isParenthesizedTypeNode(typeNode))
+      return this.getNonParenthesizedType(typeNode.getTypeNode());
+    return typeNode;
   }
 
   private static setBindingNameType = <T extends (VariableDeclaration | ParameterDeclaration | PropertyDeclaration)>(declaration: T, type: string): T => {

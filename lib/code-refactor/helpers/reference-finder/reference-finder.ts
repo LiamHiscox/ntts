@@ -17,7 +17,8 @@ import {Node, ReferencedSymbol, ReferenceFindableNode} from "ts-morph";
 * */
 export const findReferences = (node: ReferenceFindableNode & Node): ReferencedSymbol[] => {
   try {
-    return node.getSymbol() ? node.findReferences() : [];
+    node.getSymbol();
+    return node.findReferences();
   } catch (e) {
     return [];
   }
@@ -25,7 +26,8 @@ export const findReferences = (node: ReferenceFindableNode & Node): ReferencedSy
 
 export const findReferencesAsNodes = (node: ReferenceFindableNode & Node): Node[] => {
   try {
-    return node.getSymbol() ? node.findReferencesAsNodes() : [];
+    node.getSymbol();
+    return node.findReferencesAsNodes();
   } catch (e) {
     return [];
   }

@@ -30,13 +30,13 @@ export class TypesRefactor {
     })
   }
 
-  static inferWriteAccessType = (sourceFile: SourceFile) => {
+  static inferWriteAccessType = (sourceFile: SourceFile, project: Project) => {
     Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach(descendant => {
       if (descendant.wasForgotten())
         return;
       if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
-        return WriteAccessTypeInference.inferTypeByWriteAccess(descendant);
+        return WriteAccessTypeInference.inferTypeByWriteAccess(descendant, project);
     })
   }
 

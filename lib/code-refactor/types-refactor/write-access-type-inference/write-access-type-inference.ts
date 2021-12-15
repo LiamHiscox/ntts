@@ -2,6 +2,7 @@ import {
   BinaryExpression,
   Identifier,
   Node,
+  Project,
   PropertyDeclaration,
   ReferencedSymbol,
   SyntaxKind,
@@ -13,37 +14,44 @@ import {findReferences} from "../../helpers/reference-finder/reference-finder";
 import {TypeHandler} from "../type-handler/type-handler";
 import {isWriteAccess} from "../../helpers/expression-handler/expression-handler";
 import {TypeSimplifier} from "../helpers/type-simplifier/type-simplifier";
+import {InterfaceHandler} from "../interface-handler/interface-handler";
+import {TypeChecker} from "../helpers/type-checker/type-checker";
 
 export class WriteAccessTypeInference {
-  static inferTypeByWriteAccess = (declaration: VariableDeclaration | PropertyDeclaration) => {
+  static inferTypeByWriteAccess = (declaration: VariableDeclaration | PropertyDeclaration, project: Project) => {
     const nameNode = declaration.getNameNode();
     const isConstant = this.isConstantDeclaration(declaration);
     if (!isConstant && !Node.isObjectBindingPattern(nameNode) && !Node.isArrayBindingPattern(nameNode)) {
       const newTypes = this.checkReferenceSymbols(declaration);
       const newDeclaration = TypeHandler.addTypes(declaration, ...newTypes);
       this.simplifyTypeNode(newDeclaration);
+      if (TypeChecker.isNullOrUndefined(TypeHandler.getType(newDeclaration)))
+        TypeHandler.setTypeFiltered(newDeclaration, 'any');
+      else
+        InterfaceHandler.createInterfaceFromObjectLiterals(newDeclaration, project);
+      // DeepTypeInference.propagatePrimitiveType(newDeclaration);
     } else {
       this.simplifyTypeNode(declaration);
+      InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project);
+      // DeepTypeInference.propagatePrimitiveType(declaration);
     }
   }
 
   private static simplifyTypeNode = (declaration: TypedNode & Node) => {
-    if (TypeHandler.getType(declaration).isUnion()) {
-      const typeNode = declaration.getTypeNode();
-      if (typeNode) {
-        const simplified = TypeSimplifier.simplifyTypeNode(typeNode);
-        simplified && TypeHandler.setTypeFiltered(declaration, simplified);
+    const typeNode = declaration.getTypeNode();
+    if (typeNode) {
+      const simplified = TypeSimplifier.simplifyTypeNode(typeNode);
+      simplified && TypeHandler.setTypeFiltered(declaration, simplified);
+    } else {
+      const newTypeNode = TypeHandler.getTypeNode(declaration);
+      const newTypeNodeText = newTypeNode.getText();
+      const simplified = TypeSimplifier.simplifyTypeNode(newTypeNode);
+      if (simplified) {
+        TypeHandler.setTypeFiltered(declaration, simplified);
+        const simplifiedTypeNode = TypeHandler.getTypeNode(declaration);
+        simplifiedTypeNode.getText() === newTypeNodeText && declaration.removeType();
       } else {
-        const newTypeNode = TypeHandler.getTypeNode(declaration);
-        const newTypeNodeText = newTypeNode.getText();
-        const simplified = TypeSimplifier.simplifyTypeNode(newTypeNode);
-        if (simplified) {
-          TypeHandler.setTypeFiltered(declaration, simplified);
-          const simplifiedTypeNode = TypeHandler.getTypeNode(declaration);
-          simplifiedTypeNode.getText() === newTypeNode.getText() && declaration.removeType();
-        } else {
-          declaration.removeType();
-        }
+        declaration.removeType();
       }
     }
   }
