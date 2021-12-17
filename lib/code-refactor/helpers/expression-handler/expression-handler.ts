@@ -1,10 +1,4 @@
-import {
-  ElementAccessExpression,
-  Node,
-  PropertyAccessExpression,
-  PropertyName,
-  SyntaxKind
-} from "ts-morph";
+import {ElementAccessExpression, Node, PropertyAccessExpression, PropertyName, SyntaxKind} from "ts-morph";
 import {isAccessExpression} from "../combined-types/combined-types";
 
 export const getExpressionParent = (node: Node | undefined): Node | undefined => {
@@ -30,12 +24,13 @@ export const isAccessExpressionTarget = (expression: PropertyAccessExpression | 
   return expression.getPos() === target.getPos();
 }
 
-export const isWriteAccess = (node: Node) => {
+export const isWriteAccess = (node: Node): boolean => {
   const innerExpression = getExpressionParent(node);
   if (isAccessExpression(innerExpression) && isAccessExpressionTarget(innerExpression, node)) {
-    const left = node.getFirstAncestorByKind(SyntaxKind.BinaryExpression)?.getLeft();
+    const binary = node.getFirstAncestorByKind(SyntaxKind.BinaryExpression);
+    const left = binary?.getLeft();
     const inner = getInnerExpression(left);
-    return innerExpression.getPos() === inner?.getPos();
+    return !!binary?.getOperatorToken().asKind(SyntaxKind.EqualsToken) && innerExpression.getPos() === inner?.getPos();
   }
   return false;
 }

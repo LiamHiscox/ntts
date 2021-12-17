@@ -2,12 +2,11 @@ import {Node, Project, SourceFile} from "ts-morph";
 import {Logger} from "../../logger/logger";
 import {InitialTypeHandler} from "./initial-type-handler/initial-type-handler";
 import {ParameterTypeInference} from "./parameter-type-inference/parameter-type-inference";
-import {UsageTypeInference} from "./usage-type-inference/usage-type-inference";
-import {isFieldDeclaration} from "../helpers/combined-types/combined-types";
-import {DeepTypeInference} from "./deep-type-inference/deep-type-inference";
 import {WriteAccessTypeInference} from "./write-access-type-inference/write-access-type-inference";
 import {ContextualTypeInference} from "./contextual-type-inference/contextual-type-inference";
 import {InterfaceHandler} from "./interface-handler/interface-handler";
+import {InterfaceUsageInference} from "./interface-usage-inference/interface-usage-inference";
+import {getInterfaces} from "./interface-handler/interface-creator/interface-creator";
 
 export class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project) => {
@@ -18,6 +17,34 @@ export class TypesRefactor {
       if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
         return InterfaceHandler.createInterfaceFromObjectLiterals(descendant, project);
     })
+  }
+
+  static checkInterfacePropertyWriteAccess = (project: Project) => {
+    const interfaces = getInterfaces(project);
+    if (interfaces.length > 0) {
+      getInterfaces(project).forEach(interfaceDeclaration => {
+        Logger.info(interfaceDeclaration.getName());
+        InterfaceUsageInference.checkPropertyWriteAccess(interfaceDeclaration, project);
+      });
+    }
+  }
+
+  static addPropertiesFromUsageOfInterface = (sourceFile: SourceFile, project: Project) => {
+    Logger.info(sourceFile.getFilePath());
+    const interfaces = getInterfaces(project);
+    if (interfaces.length > 0) {
+      sourceFile.getDescendants().forEach(descendant => {
+        if (descendant.wasForgotten())
+          return;
+        if (Node.isVariableDeclaration(descendant)
+          || Node.isPropertyDeclaration(descendant)
+          || Node.isPropertySignature(descendant)
+          || Node.isShorthandPropertyAssignment(descendant)
+          || Node.isParameterDeclaration(descendant)
+          || Node.isPropertyAssignment(descendant))
+          return InterfaceUsageInference.addPropertiesByUsage(descendant, interfaces);
+      })
+    }
   }
 
   static inferContextualType = (sourceFile: SourceFile) => {
@@ -37,26 +64,6 @@ export class TypesRefactor {
         return;
       if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
         return WriteAccessTypeInference.inferTypeByWriteAccess(descendant, project);
-    })
-  }
-
-  static propagateClassOrInterfaceType = (sourceFile: SourceFile) => {
-    Logger.info(sourceFile.getFilePath());
-    sourceFile.getDescendants().forEach(descendant => {
-      if (descendant.wasForgotten())
-        return;
-      if (isFieldDeclaration(descendant))
-        return DeepTypeInference.propagateClassOrInterfaceType(descendant);
-    })
-  }
-
-  static inferUsageTypes = (sourceFile: SourceFile) => {
-    Logger.info(sourceFile.getFilePath())
-    sourceFile.getDescendants().forEach(descendant => {
-      if (descendant.wasForgotten())
-        return;
-      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
-        return UsageTypeInference.inferDeclarationType(descendant);
     })
   }
 

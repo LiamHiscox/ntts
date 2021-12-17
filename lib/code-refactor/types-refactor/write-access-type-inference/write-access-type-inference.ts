@@ -1,10 +1,11 @@
 import {
   BinaryExpression,
-  Identifier,
   Node,
   Project,
   PropertyDeclaration,
+  PropertySignature,
   ReferencedSymbol,
+  ReferenceFindableNode,
   SyntaxKind,
   TypedNode,
   VariableDeclaration,
@@ -18,7 +19,7 @@ import {InterfaceHandler} from "../interface-handler/interface-handler";
 import {TypeChecker} from "../helpers/type-checker/type-checker";
 
 export class WriteAccessTypeInference {
-  static inferTypeByWriteAccess = (declaration: VariableDeclaration | PropertyDeclaration, project: Project) => {
+  static inferTypeByWriteAccess = (declaration: VariableDeclaration | PropertyDeclaration | PropertySignature, project: Project) => {
     const nameNode = declaration.getNameNode();
     const isConstant = this.isConstantDeclaration(declaration);
     if (!isConstant && !Node.isObjectBindingPattern(nameNode) && !Node.isArrayBindingPattern(nameNode)) {
@@ -27,13 +28,11 @@ export class WriteAccessTypeInference {
       this.simplifyTypeNode(newDeclaration);
       if (TypeChecker.isNullOrUndefined(TypeHandler.getType(newDeclaration)))
         TypeHandler.setTypeFiltered(newDeclaration, 'any');
-      else
+      else if (Node.isVariableDeclaration(newDeclaration) || Node.isPropertyDeclaration(newDeclaration))
         InterfaceHandler.createInterfaceFromObjectLiterals(newDeclaration, project);
-      // DeepTypeInference.propagatePrimitiveType(newDeclaration);
-    } else {
+    } else if (Node.isVariableDeclaration(declaration) || Node.isPropertyDeclaration(declaration)) {
       this.simplifyTypeNode(declaration);
       InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project);
-      // DeepTypeInference.propagatePrimitiveType(declaration);
     }
   }
 
@@ -56,7 +55,7 @@ export class WriteAccessTypeInference {
     }
   }
 
-  private static checkReferenceSymbols = (declaration: VariableDeclaration | PropertyDeclaration | Identifier): string[] => {
+  private static checkReferenceSymbols = (declaration: ReferenceFindableNode & Node): string[] => {
     return findReferences(declaration).reduce((types, ref) => types.concat(...this.checkReferences(ref)), new Array<string>());
   }
 

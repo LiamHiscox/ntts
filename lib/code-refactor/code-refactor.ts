@@ -52,17 +52,15 @@ export class CodeRefactor {
     Logger.success('Variable and Property type declared where possible');
     project.saveSync()
 
-    // Logger.info('Propagating class and interface types through usage');
-    // project.getSourceFiles().forEach(TypesRefactor.propagateClassOrInterfaceType);
-    // Logger.success('Propagated class and interface types where possible');
+    Logger.info('Checking usage of generated interfaces for additional Properties and types');
+    project.getSourceFiles().forEach(s => TypesRefactor.addPropertiesFromUsageOfInterface(s, project));
+    Logger.success('Defined type and added properties to interfaces where possible');
+    project.saveSync()
 
-    // Logger.info('Declaring variable and property types by usage');
-    // project.getSourceFiles().forEach(TypesRefactor.inferUsageTypes);
-    // Logger.success('Declared type declared where possible');
-
-    // Logger.info('Declaring initial types');
-    // project.getSourceFiles().forEach(TypesRefactor.declareInitialTypes);
-    // Logger.success('Initial Types set');
+    Logger.info('Checking usage of properties of generated interfaces for write access');
+    TypesRefactor.checkInterfacePropertyWriteAccess(project)
+    Logger.success('Checked write access of properties of interfaces where possible');
+    project.saveSync()
   }
 
   static addSourceFiles = (ignores: string[], path: string): Project => {

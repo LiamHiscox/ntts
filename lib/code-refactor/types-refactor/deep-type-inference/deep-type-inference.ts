@@ -37,12 +37,6 @@ export class DeepTypeInference {
       this.checkDeclarationUsage(declaration);
   }
 
-  static propagatePrimitiveType = (declaration: FieldDeclarationKind) => {
-    const type = TypeHandler.getType(declaration);
-    if (isFieldDeclaration(declaration) && TypeChecker.isBaseOrLiteralType(type))
-      this.checkDeclarationUsage(declaration);
-  }
-
   static propagateParameterTypes = (parameters: ParameterDeclaration[]) => {
     parameters.forEach(parameter => {
       const nameNode = parameter.getNameNode();

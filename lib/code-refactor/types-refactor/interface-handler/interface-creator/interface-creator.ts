@@ -12,6 +12,11 @@ import {TypeHandler} from "../../type-handler/type-handler";
 
 const generatedFileName = 'ntts-generated-models.ts';
 
+export const getInterfaces = (project: Project): InterfaceDeclaration[] => {
+  const sourceFile = getSourceFile(project);
+  return sourceFile.getInterfaces();
+}
+
 export const getInterface = (name: string, project: Project): InterfaceDeclaration => {
   const sourceFile = getSourceFile(project);
   const _interface = sourceFile.getInterface((i) => i.getName() === name);
