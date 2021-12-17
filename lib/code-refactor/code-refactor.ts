@@ -58,7 +58,7 @@ export class CodeRefactor {
     project.saveSync()
 
     Logger.info('Checking usage of properties of generated interfaces for write access');
-    TypesRefactor.checkInterfacePropertyWriteAccess(project)
+    TypesRefactor.checkInterfacePropertyWriteAccess(project);
     Logger.success('Checked write access of properties of interfaces where possible');
     project.saveSync()
   }

@@ -2,6 +2,7 @@ import {
   BinaryExpression,
   Node,
   Project,
+  PropertyAssignment,
   PropertyDeclaration,
   PropertySignature,
   ReferencedSymbol,
@@ -27,7 +28,7 @@ export class WriteAccessTypeInference {
       const newDeclaration = TypeHandler.addTypes(declaration, ...newTypes);
       this.simplifyTypeNode(newDeclaration);
       if (TypeChecker.isNullOrUndefined(TypeHandler.getType(newDeclaration)))
-        TypeHandler.setTypeFiltered(newDeclaration, 'any');
+        newDeclaration.removeType();
       else if (Node.isVariableDeclaration(newDeclaration) || Node.isPropertyDeclaration(newDeclaration))
         InterfaceHandler.createInterfaceFromObjectLiterals(newDeclaration, project);
     } else if (Node.isVariableDeclaration(declaration) || Node.isPropertyDeclaration(declaration)) {
@@ -77,14 +78,19 @@ export class WriteAccessTypeInference {
 
   private static checkWriteAccess = (node: Node): string | undefined => {
     const writeAccess = this.getWriteAccessAncestor(node);
-    if (writeAccess) {
+    if (Node.isBinaryExpression(writeAccess)) {
       const type = writeAccess.getRight().getType().getBaseTypeOfLiteralType();
       return !type.isAny() ? type.getText() : undefined;
+    }
+    if (Node.isPropertyAssignment(writeAccess)) {
+      const type = writeAccess.getInitializer()?.getType().getBaseTypeOfLiteralType();
+      return type && !type.isAny() ? type.getText() : undefined;
     }
     return;
   }
 
-  private static getWriteAccessAncestor = (node: Node): BinaryExpression | undefined => {
-    return node.getFirstAncestorByKind(SyntaxKind.BinaryExpression);
+  private static getWriteAccessAncestor = (node: Node): BinaryExpression | PropertyAssignment | undefined => {
+    const result = node.getAncestors().find(a => Node.isBinaryExpression(a) || Node.isPropertyAssignment(a));
+    return result?.asKind(SyntaxKind.BinaryExpression) || result?.asKind(SyntaxKind.PropertyAssignment);
   }
 }
