@@ -133,7 +133,7 @@ export class TopLevelRefactor {
 
   private static refactorClassExpressionExport = (classExpression: ClassExpression, exportName: string, usedNames: string[]): string => {
     const className = classExpression.getName();
-    if (exportName === "_default" && className && !usedNames.includes(className)) {
+    if (className && !usedNames.includes(className)) {
       return className;
     }
     if (!usedNames.includes(exportName)) {

@@ -9,7 +9,7 @@ import {
   PropertyName,
   PropertySignature,
   StringLiteral,
-  SyntaxKind, Type
+  SyntaxKind, Type, TypeLiteralNode
 } from "ts-morph";
 import {VariableValidator} from "../../../helpers/variable-validator/variable-validator";
 import {TypeHandler} from "../../type-handler/type-handler";
@@ -17,7 +17,7 @@ import {isWriteAccess} from "../../../helpers/expression-handler/expression-hand
 import {TypeSimplifier} from "../../helpers/type-simplifier/type-simplifier";
 
 export class InterfaceReadReferenceChecker {
-  static getType = (node: Node, interfaceDeclarations: InterfaceDeclaration[]) => {
+  static getType = (node: Node, interfaceDeclarations: (InterfaceDeclaration | TypeLiteralNode)[]) => {
     const access = this.getPropertyOrElementAccess(node.getParent(), node.getPos());
     if (Node.isPropertyAccessExpression(access))
       interfaceDeclarations.forEach(interfaceDeclaration => {
@@ -29,7 +29,7 @@ export class InterfaceReadReferenceChecker {
       })
   }
 
-  static getArrayType = (node: Node, interfaceDeclarations: InterfaceDeclaration[]) => {
+  static getArrayType = (node: Node, interfaceDeclarations: (InterfaceDeclaration | TypeLiteralNode)[]) => {
     const access = this.getPropertyOrElementAccess(node.getParent(), node.getPos());
     const parent = access?.getParent();
     if (Node.isElementAccessExpression(access) && Node.isPropertyAccessExpression(parent))
@@ -51,13 +51,13 @@ export class InterfaceReadReferenceChecker {
     return;
   }
 
-  private static checkPropertyAccess = (propertyAccess: PropertyAccessExpression, interfaceDeclaration: InterfaceDeclaration) => {
+  private static checkPropertyAccess = (propertyAccess: PropertyAccessExpression, interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode) => {
     if (!interfaceDeclaration.getProperty(propertyAccess.getName()) && !propertyAccess.getNameNode().getSymbol())
       return interfaceDeclaration.addProperty({hasQuestionToken: true, name: propertyAccess.getName(), type: "any"});
     return;
   }
 
-  private static checkElementAccess = (elementAccess: ElementAccessExpression, interfaceDeclaration: InterfaceDeclaration) => {
+  private static checkElementAccess = (elementAccess: ElementAccessExpression, interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode) => {
     const node = elementAccess.getArgumentExpression();
     const member = this.parseElementAccess(elementAccess, interfaceDeclaration);
     if (Node.isIndexSignatureDeclaration(member) && node)
@@ -76,7 +76,7 @@ export class InterfaceReadReferenceChecker {
     return indexSignature;
   }
 
-  private static parseElementAccess = (access: ElementAccessExpression, interfaceDeclaration: InterfaceDeclaration): IndexSignatureDeclaration | PropertySignature | undefined => {
+  private static parseElementAccess = (access: ElementAccessExpression, interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode): IndexSignatureDeclaration | PropertySignature | undefined => {
     const argumentExpression = access.getArgumentExpression();
     if (Node.isStringLiteral(argumentExpression)
       || Node.isNoSubstitutionTemplateLiteral(argumentExpression))
@@ -95,7 +95,7 @@ export class InterfaceReadReferenceChecker {
     return;
   }
 
-  private static parseStringLiteral = (literal: StringLiteral | NoSubstitutionTemplateLiteral, interfaceDeclaration: InterfaceDeclaration): PropertySignature | undefined => {
+  private static parseStringLiteral = (literal: StringLiteral | NoSubstitutionTemplateLiteral, interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode): PropertySignature | undefined => {
     const value = literal.getLiteralValue();
     const property = this.findProperty(value, interfaceDeclaration);
     if (property)
@@ -105,7 +105,7 @@ export class InterfaceReadReferenceChecker {
     return interfaceDeclaration.addProperty({hasQuestionToken: true, name: `'${value}'`, type: "any"});
   }
 
-  private static parseNumericLiteral = (literal: NumericLiteral, interfaceDeclaration: InterfaceDeclaration): PropertySignature | undefined => {
+  private static parseNumericLiteral = (literal: NumericLiteral, interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode): PropertySignature | undefined => {
     const value = '' + literal.getLiteralValue();
     const property = this.findProperty(value, interfaceDeclaration);
     if (property)
@@ -113,7 +113,7 @@ export class InterfaceReadReferenceChecker {
     return interfaceDeclaration.addProperty({hasQuestionToken: true, name: value, type: "any"});
   }
 
-  private static parseString = (interfaceDeclaration: InterfaceDeclaration): IndexSignatureDeclaration => {
+  private static parseString = (interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode): IndexSignatureDeclaration => {
     const indexSignature = this.findIndexSignature("string", interfaceDeclaration);
     if (indexSignature)
       return indexSignature;
@@ -125,7 +125,7 @@ export class InterfaceReadReferenceChecker {
     });
   }
 
-  private static parseNumber = (interfaceDeclaration: InterfaceDeclaration): IndexSignatureDeclaration => {
+  private static parseNumber = (interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode): IndexSignatureDeclaration => {
     const indexSignature = this.findIndexSignature("number", interfaceDeclaration) || this.findIndexSignature("string", interfaceDeclaration);
     return indexSignature || interfaceDeclaration.addIndexSignature({
       keyName: "key",
@@ -134,7 +134,7 @@ export class InterfaceReadReferenceChecker {
     });
   }
 
-  private static parseSymbol = (interfaceDeclaration: InterfaceDeclaration): IndexSignatureDeclaration => {
+  private static parseSymbol = (interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode): IndexSignatureDeclaration => {
     const indexSignature = this.findIndexSignature("symbol", interfaceDeclaration);
     return indexSignature || interfaceDeclaration.addIndexSignature({
       keyName: "key",
@@ -143,7 +143,7 @@ export class InterfaceReadReferenceChecker {
     });
   }
 
-  private static findIndexSignature = (keyType: "number" | "string" | "symbol", interfaceDeclaration: InterfaceDeclaration): IndexSignatureDeclaration | undefined => {
+  private static findIndexSignature = (keyType: "number" | "string" | "symbol", interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode): IndexSignatureDeclaration | undefined => {
     return interfaceDeclaration.getIndexSignature((index) => {
       const indexType = index.getKeyType();
       if (indexType.isUnion())
@@ -160,7 +160,7 @@ export class InterfaceReadReferenceChecker {
     return;
   }
 
-  private static findProperty = (literalValue: string, interfaceDeclaration: InterfaceDeclaration): PropertySignature | undefined => {
+  private static findProperty = (literalValue: string, interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode): PropertySignature | undefined => {
     return interfaceDeclaration.getProperty((property) =>
       literalValue === this.getLiteralValueOfProperty(property.getNameNode()));
   }

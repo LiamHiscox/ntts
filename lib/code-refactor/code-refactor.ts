@@ -58,8 +58,13 @@ export class CodeRefactor {
     project.saveSync()
 
     Logger.info('Checking usage of properties of generated interfaces for write access');
-    TypesRefactor.checkInterfacePropertyWriteAccess(project);
+    TypesRefactor.checkInterfaceProperties(project);
     Logger.success('Checked write access of properties of interfaces where possible');
+    project.saveSync()
+
+    Logger.info('Merging duplicate interfaces');
+    TypesRefactor.mergeDuplicateInterfaces(project);
+    Logger.success('Merged duplicate interfaces where possible');
     project.saveSync()
   }
 

@@ -38,21 +38,19 @@ export class ExportsRefactor {
   }
 
   private static insertExports = (exportedVariables: ExportedVariableModel[], sourceFile: SourceFile) => {
-    const exportConfig = exportedVariables.reduce((acc: { _default?: string, named: string[] }, exported) => {
-      if (exported.defaultExport) {
-        return {...acc, _default: exported.name};
-      }
-      return {
+    const exportConfig = exportedVariables.reduce((acc: { _default?: string, named: string[] }, exported) =>
+      exported.defaultExport ? {
+      ...acc,
+        _default: exported.name
+    } : {
         ...acc,
         named: acc.named.concat(exported.alias ? `${exported.name} as ${exported.alias}` : exported.name)
-      };
-    }, {named: []});
-    if (exportConfig._default) {
+      }
+    , {named: []});
+    if (exportConfig._default)
       sourceFile.addExportAssignment({expression: exportConfig._default, isExportEquals: false})
-    }
-    if (exportConfig.named.length > 0) {
+    if (exportConfig.named.length > 0)
       sourceFile.addExportDeclarations([{namedExports: exportConfig.named}]);
-    }
   }
 
   private static refactorExport = (binary: BinaryExpression,
@@ -98,7 +96,7 @@ export class ExportsRefactor {
                                                          usedNames: string[],
                                                          sourceFile: SourceFile
   ): ExportedVariableModel[] => {
-    if (Node.isElementAccessExpression(accessExpression) && !ExportParser.exportVariableExists("_default", exportedVariables, true)) {
+    if (Node.isElementAccessExpression(accessExpression) && !ExportParser.exportVariableExists("", exportedVariables, true)) {
       return this.refactorNewElementAccessDefaultExport(binary, accessExpression, exportedVariables, usedNames, sourceFile);
     }
     return this.refactorDefaultAssignmentExport(binary, accessExpression, exportedVariables, usedNames, sourceFile);
@@ -113,10 +111,20 @@ export class ExportsRefactor {
     const parent = binary.getParent();
     const grandParent = parent?.getParent();
     if (Node.isExpressionStatement(parent) && Node.isSourceFile(grandParent)) {
-      return TopLevelRefactor.refactorTopLevelExport("_default", binary, parent, accessExpression, exportedVariables, usedNames, true, sourceFile);
+      return TopLevelRefactor.refactorTopLevelExport(
+        this.variableFromFileName(sourceFile), binary, parent, accessExpression, exportedVariables, usedNames, true, sourceFile);
     } else {
-      return NestedRefactor.refactorNestedExport("_default", binary, accessExpression, exportedVariables, usedNames, true, sourceFile);
+      return NestedRefactor.refactorNestedExport(
+        this.variableFromFileName(sourceFile), binary, accessExpression, exportedVariables, usedNames, true, sourceFile);
     }
+  }
+
+  private static variableFromFileName = (sourceFile: SourceFile) => {
+    const parts = sourceFile.getFilePath().split('/');
+    if (parts.length > 0) {
+      return VariableNameGenerator.variableNameFromImportId(parts[parts.length - 1]);
+    }
+    return "_default";
   }
 
   private static refactorNewElementAccessDefaultExport = (binary: BinaryExpression,
@@ -126,13 +134,14 @@ export class ExportsRefactor {
                                                           sourceFile: SourceFile
   ): ExportedVariableModel[] => {
     const exportedNames = exportedVariables.map(e => e.name);
-    const usableName = VariableNameGenerator.getUsableVariableName("_default", usedNames.concat(exportedNames));
+    const exportName = this.variableFromFileName(sourceFile);
+    const usableName = VariableNameGenerator.getUsableVariableName(exportName, usedNames.concat(exportedNames));
     const index = ExportParser.getSourceFileIndex(binary);
     VariableCreator.createVariable(usableName, index, '{}', VariableDeclarationKind.Let, sourceFile);
     const newDefaultExport = {name: usableName, defaultExport: true};
-    const expression = elementAccess.getExpression().asKind(SyntaxKind.Identifier)
-      || elementAccess.getExpression().asKind(SyntaxKind.PropertyAccessExpression)
-      || elementAccess.getExpression().asKindOrThrow(SyntaxKind.ElementAccessExpression);
-    return this.refactorDefaultAssignmentExport(binary, expression, exportedVariables.concat(newDefaultExport), usedNames, sourceFile);
+    const expression = elementAccess.getExpression();
+    if (Node.isIdentifier(expression) || Node.isPropertyAccessExpression(expression) || Node.isElementAccessExpression(expression))
+      return this.refactorDefaultAssignmentExport(binary, expression, exportedVariables.concat(newDefaultExport), usedNames, sourceFile);
+    return exportedVariables;
   }
 }

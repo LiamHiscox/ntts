@@ -3,6 +3,7 @@ import {reservedKeywords} from "../../../assets/reserved-keywords";
 export class VariableNameGenerator {
   static variableNameFromImportId = (importId: string) => {
     const newName = importId
+      .replace(/.ts$/, '')
       .replace(/[^_\d\w$]/g, '_')
       .replace(/^_+/, '')
       .replace(/_+$/, '');

@@ -7,6 +7,7 @@ import {ContextualTypeInference} from "./contextual-type-inference/contextual-ty
 import {InterfaceHandler} from "./interface-handler/interface-handler";
 import {InterfaceUsageInference} from "./interface-usage-inference/interface-usage-inference";
 import {getInterfaces} from "./interface-handler/interface-creator/interface-creator";
+import {InterfaceMerger} from "./interface-merger/interface-merger";
 
 export class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project) => {
@@ -19,14 +20,19 @@ export class TypesRefactor {
     })
   }
 
-  static checkInterfacePropertyWriteAccess = (project: Project) => {
+  static checkInterfaceProperties = (project: Project) => {
     const interfaces = getInterfaces(project);
     if (interfaces.length > 0) {
       getInterfaces(project).forEach(interfaceDeclaration => {
         Logger.info(interfaceDeclaration.getName());
-        InterfaceUsageInference.checkPropertyWriteAccess(interfaceDeclaration, project);
+        InterfaceUsageInference.checkProperties(interfaceDeclaration, interfaces, project);
       });
     }
+  }
+
+  static mergeDuplicateInterfaces = (project: Project) => {
+    const interfaces = getInterfaces(project);
+    InterfaceMerger.mergeDuplicates(interfaces);
   }
 
   static addPropertiesFromUsageOfInterface = (sourceFile: SourceFile, project: Project) => {

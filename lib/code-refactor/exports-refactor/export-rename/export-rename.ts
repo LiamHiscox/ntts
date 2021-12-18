@@ -17,7 +17,7 @@ export class ExportRename {
     const namedExport = ExportValidator.isNamedExport(access);
     if (!!ExportValidator.isDefaultExport(access) || !!ExportValidator.isElementAccessExport(access)) {
       const propertyAccess = this.getDefaultExport(identifier);
-      const _default = ExportParser.exportVariableExists("_default", exportedVariables, true);
+      const _default = ExportParser.exportVariableExists("", exportedVariables, true);
       _default && propertyAccess.replaceWithText(_default.name);
     } else if (namedExport) {
       const filtered = ExportParser.filterExportIdentifiers(namedExport);

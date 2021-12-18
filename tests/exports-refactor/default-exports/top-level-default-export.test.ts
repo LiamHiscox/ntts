@@ -9,19 +9,19 @@ const project = new Project({
 test('should refactor default export with literal value', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'module.exports = 2;', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('const _default = 2;\n\nexport default _default;\n');
+  expect(sourceFile.getText()).toEqual('const standard_require = 2;\n\nexport default standard_require;\n');
 });
 
 test('should refactor shorthand default export with literal value', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'exports = 2;', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('const _default = 2;\n\nexport default _default;\n');
+  expect(sourceFile.getText()).toEqual('const standard_require = 2;\n\nexport default standard_require;\n');
 });
 
 test('should refactor name collision default export', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', 'let _default;\nexports = 2;', {overwrite: true});
+  const sourceFile = project.createSourceFile('standard-require.ts', 'let standard_require;\nexports = 2;', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('let _default;\nconst _default0 = 2;\n\nexport default _default0;\n');
+  expect(sourceFile.getText()).toEqual('let standard_require;\nconst standard_require0 = 2;\n\nexport default standard_require0;\n');
 });
 
 test('should refactor default export with equally named identifier assignment', () => {
@@ -39,13 +39,13 @@ test('should refactor default export with differently named identifier assignmen
 test('should refactor re-assignment of default export', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'module.exports = 2;\nmodule.exports = 12;', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('let _default = 2;\n_default = 12;\n\nexport default _default;\n');
+  expect(sourceFile.getText()).toEqual('let standard_require = 2;\nstandard_require = 12;\n\nexport default standard_require;\n');
 });
 
 test('should refactor deep property access default export', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'module.exports = {};\nmodule.exports.name = 2;', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('const _default = {};\nconst name = 2;\n\nexport default _default;\n\nexport { name };\n');
+  expect(sourceFile.getText()).toEqual('const standard_require = {};\nconst name = 2;\n\nexport default standard_require;\n\nexport { name };\n');
 });
 
 test('should refactor re-assignment of default export with identifier', () => {
@@ -75,7 +75,7 @@ test('should refactor default class expression export', () => {
 test('should refactor default class expression export with no class name', () => {
   const sourceFile = project.createSourceFile('standard-require.ts', 'exports = class {};', {overwrite: true});
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('class _default {}\n\nexport default _default;\n');
+  expect(sourceFile.getText()).toEqual('class _default {}\n\nexport default standard_require;\n');
 });
 
 test('should refactor default class expression export with usage', () => {

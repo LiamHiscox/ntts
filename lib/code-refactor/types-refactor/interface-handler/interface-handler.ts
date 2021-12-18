@@ -1,16 +1,17 @@
 import {
-  Project,
-  Node,
-  PropertyDeclaration,
-  VariableDeclaration,
   BindingName,
-  PropertyName,
-  TypeLiteralNode,
+  Identifier,
   ImportTypeNode,
   InterfaceDeclaration,
-  TypeNode,
+  Node,
+  Project,
+  PropertyDeclaration,
+  PropertyName,
   SyntaxKind,
-  Identifier
+  TypedNode,
+  TypeLiteralNode,
+  TypeNode,
+  VariableDeclaration
 } from "ts-morph";
 import {createInterface, getInterface, getSourceFile} from "./interface-creator/interface-creator";
 import {TypeHandler} from "../type-handler/type-handler";
