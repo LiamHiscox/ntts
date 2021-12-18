@@ -44,9 +44,9 @@ test('should create interface and replace object union type with object 2', () =
 test('should create interface and replace object union type with interface 2', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'let a: import("path").PlatformPath | { a: string; c: number; } | undefined;', {overwrite: true});
   TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project);
+  const generatedFile = getSourceFile(project);
   expect(sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).length).toEqual(2);
   expect(sourceFile.getDescendantsOfKind(SyntaxKind.UnionType).length).toEqual(1);
-  const generatedFile = getSourceFile(project);
   expect(generatedFile.getInterface(i => i.getName() === "A")).not.toBeUndefined();
 });
 
@@ -58,3 +58,10 @@ test('should extend interface with given object types', () => {
   expect(interfaceDeclaration.getProperties().length).toEqual(2);
 });
 
+test('should create interface and replace object type with interface in function return', () => {
+  const sourceFile = project.createSourceFile('write-access.ts', 'let a: () => { a: number; b: string; };', {overwrite: true});
+  sourceFile.getDescendantsOfKind(SyntaxKind.VariableDeclaration).forEach(declaration => InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project))
+  expect(sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).length).toEqual(1);
+  const generatedFile = getSourceFile(project);
+  expect(generatedFile.getInterface(i => i.getName() === "A")).not.toBeUndefined();
+});

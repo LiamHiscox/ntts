@@ -15,7 +15,7 @@ export class TypesRefactor {
     sourceFile.getDescendants().forEach(descendant => {
       if (descendant.wasForgotten())
         return;
-      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
+      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant) || Node.isParameterDeclaration(descendant))
         return InterfaceHandler.createInterfaceFromObjectLiterals(descendant, project);
     })
   }
