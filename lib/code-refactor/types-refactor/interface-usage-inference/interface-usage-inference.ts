@@ -2,31 +2,16 @@ import {
   ImportTypeNode,
   InterfaceDeclaration,
   Node,
-  ParameterDeclaration,
   Project,
-  PropertyAssignment,
-  PropertyDeclaration,
-  PropertySignature,
   ReferenceFindableNode,
-  ShorthandPropertyAssignment,
   Type,
   TypeLiteralNode,
   TypeNode,
-  VariableDeclaration
 } from "ts-morph";
 import {findReferences} from "../../helpers/reference-finder/reference-finder";
 import {InterfaceReadReferenceChecker} from "./interface-read-reference-checker/interface-read-reference-checker";
 import {WriteAccessTypeInference} from "../write-access-type-inference/write-access-type-inference";
-import {BindingNameHandler} from "../helpers/binding-name-handler/binding-name-handler";
 import {TypeHandler} from "../type-handler/type-handler";
-
-export type PropertyUsageTypes =
-  ParameterDeclaration
-  | VariableDeclaration
-  | PropertyDeclaration
-  | PropertyAssignment
-  | ShorthandPropertyAssignment
-  | PropertySignature;
 
 export class InterfaceUsageInference {
   static checkProperties = (interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode, interfaces: InterfaceDeclaration[], project: Project) => {
@@ -41,12 +26,12 @@ export class InterfaceUsageInference {
     })
   }
 
-  static addPropertiesByUsage = (declaration: PropertyUsageTypes, interfaces: InterfaceDeclaration[]) => {
-    const nameNode = declaration.getNameNode();
-    if (Node.isArrayBindingPattern(nameNode) || Node.isObjectBindingPattern(nameNode))
-      BindingNameHandler.getIdentifiers(nameNode).forEach(identifier => this.checkType(identifier.getType(), identifier, interfaces));
-    else
-      this.checkType(declaration.getType(), declaration, interfaces);
+  static addPropertiesByUsage = (node: Node | undefined, interfaces: InterfaceDeclaration[]) => {
+    const type = node?.getType();
+    if (node && type?.isInterface())
+      this.checkInterfaceType(type, node, interfaces);
+    else if (node && type?.isUnion())
+      this.checkUnionType(type, node, interfaces);
   }
 
   private static getValidTypeNodes = (typeNode: TypeNode, interfaces: InterfaceDeclaration[]): (InterfaceDeclaration | TypeLiteralNode)[] => {
@@ -74,41 +59,17 @@ export class InterfaceUsageInference {
     }
   }
 
-  private static checkType = (type: Type, declaration: ReferenceFindableNode & Node, interfaces: InterfaceDeclaration[]) => {
-    if (type.isInterface())
-      this.checkInterfaceType(type, declaration, interfaces);
-    else if (type.isUnion())
-      this.checkUnionType(type, declaration, interfaces);
-    else if (type.isArray() && type.getArrayElementType()?.isInterface())
-      this.checkInterfaceArrayType(type, declaration, interfaces);
-    else if (type.isArray() && type.getArrayElementType()?.isUnion())
-      this.checkArrayUnionType(type, declaration, interfaces);
-  }
-
-  private static checkInterfaceType = (type: Type, declaration: ReferenceFindableNode & Node, interfaces: InterfaceDeclaration[]) => {
+  private static checkInterfaceType = (type: Type, node: Node, interfaces: InterfaceDeclaration[]) => {
     const interfaceDeclarations = interfaces.filter(i => i.getType().getText() === type.getText());
     if (interfaceDeclarations.length > 0)
-      this.checkDeclarationReferences(declaration, interfaceDeclarations, false);
+      InterfaceReadReferenceChecker.getType(node, interfaceDeclarations);
   }
 
-  private static checkUnionType = (type: Type, declaration: ReferenceFindableNode & Node, interfaces: InterfaceDeclaration[]) => {
+  private static checkUnionType = (type: Type, node: Node, interfaces: InterfaceDeclaration[]) => {
     const interfaceTypes = type.getUnionTypes().filter(u => u.isInterface());
     const interfaceDeclarations = interfaces.filter(i => interfaceTypes.find(t => t.getText() === i.getType().getText()));
     if (interfaceDeclarations.length > 0)
-      this.checkDeclarationReferences(declaration, interfaceDeclarations, false);
-  }
-
-  private static checkInterfaceArrayType = (type: Type, declaration: ReferenceFindableNode & Node, interfaces: InterfaceDeclaration[]) => {
-    const interfaceDeclarations = interfaces.filter(i => i.getType().getText() === type.getArrayElementTypeOrThrow().getText());
-    if (interfaceDeclarations.length > 0)
-      this.checkDeclarationReferences(declaration, interfaceDeclarations, true);
-  }
-
-  private static checkArrayUnionType = (type: Type, declaration: ReferenceFindableNode & Node, interfaces: InterfaceDeclaration[]) => {
-    const interfaceTypes = type.getArrayElementTypeOrThrow().getUnionTypes().filter(u => u.isInterface());
-    const interfaceDeclarations = interfaces.filter(i => interfaceTypes.find(t => t.getText() === i.getType().getText()));
-    if (interfaceDeclarations.length > 0)
-      this.checkDeclarationReferences(declaration, interfaceDeclarations, true);
+      InterfaceReadReferenceChecker.getType(node, interfaceDeclarations);
   }
 
   private static checkDeclarationReferences = (declaration: ReferenceFindableNode & Node, interfaceDeclarations: (InterfaceDeclaration | TypeLiteralNode)[], array: boolean) => {

@@ -40,15 +40,11 @@ export class TypesRefactor {
     const interfaces = getInterfaces(project);
     if (interfaces.length > 0) {
       sourceFile.getDescendants().forEach(descendant => {
-        if (descendant.wasForgotten())
+        if (descendant.wasForgotten() || Node.isPropertyAccessExpression(descendant))
           return;
-        if (Node.isVariableDeclaration(descendant)
-          || Node.isPropertyDeclaration(descendant)
-          || Node.isPropertySignature(descendant)
-          || Node.isShorthandPropertyAssignment(descendant)
-          || Node.isParameterDeclaration(descendant)
-          || Node.isPropertyAssignment(descendant))
-          return InterfaceUsageInference.addPropertiesByUsage(descendant, interfaces);
+        if (Node.isElementAccessExpression(descendant))
+          InterfaceUsageInference.addPropertiesByUsage(descendant.getArgumentExpression(), interfaces);
+        InterfaceUsageInference.addPropertiesByUsage(descendant, interfaces);
       })
     }
   }
