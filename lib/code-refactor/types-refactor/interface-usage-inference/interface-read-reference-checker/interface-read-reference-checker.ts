@@ -29,19 +29,6 @@ export class InterfaceReadReferenceChecker {
       })
   }
 
-  static getArrayType = (node: Node, interfaceDeclarations: (InterfaceDeclaration | TypeLiteralNode)[]) => {
-    const access = this.getPropertyOrElementAccess(node.getParent(), node.getPos());
-    const parent = access?.getParent();
-    if (Node.isElementAccessExpression(access) && Node.isPropertyAccessExpression(parent))
-      interfaceDeclarations.forEach(interfaceDeclaration => {
-        this.checkPropertyAccess(parent, interfaceDeclaration);
-      })
-    if (Node.isElementAccessExpression(access) && Node.isElementAccessExpression(parent))
-      interfaceDeclarations.forEach(interfaceDeclaration => {
-        this.checkElementAccess(parent, interfaceDeclaration);
-      })
-  }
-
   private static getPropertyOrElementAccess = (node: Node | undefined, identifierPos: number): PropertyAccessExpression | ElementAccessExpression | undefined => {
     if ((Node.isElementAccessExpression(node) && node.getArgumentExpression()?.getPos() !== identifierPos)
       || (Node.isPropertyAccessExpression(node) && node.getNameNode().getPos() !== identifierPos))
@@ -84,11 +71,11 @@ export class InterfaceReadReferenceChecker {
     if (Node.isNumericLiteral(argumentExpression))
       return this.parseNumericLiteral(argumentExpression, interfaceDeclaration);
     if (Node.isTemplateExpression(argumentExpression)
-      || argumentExpression?.getType().getBaseTypeOfLiteralType().isString())
+      || (argumentExpression && TypeHandler.getType(argumentExpression).isString()))
       return this.parseString(interfaceDeclaration);
-    if (argumentExpression?.getType().getBaseTypeOfLiteralType().isNumber())
+    if (argumentExpression && TypeHandler.getType(argumentExpression).isNumber())
       return this.parseNumber(interfaceDeclaration);
-    if (argumentExpression?.getType().getText() === "symbol")
+    if (argumentExpression && TypeHandler.getType(argumentExpression).getText() === "symbol")
       return this.parseSymbol(interfaceDeclaration);
     if (interfaceDeclaration.getIndexSignatures().length <= 0)
       return this.parseString(interfaceDeclaration);

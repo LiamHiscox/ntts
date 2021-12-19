@@ -1,11 +1,12 @@
 import {TypeNode, Node, ArrayTypeNode} from "ts-morph";
 import {TypeSimplifier} from "../type-simplifier/type-simplifier";
 import {TypeChecker} from "../type-checker/type-checker";
+import {TypeHandler} from "../../type-handler/type-handler";
 
 export class ArrayTypeHandler {
   static combineArrayTypes = (typeNode: TypeNode) => {
     if (Node.isUnionTypeNode(typeNode)) {
-      const typeNodes = typeNode.getTypeNodes().filter(node => !TypeChecker.isAny(node.getType()));
+      const typeNodes = typeNode.getTypeNodes().filter(node => !TypeChecker.isAny(TypeHandler.getType(node)));
       const nonArrayLiterals = typeNodes.filter(node => !Node.isArrayTypeNode(node)).map(node => node.getText());
       const typeLiterals = typeNodes.reduce((acc, cur) =>
         Node.isArrayTypeNode(cur) ? acc.concat(cur.getElementTypeNode()) : acc, new Array<TypeNode>());

@@ -27,10 +27,10 @@ export class InterfaceHandler {
       if (Node.isUnionTypeNode(parent)) {
         const interfaces = getInterfaces(project);
         const nonTypeLiterals = parent.getTypeNodes().filter(node =>
-          !Node.isTypeLiteral(node) && (!Node.isImportTypeNode(node) || !interfaces.find(i => i.getType().getText() === node.getText())))
+          !Node.isTypeLiteral(node) && (!Node.isImportTypeNode(node) || !interfaces.find(i => TypeHandler.getType(i).getText() === node.getText())))
         const interfaceDeclarations = parent.getTypeNodes().reduce((acc, node) => {
           if (Node.isImportTypeNode(node)) {
-            const declaration = interfaces.find(i => i.getType().getText() === node.getText());
+            const declaration = interfaces.find(i => TypeHandler.getType(i).getText() === node.getText());
             return declaration ? acc.concat(declaration) : acc;
           }
           return acc;
@@ -49,7 +49,7 @@ export class InterfaceHandler {
       } else {
         const interfaceName = this.getInterfaceName(nameNode);
         const interfaceDeclaration = createInterface(interfaceName, project, typeLiteral.getMembers());
-        typeLiteral.replaceWithText(interfaceDeclaration.getType().getText());
+        typeLiteral.replaceWithText(TypeHandler.getType(interfaceDeclaration).getText());
         TypeHandler.setType(declaration, TypeHandler.getType(declaration));
         this.createInterfaceFromObjectLiterals(declaration, project);
       }
@@ -72,7 +72,7 @@ export class InterfaceHandler {
                                              project: Project
   ) => {
     const combined = typeLiterals.reduce((combined: InterfaceDeclaration, literal) => TypeSimplifier.combineTypeLiterals(combined, literal), interfaceDeclaration);
-    const simplifiedType = nonTypeLiterals.map(c => c.getText()).concat(combined.getType().getText()).join(' | ');
+    const simplifiedType = nonTypeLiterals.map(c => c.getText()).concat(TypeHandler.getType(combined).getText()).join(' | ');
     typeNode.replaceWithText(simplifiedType);
     TypeHandler.setType(declaration, TypeHandler.getType(declaration));
     this.createInterfaceFromObjectLiterals(declaration, project);

@@ -42,9 +42,9 @@ export class DeepTypeInference {
       const nameNode = parameter.getNameNode();
       if (Node.isObjectBindingPattern(nameNode) || Node.isArrayBindingPattern(nameNode))
         BindingNameHandler.getIdentifiers(nameNode).forEach(identifier => {
-          !TypeChecker.isAnyOrUnknown(identifier.getType()) && this.checkDeclarationUsage(identifier)
+          !TypeChecker.isAnyOrUnknown(TypeHandler.getType(identifier)) && this.checkDeclarationUsage(identifier)
         })
-      else if (!TypeChecker.isAnyOrUnknown(parameter.getType()))
+      else if (!TypeChecker.isAnyOrUnknown(TypeHandler.getType(parameter)))
         this.checkDeclarationUsage(parameter);
     });
   }
@@ -57,7 +57,7 @@ export class DeepTypeInference {
         const _arguments = parent.getArguments();
         const index = _arguments.findIndex(node => node.getPos() === innerExpression.getPos());
         const expression = this.getLeftExpression(parent.getExpression());
-        const argumentType = _arguments[index].getType();
+        const argumentType = TypeHandler.getType(_arguments[index]);
         if (!TypeChecker.isAnyOrUnknown(argumentType))
           this.checkCallOrNewExpressionTarget(expression, index, argumentType);
       } else if (isFieldDeclaration(parent) && parent.getInitializer()?.getPos() === ref.getPos()) {
@@ -87,13 +87,13 @@ export class DeepTypeInference {
   private static setParameterType = (_function: FunctionTypes, index: number, type: Type) => {
     const parameters = _function.getParameters();
     const lastParameter = parameters[parameters.length - 1];
-    const lastType = lastParameter.getType().getArrayElementType()?.getText();
+    const lastType = TypeHandler.getType(lastParameter).getArrayElementType()?.getText();
     if (index >= parameters.length && lastParameter.isRestParameter() && type.getText() !== lastType) {
       const parameter = TypeHandler.addArrayType(lastParameter, type.getText());
       Node.isParameterDeclaration(parameter) && this.checkDeclarationUsage(parameter);
     } else {
       parameters.forEach((p, i) => {
-        if (i === index && type.getText() !== p.getType().getText()) {
+        if (i === index && type.getText() !== TypeHandler.getType(p).getText()) {
           const parameter = TypeHandler.addType(p, type.getText());
           Node.isParameterDeclaration(parameter) && this.checkDeclarationUsage(parameter);
         }

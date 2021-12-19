@@ -88,12 +88,12 @@ export class ParameterTypeInference {
   }
 
   private static setRestParameterType = (parameter: ParameterDeclaration, _arguments: Node[]) => {
-    const parameterType = TypeHandler.getType(parameter).getArrayElementType() || TypeHandler.setTypeFiltered(parameter, 'any[]').getType().getArrayElementTypeOrThrow();
+    const parameterType = TypeHandler.getType(parameter).getArrayElementType() || TypeHandler.getType(TypeHandler.setTypeFiltered(parameter, 'any[]')).getArrayElementTypeOrThrow();
     const parameterArrayType = TypeHandler.getFilteredUnionTypes(parameterType);
     const filteredParameterType = parameterArrayType.filter(t => !TypeChecker.isAny(t)).map(t => t.getText());
 
     const uniqueArgumentTypes = _arguments.reduce((list, node) => {
-      const type = node.getType().getBaseTypeOfLiteralType();
+      const type = TypeHandler.getType(node);
       if (!list.includes(type.getText()) && !TypeChecker.isAny(type) && !filteredParameterType.includes(type.getText()))
         return list.concat(type.getText());
       return list;

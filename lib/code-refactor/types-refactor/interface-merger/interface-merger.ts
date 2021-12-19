@@ -1,4 +1,5 @@
 import {InterfaceDeclaration} from "ts-morph";
+import {TypeHandler} from "../type-handler/type-handler";
 
 export class InterfaceMerger {
   static mergeDuplicates = (interfaceDeclarations: InterfaceDeclaration[]) => {
@@ -23,7 +24,7 @@ export class InterfaceMerger {
       && declaration1.getIndexSignatures().length === declaration2.getIndexSignatures().length
       && declaration1.getProperties().reduce((acc: boolean, cur) => {
         const prop2 = declaration2.getProperty(cur.getName());
-        return acc && !!prop2 && prop2.getType().getText() === cur.getType().getText();
+        return acc && !!prop2 && TypeHandler.getType(prop2).getText() === TypeHandler.getType(cur).getText();
       }, true)
       && declaration1.getIndexSignatures().reduce((acc: boolean, cur) => {
         const prop2 = declaration2.getIndexSignature(index => index.getKeyType().getText() === cur.getKeyType().getText());

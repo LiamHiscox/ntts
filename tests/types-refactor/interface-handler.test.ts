@@ -2,6 +2,7 @@ import {Project, SyntaxKind} from "ts-morph";
 import {InterfaceHandler} from "../../lib/code-refactor/types-refactor/interface-handler/interface-handler";
 import {getSourceFile} from "../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator";
 import {TypesRefactor} from "../../lib/code-refactor/types-refactor/types-refactor";
+import {TypeHandler} from "../../lib/code-refactor/types-refactor/type-handler/type-handler";
 
 const project = new Project({
   tsConfigFilePath: 'tsconfig.json',
@@ -52,7 +53,7 @@ test('should create interface and replace object union type with interface 2', (
 
 test('should extend interface with given object types', () => {
   const interfaceDeclaration = getSourceFile(project).addInterface({name: "Empty", isExported: true});
-  const sourceFile = project.createSourceFile('write-access.ts', `let a: ${interfaceDeclaration.getType().getText()} | { a: number; b: string; };`, {overwrite: true});
+  const sourceFile = project.createSourceFile('write-access.ts', `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} | { a: number; b: string; };`, {overwrite: true});
   TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project);
   expect(sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).length).toEqual(1);
   expect(interfaceDeclaration.getProperties().length).toEqual(2);

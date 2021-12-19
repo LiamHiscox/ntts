@@ -95,7 +95,7 @@ export class TypeSimplifier {
         initializer: rightParameters[i].getInitializer()?.getText(),
         isRestParameter: rightParameters[i].isRestParameter(),
         name: rightParameters[i].getName(),
-        type: rightParameters[i].getType().getText()
+        type: TypeHandler.getType(rightParameters[i]).getText()
       });
     }
 

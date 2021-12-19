@@ -18,8 +18,8 @@ export class PropertyHandler {
     properties.forEach(property => {
       const currentProperty = left.getPropertyOrThrow(property.getName());
       currentProperty.setHasQuestionToken(currentProperty.hasQuestionToken() || property.hasQuestionToken());
-      if (currentProperty.getType().getText() !== property.getType().getText()) {
-        const combined = TypeHandler.combineTypes(currentProperty.getType(), property.getType());
+      if (TypeHandler.getType(currentProperty).getText() !== TypeHandler.getType(property).getText()) {
+        const combined = TypeHandler.combineTypes(TypeHandler.getType(currentProperty), TypeHandler.getType(property));
         const newProperty = TypeHandler.setTypeFiltered(currentProperty, combined);
         const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(newProperty));
         stringSimplified && TypeHandler.setTypeFiltered(newProperty, stringSimplified);

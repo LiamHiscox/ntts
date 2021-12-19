@@ -79,11 +79,12 @@ export class WriteAccessTypeInference {
   private static checkWriteAccess = (node: Node): string | undefined => {
     const writeAccess = this.getWriteAccessAncestor(node);
     if (Node.isBinaryExpression(writeAccess)) {
-      const type = writeAccess.getRight().getType().getBaseTypeOfLiteralType();
+      const type = TypeHandler.getType(writeAccess.getRight());
       return !type.isAny() ? type.getText() : undefined;
     }
     if (Node.isPropertyAssignment(writeAccess)) {
-      const type = writeAccess.getInitializer()?.getType().getBaseTypeOfLiteralType();
+      const initializer = writeAccess.getInitializer();
+      const type = initializer && TypeHandler.getType(initializer);
       return type && !type.isAny() ? type.getText() : undefined;
     }
     return;
