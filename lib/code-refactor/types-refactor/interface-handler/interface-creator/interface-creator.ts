@@ -9,22 +9,23 @@ import {VariableNameGenerator} from "../../../helpers/variable-name-generator/va
 import {existsSync, writeFileSync} from "fs";
 import {TypeSimplifier} from "../../helpers/type-simplifier/type-simplifier";
 import {TypeHandler} from "../../type-handler/type-handler";
+import { join } from "path";
 
 const generatedFileName = 'ntts-generated-models.ts';
 
-export const getInterfaces = (project: Project): InterfaceDeclaration[] => {
-  const sourceFile = getSourceFile(project);
+export const getInterfaces = (project: Project, target: string): InterfaceDeclaration[] => {
+  const sourceFile = getSourceFile(project, target);
   return sourceFile.getInterfaces();
 }
 
-export const getInterface = (name: string, project: Project): InterfaceDeclaration => {
-  const sourceFile = getSourceFile(project);
+export const getInterface = (name: string, project: Project, target: string): InterfaceDeclaration => {
+  const sourceFile = getSourceFile(project, target);
   const _interface = sourceFile.getInterface((i) => i.getName() === name);
-  return _interface || createInterface(name, project);
+  return _interface || createInterface(name, project, target);
 }
 
-export const createInterface = (name: string, project: Project, members?: TypeElementTypes[]): InterfaceDeclaration => {
-  const sourceFile = getSourceFile(project);
+export const createInterface = (name: string, project: Project, target: string, members?: TypeElementTypes[]): InterfaceDeclaration => {
+  const sourceFile = getSourceFile(project, target);
   const names = sourceFile.getInterfaces().map(i => i.getName());
   const usableName = VariableNameGenerator.getUsableVariableName(toInterfaceFormat(name), names);
   const declaration = sourceFile.addInterface({name: usableName, isExported: true});
@@ -42,15 +43,16 @@ export const createInterface = (name: string, project: Project, members?: TypeEl
   return declaration;
 }
 
-export const getSourceFile = (project: Project): SourceFile => {
-  return project.getSourceFile(generatedFileName) || createInterfaceFile(project);
+export const getSourceFile = (project: Project, target: string): SourceFile => {
+  const fullPath = join(target, generatedFileName);
+  return project.getSourceFile(fullPath) || createInterfaceFile(project, fullPath);
 }
 
-const createInterfaceFile = (project: Project): SourceFile => {
-  if (!existsSync(generatedFileName)) {
-    writeFileSync(generatedFileName, "");
+const createInterfaceFile = (project: Project, fullPath: string): SourceFile => {
+  if (!existsSync(fullPath)) {
+    writeFileSync(fullPath, "");
   }
-  return project.addSourceFileAtPath(generatedFileName);
+  return project.addSourceFileAtPath(fullPath);
 }
 
 const toInterfaceFormat = (str: string) => {

@@ -11,7 +11,7 @@ import {TsconfigHandler} from "../tsconfig-handler/tsconfig-handler";
 import {TypesRefactor} from "./types-refactor/types-refactor";
 
 export class CodeRefactor {
-  static convertToTypescript = (project: Project) => {
+  static convertToTypescript = (project: Project, target: string) => {
     Logger.info('Refactoring exports');
     project.getSourceFiles().forEach(ExportsRefactor.moduleExportsToExport);
     Logger.success('Exports refactored');
@@ -34,7 +34,7 @@ export class CodeRefactor {
     project.saveSync();
 
     Logger.info('Generating interfaces from object literal types');
-    project.getSourceFiles().forEach(s => TypesRefactor.createInterfacesFromObjectTypes(s, project));
+    project.getSourceFiles().forEach(s => TypesRefactor.createInterfacesFromObjectTypes(s, project, target));
     Logger.success('Generated interfaces from object literal types where possible');
     project.saveSync();
 
@@ -50,17 +50,17 @@ export class CodeRefactor {
     project.saveSync();
 
     Logger.info('Declaring variable and property types by write access');
-    project.getSourceFiles().forEach(s => TypesRefactor.inferWriteAccessType(s, project));
+    project.getSourceFiles().forEach(s => TypesRefactor.inferWriteAccessType(s, project, target));
     Logger.success('Variable and Property type declared where possible');
     project.saveSync();
 
     Logger.info('Checking usage of generated interfaces for additional Properties and types');
-    project.getSourceFiles().forEach(s => TypesRefactor.addPropertiesFromUsageOfInterface(s, project));
+    project.getSourceFiles().forEach(s => TypesRefactor.addPropertiesFromUsageOfInterface(s, project, target));
     Logger.success('Defined type and added properties to interfaces where possible');
     project.saveSync();
 
     Logger.info('Checking usage of properties of generated interfaces for write access');
-    TypesRefactor.checkInterfaceProperties(project);
+    TypesRefactor.checkInterfaceProperties(project, target);
     Logger.success('Checked write access of properties of interfaces where possible');
     project.saveSync();
 
@@ -75,7 +75,7 @@ export class CodeRefactor {
     project.saveSync();
 
     Logger.info('Merging duplicate interfaces');
-    TypesRefactor.mergeDuplicateInterfaces(project);
+    TypesRefactor.mergeDuplicateInterfaces(project, target);
     Logger.success('Merged duplicate interfaces where possible');
     project.saveSync();
 

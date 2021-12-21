@@ -14,15 +14,15 @@ import {WriteAccessTypeInference} from "../write-access-type-inference/write-acc
 import {TypeHandler} from "../type-handler/type-handler";
 
 export class InterfaceUsageInference {
-  static checkProperties = (interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode, interfaces: InterfaceDeclaration[], project: Project) => {
+  static checkProperties = (interfaceDeclaration: InterfaceDeclaration | TypeLiteralNode, interfaces: InterfaceDeclaration[], project: Project, target: string) => {
     interfaceDeclaration.getProperties().forEach(property => {
-      WriteAccessTypeInference.inferTypeByWriteAccess(property, project);
+      WriteAccessTypeInference.inferTypeByWriteAccess(property, project, target);
       this.checkTypeNode(TypeHandler.getTypeNode(property), property);
       const typeNode = TypeHandler.getTypeNode(property);
       const elementTypeNode = Node.isArrayTypeNode(typeNode) ? typeNode.getElementTypeNode() : typeNode;
       this
         .getValidTypeNodes(elementTypeNode)
-        .forEach(validTypeNode => this.checkProperties(validTypeNode, interfaces, project))
+        .forEach(validTypeNode => this.checkProperties(validTypeNode, interfaces, project, target))
     })
   }
 

@@ -22,7 +22,7 @@ export class ImportsRefactor {
     return sourceFile
       .getImportDeclarations()
       .reduce((moduleSpecifierRefactor: ModuleSpecifierRefactorModel, importStatement) =>
-        ImportsReformat.refactorModuleSpecifier(importStatement, moduleSpecifierRefactor), moduleSpecifierResult);
+        ImportsReformat.refactorModuleSpecifier(importStatement, moduleSpecifierRefactor, sourceFile), moduleSpecifierResult);
   }
 
   static resolveModuleSpecifierResults = (moduleSpecifierResult: ModuleSpecifierRefactorModel) => {

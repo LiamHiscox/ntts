@@ -20,7 +20,7 @@ import {InterfaceHandler} from "../interface-handler/interface-handler";
 import {TypeChecker} from "../helpers/type-checker/type-checker";
 
 export class WriteAccessTypeInference {
-  static inferTypeByWriteAccess = (declaration: VariableDeclaration | PropertyDeclaration | PropertySignature, project: Project) => {
+  static inferTypeByWriteAccess = (declaration: VariableDeclaration | PropertyDeclaration | PropertySignature, project: Project, target: string) => {
     const nameNode = declaration.getNameNode();
     const isConstant = this.isConstantDeclaration(declaration);
     if (!isConstant && !Node.isObjectBindingPattern(nameNode) && !Node.isArrayBindingPattern(nameNode)) {
@@ -30,10 +30,10 @@ export class WriteAccessTypeInference {
       if (TypeChecker.isNullOrUndefined(TypeHandler.getType(newDeclaration)))
         newDeclaration.removeType();
       else if (Node.isVariableDeclaration(newDeclaration) || Node.isPropertyDeclaration(newDeclaration))
-        InterfaceHandler.createInterfaceFromObjectLiterals(newDeclaration, project);
+        InterfaceHandler.createInterfaceFromObjectLiterals(newDeclaration, project, target);
     } else if (Node.isVariableDeclaration(declaration) || Node.isPropertyDeclaration(declaration)) {
       this.simplifyTypeNode(declaration);
-      InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project);
+      InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, target);
     }
   }
 
