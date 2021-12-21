@@ -1,4 +1,4 @@
-import {Identifier, ImportTypeNode, SourceFile, SyntaxKind} from "ts-morph";
+import {Identifier, ImportTypeNode, SourceFile, SyntaxKind, TypeReferenceNode} from "ts-morph";
 import {relative} from "path";
 import {PathParser} from "../../../helpers/path-parser/path-parser";
 import {UsedNames} from "../../helpers/used-names/used-names";
@@ -8,7 +8,20 @@ import {ImportFinder} from "../../helpers/import-finder/import-finder";
 import {existsSync} from "fs";
 import {ImportTypeParser} from "../helpers/import-type-parser/import-type-parser";
 
-export class ImportTypeRefactor {
+export class TypeNodeRefactor {
+  static importGlobalTypes = (typeReference: TypeReferenceNode, sourceFile: SourceFile) => {
+    const usedNames = UsedNames.getDeclaredNames(sourceFile);
+    const identifier = ImportTypeParser.getFirstIdentifier(typeReference.getTypeName());
+    const declaration = identifier.getSymbol()?.getDeclarations()[0];
+    const declarationPath = declaration?.getSourceFile().getFilePath();
+    if (declarationPath && declarationPath !== sourceFile.getFilePath()) {
+      const relativePath = PathParser.win32ToPosixPath(relative(sourceFile.getDirectoryPath(), declarationPath));
+      const moduleSpecifier = this.parseImportPath(relativePath);
+      const newImportName = this.addImport(identifier, moduleSpecifier, usedNames, sourceFile);
+      identifier.replaceWithText(newImportName);
+    }
+  }
+
   static refactor = (importType: ImportTypeNode, sourceFile: SourceFile) => {
     const usedNames = UsedNames.getDeclaredNames(sourceFile);
     const fullModuleSpecifier = importType
@@ -18,11 +31,9 @@ export class ImportTypeRefactor {
       .asKind(SyntaxKind.StringLiteral)
       ?.getLiteralValue();
 
-    if (!fullModuleSpecifier) {
+    if (!fullModuleSpecifier)
       return;
-    }
-    const cwd = process.cwd();
-    const relativePath = PathParser.win32ToPosixPath(relative(cwd, fullModuleSpecifier));
+    const relativePath = PathParser.win32ToPosixPath(relative(sourceFile.getDirectoryPath(), fullModuleSpecifier));
     const moduleSpecifier = this.parseImportPath(relativePath);
     const qualifier = importType.getQualifier();
 
@@ -59,7 +70,7 @@ export class ImportTypeRefactor {
     if (this.isNodeModulePackage(relativePath)) {
       return relativePath
         .replace(/^(.*?\/)?node_modules\/(@types\/)?/, '')
-        .replace(/\/index$/, '');
+        .replace(/\/index((\.d)?\.ts)?$/, '');
     }
     return this.toRelativeModuleSpecifier(relativePath);
   }

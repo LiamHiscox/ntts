@@ -1,4 +1,4 @@
-import {Node, Project, SourceFile} from "ts-morph";
+import {Node, Project, SourceFile, SyntaxKind} from "ts-morph";
 import {Logger} from "../../logger/logger";
 import {InitialTypeHandler} from "./initial-type-handler/initial-type-handler";
 import {ParameterTypeInference} from "./parameter-type-inference/parameter-type-inference";
@@ -8,6 +8,8 @@ import {InterfaceHandler} from "./interface-handler/interface-handler";
 import {InterfaceUsageInference} from "./interface-usage-inference/interface-usage-inference";
 import {getInterfaces} from "./interface-handler/interface-creator/interface-creator";
 import {InterfaceMerger} from "./interface-merger/interface-merger";
+import {InvalidTypeReplacer} from "./invalid-type-replacer/invalid-type-replacer";
+import {TypeNodeRefactor} from "./type-node-refactor/type-node-refactor";
 
 export class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project) => {
@@ -50,6 +52,18 @@ export class TypesRefactor {
     }
   }
 
+  static replaceInvalidTypes = (sourceFile: SourceFile) => {
+    Logger.info(sourceFile.getFilePath());
+    sourceFile.getDescendants().forEach(descendant => {
+      if (descendant.wasForgotten())
+        return;
+      if (Node.isTyped(descendant))
+        return InvalidTypeReplacer.replaceAnyAndNeverType(descendant);
+      if (Node.isReturnTyped(descendant))
+        return InvalidTypeReplacer.replaceAnyAndNeverReturnType(descendant);
+    })
+  }
+
   static inferContextualType = (sourceFile: SourceFile) => {
     Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach(descendant => {
@@ -86,6 +100,14 @@ export class TypesRefactor {
       ) return ParameterTypeInference.inferFunctionDeclarationParameterTypes(descendant);
       if (Node.isConstructorDeclaration(descendant))
         return ParameterTypeInference.inferConstructorParameterTypes(descendant);
+    })
+  }
+
+  static refactorImportTypes = (sourceFile: SourceFile) => {
+    Logger.info(sourceFile.getFilePath())
+    sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).forEach(importType => {
+      if (!importType.wasForgotten())
+        return TypeNodeRefactor.refactor(importType, sourceFile);
     })
   }
 

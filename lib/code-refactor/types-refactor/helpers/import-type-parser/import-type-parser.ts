@@ -1,12 +1,9 @@
 import {Identifier, Node, QualifiedName} from "ts-morph";
 
 export class ImportTypeParser {
-  static getFirstIdentifier = (qualifer: QualifiedName | Identifier): Identifier => {
-    if (Node.isIdentifier(qualifer))
-      return qualifer;
-    const left = qualifer.getLeft();
-    if (Node.isQualifiedName(left))
-      return this.getFirstIdentifier(left);
-    return left;
+  static getFirstIdentifier = (typeName: Identifier | QualifiedName): Identifier => {
+    if (Node.isQualifiedName(typeName))
+      return this.getFirstIdentifier(typeName.getLeft());
+    return typeName;
   }
 }
