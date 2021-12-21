@@ -40,6 +40,7 @@ export class CodeRefactor {
 
     Logger.info('Declaring parameter types by usage');
     project.getSourceFiles().forEach(TypesRefactor.inferParameterTypes);
+    project.getSourceFiles().forEach(TypesRefactor.inferParameterTypes);
     Logger.success('Parameter type declared where possible');
     project.saveSync();
 
@@ -63,6 +64,11 @@ export class CodeRefactor {
     Logger.success('Checked write access of properties of interfaces where possible');
     project.saveSync();
 
+    Logger.info('Inferring type of untyped declarations by contextual type');
+    project.getSourceFiles().forEach(TypesRefactor.inferContextualType);
+    Logger.success('Inferred type where possible');
+    project.saveSync();
+
     Logger.info('Replacing types any and never with unknown');
     project.getSourceFiles().forEach(TypesRefactor.replaceInvalidTypes);
     Logger.success('Replaced types any and never with unknown where possible');
@@ -73,9 +79,9 @@ export class CodeRefactor {
     Logger.success('Merged duplicate interfaces where possible');
     project.saveSync();
 
-    Logger.info('Refactoring import types to simple type references');
-    project.getSourceFiles().forEach(TypesRefactor.refactorImportTypes);
-    Logger.success('Refactored import types to simple type references where possible');
+    Logger.info('Refactoring import types to simple type references and importing global variables');
+    project.getSourceFiles().forEach(TypesRefactor.refactorImportTypesAndTypeReferences);
+    Logger.success('Refactored import types to simple type references and imported global variables where possible');
     project.saveSync();
   }
 

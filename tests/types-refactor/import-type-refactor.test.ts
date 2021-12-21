@@ -66,6 +66,16 @@ test('refactor importType with node import path', () => {
   expect(sourceFile.getText()).toEqual('import { ParsedPath } from "path";\n\nlet a: ParsedPath;');
 });
 
+test('refactor importType with fs node import path', () => {
+  const sourceFile = project.createSourceFile(
+    'simple-types.ts',
+    'let a: import("fs").WriteStream;',
+    {overwrite: true}
+  );
+  TypeNodeRefactor.refactor(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile);
+  expect(sourceFile.getText()).toEqual('import { WriteStream } from "fs";\n\nlet a: WriteStream;');
+});
+
 test('refactor importType with relative import path', () => {
   const sourceFile = project.createSourceFile(
     'simple-types.ts',
@@ -86,3 +96,11 @@ test('refactor importType with taken import name', () => {
   expect(sourceFile.getText()).toEqual('import { Liam } from "./lib/liam";\nimport { Liam as Liam0 } from "./lib/index";\n\nlet a: Liam0;');
 });
 
+test('should refactor import type to import interface in neighbouring file', () => {
+  const sourceFile1 = project.createSourceFile('temp/export-file.ts', '', {overwrite: true});
+  const declaration = sourceFile1.addInterface({name: 'A', isExported: true});
+  const sourceFile2 = project.createSourceFile('temp/import-file.ts', `let a: ${declaration.getType().getText()};`, {overwrite: true});
+  project.saveSync();
+  TypeNodeRefactor.refactor(sourceFile2.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile2);
+  expect(sourceFile2.getText()).toEqual(`import { A } from "./export-file";\n\nlet a: A;`);
+});

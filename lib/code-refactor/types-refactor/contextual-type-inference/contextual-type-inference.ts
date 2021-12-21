@@ -18,14 +18,10 @@ import {TypeChecker} from "../helpers/type-checker/type-checker";
 export class ContextualTypeInference {
   static inferTypeByContextualType = (declaration: VariableDeclaration | PropertyDeclaration | ParameterDeclaration) => {
     const type = TypeHandler.getType(declaration);
-    if (type.isAny() || type.isUnknown()) {
-      const nameNode = declaration.getNameNode();
-      if (Node.isObjectBindingPattern(nameNode) || Node.isArrayBindingPattern(nameNode)) {
-
-      } else {
-        const newTypes = findReferences(declaration).reduce((types, ref) => types.concat(...this.checkReferences(ref, declaration)), new Array<string>());
-        TypeHandler.addTypes(declaration, ...newTypes);
-      }
+    const nameNode = declaration.getNameNode();
+    if ((type.isAny() || type.isUnknown()) && !Node.isObjectBindingPattern(nameNode) && !Node.isArrayBindingPattern(nameNode)) {
+      const newTypes = findReferences(declaration).reduce((types, ref) => types.concat(...this.checkReferences(ref, declaration)), new Array<string>());
+      TypeHandler.addTypes(declaration, ...newTypes);
     }
   }
 
@@ -46,7 +42,6 @@ export class ContextualTypeInference {
     if (isAccessExpression(innerExpression) && isAccessExpressionTarget(innerExpression, node)) {
       const type = innerExpression.getContextualType();
       const currentType = TypeHandler.getType(declaration);
-
       if (type && currentType.isArray() && !TypeChecker.isAny(type)) {
         return type.getText();
       } else if (type && !type.isAny()) {

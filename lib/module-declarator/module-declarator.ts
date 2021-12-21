@@ -9,9 +9,9 @@ export class ModuleDeclarator {
         untyped.map(file => `declare module "${file}";\ndeclare module "${file}/*";`);
       const moduleFile = './ntts-modules.d.ts';
       if (existsSync(moduleFile)) {
-        appendFileSync(moduleFile, modules.join('\n'));
+        appendFileSync(moduleFile, modules.join('\n') + '\n');
       } else {
-        writeFileSync(moduleFile, modules.join('\n'));
+        writeFileSync(moduleFile, modules.join('\n') + '\n');
         TsconfigHandler.addModuleFile('./ntts-modules.d.ts');
       }
     }

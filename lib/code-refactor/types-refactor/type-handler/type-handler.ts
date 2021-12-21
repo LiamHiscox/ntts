@@ -23,7 +23,7 @@ export class TypeHandler {
     return this.setType(node, this.getType(this.setSimpleType(node, type)));
   }
 
-  private static setSimpleType = <T extends Node & TypedNode>(node: T, type: string): T => {
+  static setSimpleType = <T extends Node & TypedNode>(node: T, type: string): T => {
     if (Node.isVariableDeclaration(node) || Node.isParameterDeclaration(node) || Node.isPropertyDeclaration(node))
       return this.setBindingNameType(node, type);
     return node.setType(type);

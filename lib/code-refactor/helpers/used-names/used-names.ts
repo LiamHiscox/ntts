@@ -2,6 +2,7 @@ import {
   ClassDeclaration,
   FunctionDeclaration,
   ImportClause,
+  InterfaceDeclaration,
   Node,
   ParameterDeclaration,
   SourceFile,
@@ -23,6 +24,7 @@ export class UsedNames {
         return variableNames.concat(this.parseImportClause(descendant));
       if (Node.isClassDeclaration(descendant)
         || Node.isFunctionDeclaration(descendant)
+        || Node.isInterfaceDeclaration(descendant)
       ) return this.parseFunctionOrClass(descendant, variableNames);
       if (Node.isParameterDeclaration(descendant)
         || Node.isVariableDeclaration(descendant)
@@ -47,7 +49,7 @@ export class UsedNames {
     return VariableParser.getIdentifiers(variable.getNameNode()).map(i => i.getText());
   }
 
-  private static parseFunctionOrClass = (declaration: ClassDeclaration | FunctionDeclaration, variableNames: string[]): string[] => {
+  private static parseFunctionOrClass = (declaration: ClassDeclaration | FunctionDeclaration | InterfaceDeclaration, variableNames: string[]): string[] => {
     const nodeName = declaration.getName();
     return nodeName ? variableNames.concat(nodeName) : variableNames;
   }

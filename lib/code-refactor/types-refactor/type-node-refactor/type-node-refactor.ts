@@ -1,11 +1,10 @@
-import {Identifier, ImportTypeNode, SourceFile, SyntaxKind, TypeReferenceNode} from "ts-morph";
+import {Identifier, ImportTypeNode, SourceFile, TypeReferenceNode} from "ts-morph";
 import {relative} from "path";
 import {PathParser} from "../../../helpers/path-parser/path-parser";
 import {UsedNames} from "../../helpers/used-names/used-names";
 import {ImportCreator} from "../../helpers/import-creator/import-creator";
 import {VariableNameGenerator} from "../../helpers/variable-name-generator/variable-name-generator";
 import {ImportFinder} from "../../helpers/import-finder/import-finder";
-import {existsSync} from "fs";
 import {ImportTypeParser} from "../helpers/import-type-parser/import-type-parser";
 
 export class TypeNodeRefactor {
@@ -14,27 +13,26 @@ export class TypeNodeRefactor {
     const identifier = ImportTypeParser.getFirstIdentifier(typeReference.getTypeName());
     const declaration = identifier.getSymbol()?.getDeclarations()[0];
     const declarationPath = declaration?.getSourceFile().getFilePath();
-    if (declarationPath && declarationPath !== sourceFile.getFilePath()) {
+
+    if (declarationPath && !this.isTypescriptOrNodeVariable(declarationPath) && declarationPath !== sourceFile.getFilePath()) {
       const relativePath = PathParser.win32ToPosixPath(relative(sourceFile.getDirectoryPath(), declarationPath));
-      const moduleSpecifier = this.parseImportPath(relativePath);
-      const newImportName = this.addImport(identifier, moduleSpecifier, usedNames, sourceFile);
+      const moduleSpecifier = ImportTypeParser.parseImportPath(relativePath, declarationPath);
+      const newImportName = this.addGlobalImport(identifier, moduleSpecifier, usedNames, sourceFile);
       identifier.replaceWithText(newImportName);
     }
   }
 
+  private static isTypescriptOrNodeVariable = (importPath: string): boolean => {
+    return importPath.includes('/node_modules/typescript/') || importPath.includes('/node_modules/@types/node/');
+  }
+
   static refactor = (importType: ImportTypeNode, sourceFile: SourceFile) => {
     const usedNames = UsedNames.getDeclaredNames(sourceFile);
-    const fullModuleSpecifier = importType
-      .getArgument()
-      .asKind(SyntaxKind.LiteralType)
-      ?.getLiteral()
-      .asKind(SyntaxKind.StringLiteral)
-      ?.getLiteralValue();
-
+    const fullModuleSpecifier = ImportTypeParser.getFullModuleSpecifier(importType);
     if (!fullModuleSpecifier)
       return;
     const relativePath = PathParser.win32ToPosixPath(relative(sourceFile.getDirectoryPath(), fullModuleSpecifier));
-    const moduleSpecifier = this.parseImportPath(relativePath);
+    const moduleSpecifier = ImportTypeParser.parseImportPath(relativePath, fullModuleSpecifier);
     const qualifier = importType.getQualifier();
 
     if (!qualifier) {
@@ -45,6 +43,16 @@ export class TypeNodeRefactor {
       const newImportName = this.addImport(identifier, moduleSpecifier, usedNames, sourceFile);
       identifier.replaceWithText(newImportName);
       importType.replaceWithText(importType.getText().replace(/^import\(.*?\)\./, ''));
+    }
+  }
+
+  private static addGlobalImport = (identifier: Identifier, moduleSpecifier: string, usedNames: string[], sourceFile: SourceFile): string => {
+    const defaultImport = ImportFinder.getDefaultImportDeclaration(moduleSpecifier, sourceFile);
+    if (!defaultImport) {
+      const usableName = VariableNameGenerator.getUsableVariableName(identifier.getText(), usedNames);
+      return ImportCreator.addSimpleImport(usableName, moduleSpecifier, sourceFile);
+    } else {
+      return defaultImport.getDefaultImportOrThrow().getText();
     }
   }
 
@@ -64,25 +72,5 @@ export class TypeNodeRefactor {
       return ImportCreator.addSimpleImport(usableName, moduleSpecifier, sourceFile);
     }
     return ImportCreator.addNamedImport(identifier!.getText(), moduleSpecifier, usedNames, sourceFile);
-  }
-
-  private static parseImportPath = (relativePath: string) => {
-    if (this.isNodeModulePackage(relativePath)) {
-      return relativePath
-        .replace(/^(.*?\/)?node_modules\/(@types\/)?/, '')
-        .replace(/\/index((\.d)?\.ts)?$/, '');
-    }
-    return this.toRelativeModuleSpecifier(relativePath);
-  }
-
-  private static isNodeModulePackage = (moduleSpecifier: string): boolean => {
-    return moduleSpecifier.includes('/node_modules/')
-      || (!existsSync(moduleSpecifier + '.ts') && !existsSync(moduleSpecifier + '.d.ts'));
-  }
-
-  private static toRelativeModuleSpecifier = (moduleSpecifier: string): string => {
-    if (moduleSpecifier.match(/^..?\//))
-      return moduleSpecifier;
-    return `./${moduleSpecifier}`;
   }
 }

@@ -40,13 +40,14 @@ export class ParameterTypeInference {
   }
 
   static inferFunctionDeclarationParameterTypes = (declaration: FunctionDeclaration | MethodDeclaration) => {
+    const initialTypes = declaration.getParameters().map(p => p.getType().getText());
     findReferencesAsNodes(declaration).forEach(ref => {
       const parent = TypeInferenceValidator.validateCallExpressionParent(ref);
       const expression = TypeInferenceValidator.getCallExpression(parent);
       expression && this.inferParameterTypes(declaration.getParameters(), expression.getArguments());
     });
-    const parameters = declaration.getParameters();
-    this.simplifyParameterTypes(parameters);
+    this.simplifyParameterTypes(declaration.getParameters());
+    const parameters = declaration.getParameters().filter((p, i) => !TypeChecker.isAnyOrUnknown(p.getType()) && initialTypes[i] !== p.getType().getText());
     DeepTypeInference.propagateParameterTypes(parameters);
   }
 
@@ -104,9 +105,7 @@ export class ParameterTypeInference {
   }
 
   private static setParameterType = (parameter: ParameterDeclaration, argument: Node) => {
-    const argumentType = TypeHandler.getType(argument);
-    const parameterType = TypeHandler.getType(parameter);
-    const type = TypeHandler.combineTypes(parameterType, argumentType);
+    const type = TypeHandler.combineTypes(TypeHandler.getType(parameter), TypeHandler.getType(argument));
     return TypeHandler.setTypeFiltered(parameter, type);
   }
 }

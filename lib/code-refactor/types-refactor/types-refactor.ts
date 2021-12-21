@@ -57,11 +57,16 @@ export class TypesRefactor {
     sourceFile.getDescendants().forEach(descendant => {
       if (descendant.wasForgotten())
         return;
-      if (Node.isTyped(descendant))
+      if (Node.isParameterDeclaration(descendant))
         return InvalidTypeReplacer.replaceAnyAndNeverType(descendant);
-      if (Node.isReturnTyped(descendant))
-        return InvalidTypeReplacer.replaceAnyAndNeverReturnType(descendant);
-    })
+      /*
+      if (Node.isParameterDeclaration(descendant)
+        || Node.isVariableDeclaration(descendant)
+        || Node.isPropertyDeclaration(descendant)
+        || Node.isPropertySignature(descendant))
+        return InvalidTypeReplacer.replaceAnyAndNeverType(descendant);
+      */
+    });
   }
 
   static inferContextualType = (sourceFile: SourceFile) => {
@@ -103,8 +108,16 @@ export class TypesRefactor {
     })
   }
 
-  static refactorImportTypes = (sourceFile: SourceFile) => {
+  static refactorImportTypesAndTypeReferences = (sourceFile: SourceFile) => {
     Logger.info(sourceFile.getFilePath())
+    sourceFile.getDescendants().forEach(descendant => {
+      if (descendant.wasForgotten())
+        return;
+      if (Node.isImportTypeNode(descendant))
+        return TypeNodeRefactor.refactor(descendant, sourceFile);
+      if (Node.isTypeReference(descendant))
+        return TypeNodeRefactor.importGlobalTypes(descendant, sourceFile);
+    })
     sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).forEach(importType => {
       if (!importType.wasForgotten())
         return TypeNodeRefactor.refactor(importType, sourceFile);
