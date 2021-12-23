@@ -1,7 +1,7 @@
-import {DependencyHandler} from "../lib/dependency-installer/dependency-handler/dependency-handler";
-import {ScriptRunner} from "../lib/helpers/script-runner/script-runner";
-import * as fse from "fs-extra";
-import {unlinkSync, writeFileSync} from "fs";
+import * as fse from 'fs-extra';
+import { unlinkSync, writeFileSync } from 'fs';
+import DependencyHandler from '../lib/dependency-installer/dependency-handler/dependency-handler';
+import ScriptRunner from '../lib/helpers/script-runner/script-runner';
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';

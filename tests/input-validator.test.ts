@@ -1,6 +1,6 @@
-import {InputValidator} from "../lib/input-validator/input-validator";
-import {mkdirSync} from "fs";
-import * as fse from "fs-extra";
+import { mkdirSync } from 'fs';
+import * as fse from 'fs-extra';
+import InputValidator from '../lib/input-validator/input-validator';
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
@@ -14,7 +14,7 @@ beforeAll(() => {
 
 afterAll(() => {
   process.chdir(cwd);
-  fse.rmSync(sampleCopy, {recursive: true, force: true});
+  fse.rmSync(sampleCopy, { recursive: true, force: true });
 });
 
 test('should parse simple path', () => {

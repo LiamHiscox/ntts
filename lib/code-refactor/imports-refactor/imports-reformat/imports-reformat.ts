@@ -1,13 +1,17 @@
-import {ImportDeclaration, SourceFile} from "ts-morph";
-import {ModuleSpecifierRefactorModel} from "../../../models/module-specifier-refactor.model";
-import {FileRename} from "../../../file-rename/file-rename";
-import {existsSync} from "fs";
-import { join } from "path";
+import { ImportDeclaration, SourceFile } from 'ts-morph';
+import { existsSync } from 'fs';
+import { join } from 'path';
+import ModuleSpecifierRefactorModel from '../../../models/module-specifier-refactor.model';
+import FileRename from '../../../file-rename/file-rename';
 
-export class ImportsReformat {
+class ImportsReformat {
   private static knownFileEndings = ['json', 'js', 'cjs', 'mjs', 'jsx', 'ts', 'tsx'];
 
-  static refactorModuleSpecifier = (importStatement: ImportDeclaration, moduleSpecifierRefactor: ModuleSpecifierRefactorModel, sourceFile: SourceFile): ModuleSpecifierRefactorModel => {
+  static refactorModuleSpecifier = (
+    importStatement: ImportDeclaration,
+    moduleSpecifierRefactor: ModuleSpecifierRefactorModel,
+    sourceFile: SourceFile,
+  ): ModuleSpecifierRefactorModel => {
     const moduleSpecifier = importStatement.getModuleSpecifierValue();
     const isJavaScriptFile = FileRename.isJavaScriptFile(moduleSpecifier);
     if (!importStatement.getModuleSpecifierSourceFile()) {
@@ -19,19 +23,19 @@ export class ImportsReformat {
       const exists = existsSync(absolutePath);
       const isRelative = importStatement.isModuleSpecifierRelative();
       if (moduleSpecifier.endsWith('.json') && isRelative && exists) {
-        return {...moduleSpecifierRefactor, allowJson: true};
+        return { ...moduleSpecifierRefactor, allowJson: true };
       }
       const unknownEnding = this.unknownFile(moduleSpecifier);
       if (unknownEnding && isRelative && exists) {
         return {
           ...moduleSpecifierRefactor,
-          fileEndings: moduleSpecifierRefactor.fileEndings.concat(unknownEnding)
+          fileEndings: moduleSpecifierRefactor.fileEndings.concat(unknownEnding),
         };
       }
     }
 
     return moduleSpecifierRefactor;
-  }
+  };
 
   private static unknownFile = (file: string): string | undefined => {
     const paths = file.split('/');
@@ -40,6 +44,8 @@ export class ImportsReformat {
     if (split.length > 1 && !this.knownFileEndings.includes(ending)) {
       return ending;
     }
-    return;
-  }
+    return undefined;
+  };
 }
+
+export default ImportsReformat;

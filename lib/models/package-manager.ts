@@ -7,11 +7,11 @@ export interface PackageManager {
 export const NPM: PackageManager = {
   install: 'npm install',
   add: 'npm install',
-  init: 'npm init -y'
-}
+  init: 'npm init -y',
+};
 
 export const Yarn: PackageManager = {
   install: 'yarn',
   add: 'yarn add',
-  init: 'yarn init -y'
-}
+  init: 'yarn init -y',
+};

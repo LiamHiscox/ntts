@@ -1,6 +1,6 @@
-import * as fse from "fs-extra";
-import {IgnoreConfigParser} from "../lib/helpers/ignore-config-parser/ignore-config-parser";
-import {writeFileSync} from "fs";
+import * as fse from 'fs-extra';
+import { writeFileSync } from 'fs';
+import IgnoreConfigParser from '../lib/helpers/ignore-config-parser/ignore-config-parser';
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
@@ -13,22 +13,22 @@ beforeAll(() => {
 
 afterAll(() => {
   process.chdir(cwd);
-  fse.rmSync(sampleCopy, {recursive: true, force: true});
+  fse.rmSync(sampleCopy, { recursive: true, force: true });
 });
 
 test('should parse a .gitignore file correctly', () => {
   const result = IgnoreConfigParser.getIgnores();
   expect(result.sort()).toEqual([
-    "node_modules/",
-    "node_modules/",
-    "*.log",
-    "!index.log",
-    "/temp/test/"
+    'node_modules/',
+    'node_modules/',
+    '*.log',
+    '!index.log',
+    '/temp/test/',
   ].sort());
-})
+});
 
 test('should parse a .nttsignore file correctly', () => {
   writeFileSync('.nttsignore', '*.config.js');
   const result = IgnoreConfigParser.getIgnores();
-  expect(result).toEqual(["*.config.js", "node_modules/"]);
-})
+  expect(result).toEqual(['*.config.js', 'node_modules/']);
+});

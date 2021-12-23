@@ -1,6 +1,6 @@
-import {Project, SyntaxKind} from "ts-morph";
-import {DeepTypeInference} from "../../../lib/code-refactor/types-refactor/deep-type-inference/deep-type-inference";
-import {validate} from "./helper-function";
+import { Project, SyntaxKind } from 'ts-morph';
+import DeepTypeInference from '../../../lib/code-refactor/types-refactor/deep-type-inference/deep-type-inference';
+import validate from './helper-function';
 
 const project = new Project({
   tsConfigFilePath: 'tsconfig.json',
@@ -40,21 +40,21 @@ obj.expr(liam);
 obj.method(liam);`;
 
 test('should set class type of parameter in same file', () => {
-  const sourceFile = project.createSourceFile('simple-types.ts', _class + input, {overwrite: true});
+  const sourceFile = project.createSourceFile('simple-types.ts', _class + input, { overwrite: true });
   sourceFile
     .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .forEach(declaration => DeepTypeInference.propagateClassOrInterfaceType(declaration));
-  expect(validate(sourceFile, "Liam")).toBeTruthy();
+    .forEach((declaration) => DeepTypeInference.propagateClassOrInterfaceType(declaration));
+  expect(validate(sourceFile, 'Liam')).toBeTruthy();
 });
 
 test('should set class type of parameter in separate file', () => {
-  const sourceFile1 = project.createSourceFile('class.ts', _class, {overwrite: true});
-  const sourceFile2 = project.createSourceFile('usage.ts', 'import {Liam} from "./class";\n' + input, {overwrite: true});
+  const sourceFile1 = project.createSourceFile('class.ts', _class, { overwrite: true });
+  const sourceFile2 = project.createSourceFile('usage.ts', `import {Liam} from "./class";\n${input}`, { overwrite: true });
   sourceFile2
     .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .forEach(declaration => DeepTypeInference.propagateClassOrInterfaceType(declaration));
-  expect(validate(sourceFile1, "Liam")).toBeTruthy();
-  expect(validate(sourceFile2, "Liam")).toBeTruthy();
+    .forEach((declaration) => DeepTypeInference.propagateClassOrInterfaceType(declaration));
+  expect(validate(sourceFile1, 'Liam')).toBeTruthy();
+  expect(validate(sourceFile2, 'Liam')).toBeTruthy();
 });
 
 const input2 = `
@@ -67,9 +67,9 @@ const c = new Car(l);
 `;
 
 test('should set class type of constructor parameter', () => {
-  const sourceFile = project.createSourceFile('usage.ts', input2, {overwrite: true});
+  const sourceFile = project.createSourceFile('usage.ts', input2, { overwrite: true });
   sourceFile
     .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .forEach(declaration => DeepTypeInference.propagateClassOrInterfaceType(declaration));
-  expect(validate(sourceFile, "Liam")).toBeTruthy();
+    .forEach((declaration) => DeepTypeInference.propagateClassOrInterfaceType(declaration));
+  expect(validate(sourceFile, 'Liam')).toBeTruthy();
 });

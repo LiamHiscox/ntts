@@ -1,9 +1,9 @@
-import {Project} from "ts-morph";
-import {ClassRefactor} from "../../lib/code-refactor/class-refactor/class-refactor";
+import { Project } from 'ts-morph';
+import ClassRefactor from '../../lib/code-refactor/class-refactor/class-refactor';
 
 const project = new Project({
   tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true
+  skipAddingFilesFromTsConfig: true,
 });
 
 const content = `
@@ -42,8 +42,7 @@ class Car {
 }
 `;
 
-const expectedContent =
-`class Car {
+const expectedContent = `class Car {
     mile;
     speed;
   private year;
@@ -81,7 +80,7 @@ const expectedContent =
 `;
 
 test('should refactor simple class', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', content, {overwrite: true});
+  const sourceFile = project.createSourceFile('standard-require.ts', content, { overwrite: true });
   ClassRefactor.toTypeScriptClasses(sourceFile);
   expect(sourceFile.getText()).toEqual(expectedContent);
 });

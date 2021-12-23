@@ -1,18 +1,11 @@
-import {existsSync, readFileSync} from "fs";
-import {Logger} from "../../logger/logger";
+import { existsSync, readFileSync } from 'fs';
+import Logger from '../../logger/logger';
 
 const gitignore = '.gitignore';
 const nttsignore = '.nttsignore';
-const defaultIgnore = ["node_modules/"];
+const defaultIgnore = ['node_modules/'];
 
-export class IgnoreConfigParser {
-  /**
-   * @param ignores the content of the given ignore file
-   */
-  static filterIgnores = (ignores: string[]): string[] => {
-    return ignores.filter(ignore => ignore.startsWith('!'));
-  }
-
+class IgnoreConfigParser {
   /**
    * @returns string[] returns all ignores of the root .nttsignore or .gitignore if provided
    */
@@ -27,13 +20,13 @@ export class IgnoreConfigParser {
     }
     Logger.warn('No ignore file found!');
     return defaultIgnore;
-  }
+  };
 
-  private static parseFile = (path: string): string[] => {
-    return readFileSync(path, {encoding: 'utf-8'})
-      .replace('\r\n', '\n')
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => !!line && !line.startsWith('#'));
-  }
+  private static parseFile = (path: string): string[] => readFileSync(path, { encoding: 'utf-8' })
+    .replace('\r\n', '\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => !!line && !line.startsWith('#'));
 }
+
+export default IgnoreConfigParser;

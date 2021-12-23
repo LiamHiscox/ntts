@@ -1,13 +1,12 @@
-import {TypesRefactor} from "../../lib/code-refactor/types-refactor/types-refactor";
-import {Project} from "ts-morph";
+import { Project } from 'ts-morph';
+import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 
 const project = new Project({
   tsConfigFilePath: 'tsconfig.json',
   skipAddingFilesFromTsConfig: true,
 });
 
-const content =
-  `class Car {
+const content = `class Car {
   mile;
   speed;
   private year;
@@ -44,8 +43,7 @@ const content =
 }
 `;
 
-const expectedContent =
-  `class Car {
+const expectedContent = `class Car {
   mile: { current: number; };
   speed: number;
   private year;
@@ -83,7 +81,7 @@ const expectedContent =
 `;
 
 test('should type simple class', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', content, {overwrite: true});
+  const sourceFile = project.createSourceFile('standard-require.ts', content, { overwrite: true });
   TypesRefactor.setInitialTypes(sourceFile);
   expect(sourceFile.getText()).toEqual(expectedContent);
 });

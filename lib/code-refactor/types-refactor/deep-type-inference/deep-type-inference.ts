@@ -11,15 +11,15 @@ import {
   CallExpression,
   NewExpression,
   Expression,
-  ReferenceFindableNode
-} from "ts-morph";
-import {TypeHandler} from "../type-handler/type-handler";
-import {DeclarationFinder} from "../../helpers/declaration-finder/declaration-finder";
-import {FieldDeclarationKind, FunctionKind, isFieldDeclaration} from "../../helpers/combined-types/combined-types";
-import {findReferencesAsNodes} from "../../helpers/reference-finder/reference-finder";
-import {getExpressionParent, getInnerExpression} from "../../helpers/expression-handler/expression-handler";
-import {TypeChecker} from "../helpers/type-checker/type-checker";
-import {BindingNameHandler} from "../helpers/binding-name-handler/binding-name-handler";
+  ReferenceFindableNode,
+} from 'ts-morph';
+import TypeHandler from '../type-handler/type-handler';
+import DeclarationFinder from '../../helpers/declaration-finder/declaration-finder';
+import { FieldDeclarationKind, FunctionKind, isFieldDeclaration } from '../../helpers/combined-types/combined-types';
+import { findReferencesAsNodes } from '../../helpers/reference-finder/reference-finder';
+import { getExpressionParent, getInnerExpression } from '../../helpers/expression-handler/expression-handler';
+import TypeChecker from '../helpers/type-checker/type-checker';
+import BindingNameHandler from '../helpers/binding-name-handler/binding-name-handler';
 
 type LeftExpression =
   FunctionExpression
@@ -30,59 +30,64 @@ type LeftExpression =
 
 type FunctionTypes = ConstructorDeclaration | FunctionKind;
 
-export class DeepTypeInference {
+class DeepTypeInference {
   static propagateClassOrInterfaceType = (declaration: FieldDeclarationKind) => {
     const type = TypeHandler.getType(declaration);
-    if (isFieldDeclaration(declaration) && type.isClassOrInterface())
+    if (isFieldDeclaration(declaration) && type.isClassOrInterface()) {
       this.checkDeclarationUsage(declaration);
-  }
+    }
+  };
 
   static propagateParameterTypes = (parameters: ParameterDeclaration[]) => {
-    parameters.forEach(parameter => {
+    parameters.forEach((parameter) => {
       const nameNode = parameter.getNameNode();
-      if (Node.isObjectBindingPattern(nameNode) || Node.isArrayBindingPattern(nameNode))
-        BindingNameHandler.getIdentifiers(nameNode).forEach(identifier => {
-          !TypeChecker.isAnyOrUnknown(TypeHandler.getType(identifier)) && this.checkDeclarationUsage(identifier)
-        })
-      else if (!TypeChecker.isAnyOrUnknown(TypeHandler.getType(parameter)))
+      if (Node.isObjectBindingPattern(nameNode) || Node.isArrayBindingPattern(nameNode)) {
+        BindingNameHandler.getIdentifiers(nameNode).forEach((identifier) => {
+          !TypeChecker.isAnyOrUnknown(TypeHandler.getType(identifier)) && this.checkDeclarationUsage(identifier);
+        });
+      } else if (!TypeChecker.isAnyOrUnknown(TypeHandler.getType(parameter))) {
         this.checkDeclarationUsage(parameter);
+      }
     });
-  }
+  };
 
   private static checkDeclarationUsage = (declaration: ReferenceFindableNode & Node) => {
-    findReferencesAsNodes(declaration).forEach(ref => {
+    findReferencesAsNodes(declaration).forEach((ref) => {
       const innerExpression = getExpressionParent(ref);
       const parent = innerExpression?.getParent();
       if (this.isCallOrNewExpression(parent) && innerExpression && parent.getExpression().getPos() !== innerExpression.getPos()) {
         const _arguments = parent.getArguments();
-        const index = _arguments.findIndex(node => node.getPos() === innerExpression.getPos());
+        const index = _arguments.findIndex((node) => node.getPos() === innerExpression.getPos());
         const expression = this.getLeftExpression(parent.getExpression());
         const argumentType = TypeHandler.getType(_arguments[index]);
-        if (!TypeChecker.isAnyOrUnknown(argumentType))
+        if (!TypeChecker.isAnyOrUnknown(argumentType)) {
           this.checkCallOrNewExpressionTarget(expression, index, argumentType);
+        }
       } else if (isFieldDeclaration(parent) && parent.getInitializer()?.getPos() === ref.getPos()) {
         this.checkDeclarationUsage(parent);
       }
-    })
-  }
+    });
+  };
 
   private static checkCallOrNewExpressionTarget = (expression: LeftExpression | undefined, index: number, type: Type) => {
     if (Node.isIdentifier(expression) || Node.isPropertyAccessExpression(expression)) {
       const declaration = DeclarationFinder.getClassOrFunction(expression);
       declaration && this.checkDeclaration(declaration, index, type);
     }
-  }
+  };
 
   private static checkDeclaration = (declaration: Node, index: number, type: Type) => {
     if (Node.isClassDeclaration(declaration)
-      || Node.isClassExpression(declaration))
-      declaration.getConstructors().forEach(c => this.setParameterType(c, index, type));
+      || Node.isClassExpression(declaration)) {
+      declaration.getConstructors().forEach((c) => this.setParameterType(c, index, type));
+    }
     if (Node.isFunctionDeclaration(declaration)
       || Node.isMethodDeclaration(declaration)
       || Node.isFunctionExpression(declaration)
-      || Node.isArrowFunction(declaration))
+      || Node.isArrowFunction(declaration)) {
       this.setParameterType(declaration, index, type);
-  }
+    }
+  };
 
   private static setParameterType = (_function: FunctionTypes, index: number, type: Type) => {
     const parameters = _function.getParameters();
@@ -99,11 +104,10 @@ export class DeepTypeInference {
         }
       });
     }
-  }
+  };
 
-  private static isCallOrNewExpression = (node: Node | undefined): node is (CallExpression | NewExpression) => {
-    return Node.isNewExpression(node) || Node.isCallExpression(node);
-  }
+  private static isCallOrNewExpression = (node: Node | undefined): node is (CallExpression | NewExpression) =>
+    Node.isNewExpression(node) || Node.isCallExpression(node);
 
   private static getLeftExpression = (expression: Expression): LeftExpression | undefined => {
     const innerExpression = getInnerExpression(expression);
@@ -111,8 +115,11 @@ export class DeepTypeInference {
       || Node.isArrowFunction(innerExpression)
       || Node.isIdentifier(innerExpression)
       || Node.isPropertyAccessExpression(innerExpression)
-      || Node.isElementAccessExpression(innerExpression))
+      || Node.isElementAccessExpression(innerExpression)) {
       return innerExpression;
+    }
     return undefined;
-  }
+  };
 }
+
+export default DeepTypeInference;

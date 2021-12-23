@@ -1,13 +1,15 @@
-import {ExpressionStatement, SourceFile} from "ts-morph";
-import {ImportCreator} from "../../helpers/import-creator/import-creator";
+import { ExpressionStatement, SourceFile } from 'ts-morph';
+import ImportCreator from '../../helpers/import-creator/import-creator';
 
-export class ExpressionImportsRefactor {
+class ExpressionImportsRefactor {
   static addExpressionStatementImport = (
     expression: ExpressionStatement,
     importId: string,
-    sourceFile: SourceFile
+    sourceFile: SourceFile,
   ) => {
     ImportCreator.addEmptyImport(importId, sourceFile);
     expression.remove();
-  }
+  };
 }
+
+export default ExpressionImportsRefactor;

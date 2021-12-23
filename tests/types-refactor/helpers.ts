@@ -1,3 +1,5 @@
-import {Node} from "ts-morph";
+import { Node } from 'ts-morph';
 
-export const flatten = (node: Node | undefined) => node?.getText().replace(/\s+/g, ' ') || "";
+const flatten = (node: Node | undefined) => node?.getText().replace(/\s+/g, ' ') || '';
+
+export default flatten;

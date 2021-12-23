@@ -1,4 +1,4 @@
-import {Node, ReferencedSymbol, ReferenceFindableNode} from "ts-morph";
+import { Node, ReferencedSymbol, ReferenceFindableNode } from 'ts-morph';
 
 /*
 * this solves the problem in some cases with findReferences() crashing when calling it
@@ -22,7 +22,7 @@ export const findReferences = (node: ReferenceFindableNode & Node): ReferencedSy
   } catch (e) {
     return [];
   }
-}
+};
 
 export const findReferencesAsNodes = (node: ReferenceFindableNode & Node): Node[] => {
   try {
@@ -31,5 +31,4 @@ export const findReferencesAsNodes = (node: ReferenceFindableNode & Node): Node[
   } catch (e) {
     return [];
   }
-}
-
+};
