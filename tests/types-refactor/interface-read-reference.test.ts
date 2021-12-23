@@ -1,14 +1,13 @@
-import {Project, Node} from "ts-morph";
+import {Project} from "ts-morph";
 import {getSourceFile} from "../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator";
 import {TypesRefactor} from "../../lib/code-refactor/types-refactor/types-refactor";
 import {TypeHandler} from "../../lib/code-refactor/types-refactor/type-handler/type-handler";
+import {flatten} from "./helpers";
 
 const project = new Project({
   tsConfigFilePath: 'tsconfig.json',
   skipAddingFilesFromTsConfig: true,
 });
-
-const flatten = (node: Node) => node.getText().replace(/\s+/g, ' ');
 
 test('should add properties to interface from property access', () => {
   const interfaceDeclaration = getSourceFile(project, "").addInterface({name: "Empty", isExported: true});

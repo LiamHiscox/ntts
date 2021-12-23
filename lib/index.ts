@@ -7,10 +7,18 @@ import {InputValidator} from "./input-validator/input-validator";
 import {PackageManager} from "./models/package-manager";
 import {IgnoreConfigParser} from "./helpers/ignore-config-parser/ignore-config-parser";
 import {CodeRefactor} from "./code-refactor/code-refactor";
+import {EslintRunner} from "./eslint-runner/eslint-runner";
 
 const basicSetup = async (packageManager: PackageManager) => {
   DependencyInstaller.addPackageJson(packageManager);
   await DependencyInstaller.installProject(packageManager);
+}
+
+const lintProject = async (target: string, ignores: string[]): Promise<boolean> => {
+  const eslint = await EslintRunner.getLinter(ignores);
+  const result = await EslintRunner.lintProject(target, eslint);
+  await EslintRunner.displayResults(result, eslint);
+  return EslintRunner.validateResult(result);
 }
 
 const renameFiles = (target: string, ignores: string[]) => {
@@ -41,12 +49,14 @@ const main = async (target: string) => {
   if (validTarget !== null) {
     const packageManager = DependencyInstaller.getPackageManager();
     const ignores = IgnoreConfigParser.getIgnores();
-    addTsconfig(validTarget, ignores);
-    await basicSetup(packageManager);
-    await installDependencies(packageManager);
-    renameFiles(validTarget, ignores);
-    renameScripts(validTarget);
-    refactorJSCode(validTarget, ignores);
+    if (await lintProject(validTarget, ignores)) {
+      addTsconfig(validTarget, ignores);
+      await basicSetup(packageManager);
+      await installDependencies(packageManager);
+      renameFiles(validTarget, ignores);
+      renameScripts(validTarget);
+      refactorJSCode(validTarget, ignores);
+    }
   }
 }
 

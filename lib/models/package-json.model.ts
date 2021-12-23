@@ -5,5 +5,5 @@ export interface PackageJsonModel {
 }
 
 export interface Scripts {
-  [key: string]: string
+  [key: string]: string;
 }

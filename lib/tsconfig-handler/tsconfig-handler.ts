@@ -31,10 +31,8 @@ export class TsconfigHandler {
   private static writeToConfig = (filename: string, tsconfig: TsconfigModel, partialConfig: Partial<TsconfigModel>) => {
     writeFileSync(
       filename,
-      JSON.stringify({
-        ...tsconfig,
-        ...partialConfig,
-      }, null, 2));
+      JSON.stringify({...tsconfig, ...partialConfig}, null, 2)
+    );
   }
 
   /**
@@ -69,23 +67,18 @@ export class TsconfigHandler {
   static addCompilerOptions = (moduleSpecifierModel: ModuleSpecifierRefactorModel) => {
     const configName = this.tsconfigFileName();
     const tsconfig = this.readConfig(configName);
-    const partialConfig = {
-      compilerOptions: {
-        ...tsconfig.compilerOptions,
-        resolveJsonModule: moduleSpecifierModel.allowJson || false,
-        allowJs: moduleSpecifierModel.allowJson || false
-      }
+    const compilerOptions = {
+      ...tsconfig.compilerOptions,
+      resolveJsonModule: moduleSpecifierModel.allowJson || false,
+      allowJs: moduleSpecifierModel.allowJson || false
     }
-    this.writeToConfig(configName, tsconfig, partialConfig);
+    this.writeToConfig(configName, tsconfig, {compilerOptions});
   }
 
   static addModuleFile = (fileName: string) => {
     const configName = this.tsconfigFileName();
     const tsconfig = this.readConfig(configName);
-    const partialConfig = {
-      ...tsconfig,
-      files: [fileName]
-    }
+    const partialConfig = {...tsconfig, files: [fileName]}
     this.writeToConfig(configName, tsconfig, partialConfig);
   }
 }
