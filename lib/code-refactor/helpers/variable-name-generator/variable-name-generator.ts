@@ -4,7 +4,7 @@ class VariableNameGenerator {
   static variableNameFromImportId = (importId: string) => {
     const splitPath = importId.split('/');
     const newName = splitPath[splitPath.length - 1]
-      .replace(/.ts$/, '')
+      .replace(/\.ts$/, '')
       .replace(/[^_\d\w$]/g, '_')
       .replace(/^_+/, '')
       .replace(/_+$/, '');

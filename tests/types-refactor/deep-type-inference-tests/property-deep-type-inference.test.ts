@@ -1,11 +1,21 @@
 import { Project, SyntaxKind } from 'ts-morph';
 import DeepTypeInference from '../../../lib/code-refactor/types-refactor/deep-type-inference/deep-type-inference';
 import validate from './helper-function';
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 const _class = `
 export class Liam {

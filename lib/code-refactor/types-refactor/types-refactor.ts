@@ -53,10 +53,7 @@ class TypesRefactor {
         if (descendant.wasForgotten()) {
           return;
         }
-        if (Node.isElementAccessExpression(descendant)) {
-          InterfaceUsageInference.addPropertiesByUsage(descendant.getArgumentExpression(), interfaces);
-        }
-        if (Node.isIdentifier(descendant)) {
+        if (Node.isElementAccessExpression(descendant) || Node.isIdentifier(descendant)) {
           InterfaceUsageInference.addPropertiesByUsage(descendant, interfaces);
         }
       });

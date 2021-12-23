@@ -1,10 +1,21 @@
 import { Project } from 'ts-morph';
 import ExportsRefactor from '../../lib/code-refactor/exports-refactor/exports-refactor';
+import {existsSync} from "fs";
+import fs from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 test('should refactor element access export', () => {
   const sourceFile = project.createSourceFile(

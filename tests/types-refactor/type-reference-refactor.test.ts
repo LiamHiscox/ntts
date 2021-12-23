@@ -2,12 +2,18 @@ import { Project, SyntaxKind } from 'ts-morph';
 import * as fse from 'fs-extra';
 import TypeNodeRefactor from '../../lib/code-refactor/types-refactor/type-node-refactor/type-node-refactor';
 import ScriptRunner from '../../lib/helpers/script-runner/script-runner';
+import fs, {existsSync} from "fs";
 
 let project: Project;
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
 const cwd = process.cwd();
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 beforeAll(() => {
   fse.copySync(sample, sampleCopy);

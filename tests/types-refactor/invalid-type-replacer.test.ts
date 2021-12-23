@@ -1,31 +1,41 @@
 import { Project } from 'ts-morph';
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
+
+test('should replace simple any and never types', () => {
+  const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: any, b: never);', { overwrite: true });
+  TypesRefactor.replaceInvalidTypes(sourceFile);
+  expect(sourceFile.getText()).toEqual('function fun (a: unknown, b: unknown);');
 });
 
 test('should replace simple any and never types', () => {
-  const sourceFile = project.createSourceFile('write-access.ts', 'let a: any;\nlet b: never;', { overwrite: true });
+  const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: never | undefined);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile);
-  expect(sourceFile.getText()).toEqual('let a: unknown;\nlet b: unknown;');
+  expect(sourceFile.getText()).toEqual('function fun (a: unknown | undefined);');
 });
 
-test('should replace type in union', () => {
-  const sourceFile = project.createSourceFile('write-access.ts', 'let a: never | undefined;', { overwrite: true });
+test('should replace simple any and never types', () => {
+  const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: never[]);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile);
-  expect(sourceFile.getText()).toEqual('let a: unknown | undefined;');
+  expect(sourceFile.getText()).toEqual('function fun (a: unknown[]);');
 });
 
-test('should replace array element type', () => {
-  const sourceFile = project.createSourceFile('write-access.ts', 'let a: never[];', { overwrite: true });
+test('should replace simple any and never types', () => {
+  const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: any[] | never[]);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile);
-  expect(sourceFile.getText()).toEqual('let a: unknown[];');
-});
-
-test('should replace array element type in union', () => {
-  const sourceFile = project.createSourceFile('write-access.ts', 'let a: any[] | never[];', { overwrite: true });
-  TypesRefactor.replaceInvalidTypes(sourceFile);
-  expect(sourceFile.getText()).toEqual('let a: unknown[] | unknown[];');
+  expect(sourceFile.getText()).toEqual('function fun (a: unknown[] | unknown[]);');
 });

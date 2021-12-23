@@ -1,10 +1,20 @@
 import { Project } from 'ts-morph';
 import ExportsRefactor from '../../../lib/code-refactor/exports-refactor/exports-refactor';
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 test('should refactor default export with literal value', () => {
   const sourceFile = project.createSourceFile(
@@ -34,7 +44,7 @@ test('should refactor name collision default export', () => {
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
-    .toEqual('let standard_require;\nconst standard_require0 = 2;\n\nexport default standard_require0;\n');
+    .toEqual('let standard_require;\nconst _standard_require = 2;\n\nexport default _standard_require;\n');
 });
 
 test('should refactor default export with equally named identifier assignment', () => {
@@ -87,7 +97,7 @@ test('should refactor re-assignment of default export with identifier', () => {
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
-    .toEqual('const item = 45;\nlet item0 = item;\n\nitem0 = "liam";\n\nexport default item0;\n');
+    .toEqual('const item = 45;\nlet _item = item;\n\n_item = "liam";\n\nexport default _item;\n');
 });
 
 test('should refactor assignment of class default export', () => {
@@ -108,7 +118,7 @@ test('should refactor re-assignment of class default export', () => {
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
-    .toEqual('class Car {};\n\nlet Car0 = Car;\n\nCar0 = 12;\n\nexport default Car0;\n');
+    .toEqual('class Car {};\n\nlet _Car = Car;\n\n_Car = 12;\n\nexport default _Car;\n');
 });
 
 test('should refactor default class expression export', () => {
@@ -128,7 +138,7 @@ test('should refactor default class expression export with no class name', () =>
     { overwrite: true },
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('class _default {}\n\nexport default standard_require;\n');
+  expect(sourceFile.getText()).toEqual('class standard_require {}\n\nexport default standard_require;\n');
 });
 
 test('should refactor default class expression export with usage', () => {

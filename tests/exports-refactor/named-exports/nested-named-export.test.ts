@@ -1,10 +1,20 @@
 import { Project } from 'ts-morph';
 import ExportsRefactor from '../../../lib/code-refactor/exports-refactor/exports-refactor';
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 test('should refactor nested export', () => {
   const sourceFile = project.createSourceFile(
@@ -34,7 +44,7 @@ test('should refactor nested identifier export', () => {
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
-    .toEqual('let item = 2;\nlet item0;\n\nif (true) item0 = item;\n\nexport { item0 as item };\n');
+    .toEqual('let item = 2;\nlet _item;\n\nif (true) _item = item;\n\nexport { _item as item };\n');
 });
 
 test('should refactor nested export with nested identifier', () => {
@@ -45,5 +55,5 @@ test('should refactor nested export with nested identifier', () => {
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
-    .toEqual('let item0;\n\nif (true) {\nlet item = 2;\nitem0 = item;\n}\n\nexport { item0 as item };\n');
+    .toEqual('let _item;\n\nif (true) {\nlet item = 2;\n_item = item;\n}\n\nexport { _item as item };\n');
 });

@@ -1,33 +1,21 @@
 import { Project } from 'ts-morph';
-import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 import TypeSimplifier from '../../lib/code-refactor/types-refactor/helpers/type-simplifier/type-simplifier';
 import TypeHandler from '../../lib/code-refactor/types-refactor/type-handler/type-handler';
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
 
-test('should set types of arrow function', () => {
-  const sourceFile = project.createSourceFile(
-    'simple-types.ts',
-    'const a = (cb: (route: string) => void): void => cb("abc");\na(qwe => console.log(qwe));',
-    { overwrite: true },
-  );
-  TypesRefactor.setInitialTypes(sourceFile);
-  expect(sourceFile.getText())
-    .toEqual('const a = (cb: (route: string) => void): void => cb("abc");\na((qwe: string): void => console.log(qwe));');
-});
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
 
-test('should set types of arrow function with array binding pattern', () => {
-  const sourceFile = project.createSourceFile(
-    'simple-types.ts',
-    'const c = ([a, b]) => a * b;',
-    { overwrite: true },
-  );
-  TypesRefactor.setInitialTypes(sourceFile);
-  expect(sourceFile.getText()).toEqual('const c = ([a, b]: [any, any]): number => a * b;');
-});
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 test('simplify function union type node', () => {
   const sourceFile = project.createSourceFile(

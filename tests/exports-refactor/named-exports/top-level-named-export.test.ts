@@ -73,7 +73,7 @@ test('should refactor re-assignment of export with identifier', () => {
     { overwrite: true },
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('const item = 45;\nlet item0 = item;\n\nitem0 = "liam";\n\nexport { item0 as item };\n');
+  expect(sourceFile.getText()).toEqual('const item = 45;\nlet _item = item;\n\n_item = "liam";\n\nexport { _item as item };\n');
 });
 
 test('should refactor assignment of class export', () => {
@@ -93,7 +93,7 @@ test('should refactor re-assignment of class export', () => {
     { overwrite: true },
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('class Car {};\n\nlet Car0 = Car;\n\nCar0 = 12;\n\nexport { Car0 as Car };\n');
+  expect(sourceFile.getText()).toEqual('class Car {};\n\nlet _Car = Car;\n\n_Car = 12;\n\nexport { _Car as Car };\n');
 });
 
 test('should refactor name collision exports', () => {
@@ -104,7 +104,7 @@ test('should refactor name collision exports', () => {
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
-    .toEqual('const item = 1;\nconst item0 = 2;\nconst item1 = 3;\nconst item00 = 4;\n\nexport { item1 as item, item00 as item0 };\n');
+    .toEqual('const item = 1;\nconst item0 = 2;\nconst _item = 3;\nconst _item0 = 4;\n\nexport { _item as item, _item0 as item0 };\n');
 });
 
 test('should refactor named class expression export', () => {

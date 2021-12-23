@@ -1,4 +1,6 @@
 import {
+  ElementAccessExpression,
+  Identifier,
   InterfaceDeclaration,
   Node,
   Project,
@@ -27,11 +29,11 @@ class InterfaceUsageInference {
     });
   };
 
-  static addPropertiesByUsage = (node: Node | undefined, interfaces: InterfaceDeclaration[]) => {
-    const type = node && TypeHandler.getType(node);
-    if (node && type?.isInterface()) {
+  static addPropertiesByUsage = (node: ElementAccessExpression | Identifier, interfaces: InterfaceDeclaration[]) => {
+    const type = TypeHandler.getType(node);
+    if (type.isInterface()) {
       this.checkInterfaceType(type, node, interfaces);
-    } else if (node && type?.isUnion()) {
+    } else if (type.isUnion()) {
       this.checkUnionType(type, node, interfaces);
     }
   };

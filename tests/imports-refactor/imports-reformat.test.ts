@@ -1,7 +1,7 @@
 import { Project } from 'ts-morph';
 import * as fse from 'fs-extra';
-import { writeFileSync } from 'fs';
-import { ImportsRefactor } from '../../lib/code-refactor/imports-refactor/imports-refactor';
+import fs, {existsSync, writeFileSync} from "fs";
+import ImportsRefactor from '../../lib/code-refactor/imports-refactor/imports-refactor';
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';
@@ -18,10 +18,19 @@ afterAll(() => {
   fse.rmSync(sampleCopy, { recursive: true, force: true });
 });
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 const content = `
 import morph from "ts-morph";

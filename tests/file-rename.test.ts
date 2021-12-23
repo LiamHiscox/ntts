@@ -32,10 +32,3 @@ test('should not rename config file', () => {
   expect(globby.sync(['**/*.ts']).sort())
     .toEqual(['src/index.ts', 'js-ts.ts'].sort());
 });
-
-test('should rename all files recursively', () => {
-  const ignores = IgnoreConfigParser.getIgnores();
-  FileRename.rename('.', ignores);
-  expect(globby.sync(['**/*.ts']).sort())
-    .toEqual(['src/index.ts', 'js-ts.ts', 'babel.config.ts'].sort());
-});

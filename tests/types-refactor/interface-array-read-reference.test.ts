@@ -3,11 +3,22 @@ import { getSourceFile } from '../../lib/code-refactor/types-refactor/interface-
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 import TypeHandler from '../../lib/code-refactor/types-refactor/type-handler/type-handler';
 import flatten from './helpers';
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');
+  }
+})
 
 test('should add properties to interface from array property access', () => {
   const interfaceDeclaration = getSourceFile(project, '').addInterface({ name: 'Empty', isExported: true });

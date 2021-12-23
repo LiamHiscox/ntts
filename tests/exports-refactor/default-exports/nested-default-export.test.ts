@@ -1,16 +1,26 @@
-import { Project } from 'ts-morph';
+import {Project} from 'ts-morph';
 import ExportsRefactor from '../../../lib/code-refactor/exports-refactor/exports-refactor';
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 test('should refactor nested default export', () => {
   const sourceFile = project.createSourceFile(
     'standard-require.ts',
     'if (true) module.exports = 2;',
-    { overwrite: true },
+    {overwrite: true},
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
@@ -21,7 +31,7 @@ test('should refactor nested element access default export', () => {
   const sourceFile = project.createSourceFile(
     'standard-require.ts',
     'if (true) module.exports["item"] = 2;',
-    { overwrite: true },
+    {overwrite: true},
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
@@ -32,7 +42,7 @@ test('should refactor nested shorthand default export', () => {
   const sourceFile = project.createSourceFile(
     'standard-require.ts',
     'if (true) exports = 2;',
-    { overwrite: true },
+    {overwrite: true},
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
@@ -43,7 +53,7 @@ test('should refactor nested identifier default export', () => {
   const sourceFile = project.createSourceFile(
     'standard-require.ts',
     'let item = 2;\nif (true) module.exports = item;',
-    { overwrite: true },
+    {overwrite: true},
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())
@@ -54,7 +64,7 @@ test('should refactor nested export with nested default identifier', () => {
   const sourceFile = project.createSourceFile(
     'standard-require.ts',
     'if (true) {\nlet item = 2;\nmodule.exports = item;\n}',
-    { overwrite: true },
+    {overwrite: true},
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
   expect(sourceFile.getText())

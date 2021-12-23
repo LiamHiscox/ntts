@@ -1,5 +1,5 @@
 import * as fse from 'fs-extra';
-import { writeFileSync } from 'fs';
+import fs, {existsSync, writeFileSync} from 'fs';
 import IgnoreConfigParser from '../lib/helpers/ignore-config-parser/ignore-config-parser';
 
 const sampleCopy = 'tests/sample-copy';
@@ -9,6 +9,7 @@ const cwd = process.cwd();
 beforeAll(() => {
   fse.copySync(sample, sampleCopy);
   process.chdir(sampleCopy);
+  existsSync('.nttsignore') && fs.rmSync('.nttsignore');
 });
 
 afterAll(() => {

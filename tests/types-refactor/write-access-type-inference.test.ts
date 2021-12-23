@@ -1,10 +1,23 @@
 import { Project } from 'ts-morph';
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
+import {getInterfaces} from "../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator";
+import flatten from "./helpers";
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models-ts')) {
+    fs.rmSync('ntts-generated-models-ts');
+  }
+})
 
 test('should set type of mutable variable according to write access', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'let a = "asd";\na = 12;', { overwrite: true });
@@ -58,8 +71,12 @@ test('should combine object literal types', () => {
     { overwrite: true },
   );
   TypesRefactor.inferWriteAccessType(sourceFile, project, '');
-  expect(sourceFile.getText())
-    .toEqual('const a: { a: number; b: { c: string | boolean; d: string; }; } = fun();');
+  const declaration = getInterfaces(project, '').find(i => i.getName() === 'A');
+  expect(declaration).not.toBeUndefined();
+  if (declaration) {
+    expect(flatten(declaration))
+      .toEqual('export interface A { a?: number | undefined; b?: { c: string | boolean; d?: string | undefined; } | undefined; }');
+  }
 });
 
 test('should combine object literal types with index signatures', () => {
@@ -69,8 +86,12 @@ test('should combine object literal types with index signatures', () => {
     { overwrite: true },
   );
   TypesRefactor.inferWriteAccessType(sourceFile, project, '');
-  expect(sourceFile.getText())
-    .toEqual('const a: { [key: string]: string | number; [key: number]: string | number; } = fun();');
+  const declaration = getInterfaces(project, '').find(i => i.getName() === 'A');
+  expect(declaration).not.toBeUndefined();
+  if (declaration) {
+    expect(flatten(declaration))
+      .toEqual('export interface A { [key: string]: string | number; [key: number]: string | number; }');
+  }
 });
 
 test('should combine object literal types with index signatures 2', () => {
@@ -80,14 +101,10 @@ test('should combine object literal types with index signatures 2', () => {
     { overwrite: true },
   );
   TypesRefactor.inferWriteAccessType(sourceFile, project, '');
-  expect(sourceFile.getText())
-    .toEqual('const a: { [key: string]: { a: string | number; b: boolean; }; [key: number]: { a: string | number; b: boolean; }; } = fun();');
-});
-
-test('should not change type of interface type', () => {
-  const sourceFile = project.createSourceFile('write-access.ts', '', { overwrite: true });
-  const interfacePath = sourceFile.getFilePath().replace(/\.ts$/, '');
-  sourceFile.replaceWithText(`export interface A {};\nlet a: import("${interfacePath}").A;\na = {};`);
-  TypesRefactor.inferWriteAccessType(sourceFile, project, '');
-  expect(sourceFile.getText()).toEqual(`export interface A {};\nlet a: import("${interfacePath}").A;\na = {};`);
+  const declaration = getInterfaces(project, '').find(i => i.getName() === 'A');
+  expect(declaration).not.toBeUndefined();
+  if (declaration) {
+    expect(flatten(declaration))
+      .toEqual('export interface A { [key: string]: { a: string | number; b?: boolean | undefined; }; [key: number]: { a: string | number; b?: boolean | undefined; }; }');
+  }
 });

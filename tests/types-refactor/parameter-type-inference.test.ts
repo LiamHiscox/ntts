@@ -1,10 +1,20 @@
 import { Project, SyntaxKind } from 'ts-morph';
 import ParameterTypeInference from '../../lib/code-refactor/types-refactor/parameter-type-inference/parameter-type-inference';
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true,
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 test('should set type of function parameters by usage', () => {
   const sourceFile = project.createSourceFile(
