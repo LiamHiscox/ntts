@@ -22,20 +22,14 @@ test('should replace simple any and never types', () => {
   expect(sourceFile.getText()).toEqual('function fun (a: unknown, b: unknown);');
 });
 
-test('should replace simple any and never types', () => {
+test('should replace simple any and never types 2', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: never | undefined);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile);
   expect(sourceFile.getText()).toEqual('function fun (a: unknown | undefined);');
 });
 
-test('should replace simple any and never types', () => {
+test('should replace simple any and never types 3', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: never[]);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile);
   expect(sourceFile.getText()).toEqual('function fun (a: unknown[]);');
-});
-
-test('should replace simple any and never types', () => {
-  const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: any[] | never[]);', { overwrite: true });
-  TypesRefactor.replaceInvalidTypes(sourceFile);
-  expect(sourceFile.getText()).toEqual('function fun (a: unknown[] | unknown[]);');
 });
