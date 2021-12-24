@@ -95,21 +95,21 @@ class ParameterTypeInference {
   };
 
   private static setRestParameterType = (parameter: ParameterDeclaration, _arguments: Node[]) => {
-    const parameterType = TypeHandler.getType(parameter).getArrayElementType()
-      || TypeHandler.getType(TypeHandler.setTypeFiltered(parameter, 'any[]')).getArrayElementTypeOrThrow();
-    const parameterArrayType = TypeHandler.getFilteredUnionTypes(parameterType);
-    const filteredParameterType = parameterArrayType.filter((t) => !TypeChecker.isAny(t)).map((t) => t.getText());
-
-    const uniqueArgumentTypes = _arguments.reduce((list: string[], node) => {
+    const parameterType = TypeHandler.getType(parameter);
+    const argumentsType = _arguments.reduce((list: string[], node) => {
       const type = TypeHandler.getType(node);
-      if (!list.includes(type.getText()) && !TypeChecker.isAny(type) && !filteredParameterType.includes(type.getText())) {
+      if (!list.includes(type.getText()) && !TypeChecker.isAnyOrUnknown(type)) {
         return list.concat(type.getText());
       }
       return list;
-    }, []);
+    }, []).map((t) => `${t}`).join(' | ');
 
-    const newType = TypeHandler.combineTypeWithList(parameterType, ...uniqueArgumentTypes);
-    newType && TypeHandler.setTypeFiltered(parameter, `(${newType})[]`);
+    const parameterText = parameterType.getText();
+    if (argumentsType && (TypeChecker.isAnyOrUnknown(parameterType) || TypeChecker.isAnyOrUnknownArray(parameterType) || parameterText === 'never[]')) {
+      TypeHandler.setTypeFiltered(parameter, `(${argumentsType})[]`);
+    } else if (argumentsType) {
+      TypeHandler.setTypeFiltered(parameter, `(${parameterType.getText()}) | (${argumentsType})[]`);
+    }
   };
 
   private static setParameterType = (parameter: ParameterDeclaration, argument: Node) => {

@@ -148,6 +148,31 @@ test('should set type of function rest parameter by usage', () => {
     .toEqual('function fun (param1: number, ...param2: string[]) { return param1 + param2; };\nfun(12, "asd", "asd");');
 });
 
+test('should set type of function rest parameter by usage with union type', () => {
+  const sourceFile = project.createSourceFile(
+    'simple-types.ts',
+    'function fun (param1, ...param2: any[]) { return param1 + param2; };\nfun(12, "asd", 12);',
+    { overwrite: true },
+  );
+  const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.FunctionDeclaration);
+  ParameterTypeInference.inferFunctionDeclarationParameterTypes(_function);
+  expect(sourceFile.getText())
+    .toEqual('function fun (param1: number, ...param2: (string | number)[]) { return param1 + param2; };\nfun(12, "asd", 12);');
+});
+
+test('should set type of function rest parameter by usage with set type', () => {
+  const sourceFile = project.createSourceFile(
+    'simple-types.ts',
+    'function fun (param1, ...param2: string[]) { return param1 + param2; };\nfun(12, "asd", 12);',
+    { overwrite: true },
+  );
+  const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.FunctionDeclaration);
+  ParameterTypeInference.inferFunctionDeclarationParameterTypes(_function);
+  expect(sourceFile.getText())
+    .toEqual('function fun (param1: number, ...param2: string[] | (string | number)[]) { return param1 + param2; };\nfun(12, "asd", 12);');
+});
+
+
 test('should set union types of function rest parameter by usage', () => {
   const sourceFile = project.createSourceFile(
     'simple-types.ts',

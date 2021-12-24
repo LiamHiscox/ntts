@@ -49,10 +49,10 @@ class ContextualTypeInference {
     if (isAccessExpression(innerExpression) && isAccessExpressionTarget(innerExpression, node)) {
       const type = innerExpression.getContextualType();
       const currentType = TypeHandler.getType(declaration);
-      if (type && currentType.isArray() && !TypeChecker.isAny(type)) {
+      if (type && currentType.isArray() && !TypeChecker.isAnyOrUnknownArray(type)) {
         return type.getText();
       }
-      if (type && !type.isAny()) {
+      if (type && !TypeChecker.isAnyOrUnknown(type)) {
         return type.getText();
       }
     }

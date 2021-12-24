@@ -13,6 +13,8 @@ class TypeChecker {
 
   static isAnyOrUnknown = (type: Type): boolean => type.isAny() || type.isUnknown();
 
+  static isAnyOrUnknownArray = (type: Type): boolean => type.isArray() && (type.getArrayElementTypeOrThrow().isAny() || type.getArrayElementTypeOrThrow().isUnknown());
+
   static isNullOrUndefined = (type: Type): boolean => type.isNull() || type.isUndefined();
 
   static isBaseOrLiteralType = (type: Type): boolean => {
