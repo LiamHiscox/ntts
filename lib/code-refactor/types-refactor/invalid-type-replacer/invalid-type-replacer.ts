@@ -1,28 +1,38 @@
-import { Node, TypedNode, TypeNode } from 'ts-morph';
+import { Node, ParameterDeclaration, SyntaxKind, TypedNode, TypeNode } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
-import TypeChecker from '../helpers/type-checker/type-checker';
 
 class InvalidTypeReplacer {
-  static replaceAnyAndNeverType = (typedNode: TypedNode & Node): void => {
-    if (TypeChecker.isAnyOrUnknown(TypeHandler.getType(typedNode))) {
-      TypeHandler.setSimpleType(typedNode, 'unknown');
+  static replaceParameterType = (parameter: ParameterDeclaration) => {
+    const type = TypeHandler.getType(parameter);
+    if (type.isAny() || type.getText() === 'never') {
+      TypeHandler.setSimpleType(parameter, 'unknown');
     } else {
-      const initialTypeNode = typedNode.getTypeNode();
-      const typeNode = initialTypeNode || TypeHandler.getTypeNode(typedNode);
-      const replaceableNodes = this.getNeverNodes(typeNode);
-      if (replaceableNodes.length > 0) {
-        replaceableNodes.forEach((node) => node.replaceWithText('unknown'));
-      } else if (!initialTypeNode) {
-        typedNode.removeType();
-      }
+      this.replaceAnyAndNeverType(parameter);
     }
+  }
+
+  static replaceAnyAndNeverType = (typedNode: TypedNode & Node) => {
+    const initialTypeNode = typedNode.getTypeNode();
+    if (initialTypeNode) {
+      return this.getNeverAndAnyNodes(initialTypeNode).forEach((node) => node.replaceWithText('unknown'));
+    }
+    const typeNode = TypeHandler.getTypeNode(typedNode);
+    if (this.containsNeverNodes(typeNode)) {
+      this.getNeverAndAnyNodes(typeNode).forEach(node => node.replaceWithText('unknown'));
+    } else {
+      typedNode.removeType();
+    }
+  }
+
+  private static containsNeverNodes = (typeNode: TypeNode): boolean => {
+    return Node.isNeverKeyword(typeNode) || !!typeNode.getFirstDescendantByKind(SyntaxKind.NeverKeyword);
   };
 
-  private static getNeverNodes = (typeNode: TypeNode): Node[] => {
-    if (Node.isNeverKeyword(typeNode)) {
+  private static getNeverAndAnyNodes = (typeNode: TypeNode): Node[] => {
+    if (Node.isNeverKeyword(typeNode) || Node.isAnyKeyword(typeNode)) {
       return [typeNode];
     }
-    return typeNode.getDescendants().filter((d) => Node.isNeverKeyword(d));
+    return typeNode.getDescendants().filter((d) => Node.isNeverKeyword(d) || Node.isAnyKeyword(d));
   };
 }
 

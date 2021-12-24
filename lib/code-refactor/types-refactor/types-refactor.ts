@@ -63,16 +63,18 @@ class TypesRefactor {
   static replaceInvalidTypes = (sourceFile: SourceFile) => {
     Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach((descendant) => {
-      if (!descendant.wasForgotten() && Node.isParameterDeclaration(descendant)) {
-        InvalidTypeReplacer.replaceAnyAndNeverType(descendant);
+      if (descendant.wasForgotten()) {
+        return;
       }
-      /*
-      if (Node.isParameterDeclaration(descendant)
-        || Node.isVariableDeclaration(descendant)
+      if (Node.isParameterDeclaration(descendant)) {
+        return InvalidTypeReplacer.replaceParameterType(descendant);
+      }
+      if (Node.isVariableDeclaration(descendant)
         || Node.isPropertyDeclaration(descendant)
-        || Node.isPropertySignature(descendant))
+        || Node.isPropertySignature(descendant)) {
         return InvalidTypeReplacer.replaceAnyAndNeverType(descendant);
-      */
+      }
+      return;
     });
   };
 
