@@ -5,6 +5,7 @@ import {
   StringLiteral,
   SyntaxKind,
   VariableDeclaration,
+  VariableDeclarationKind,
 } from 'ts-morph';
 import WriteAccessChecker from '../../helpers/write-access-checker/write-access-checker';
 import VariableValidator from '../../helpers/variable-validator/variable-validator';
@@ -16,7 +17,9 @@ class ImportValidator {
 
   static isValidImport = (declaration: VariableDeclaration): ObjectBindingPattern | Identifier | undefined => {
     const nameNode = declaration.getNameNode();
-    if (Node.isIdentifier(nameNode) && !WriteAccessChecker.hasValueChanged(declaration)) {
+    const isConst = declaration.getVariableStatement()?.getDeclarationKind() === VariableDeclarationKind.Const
+      || !WriteAccessChecker.hasValueChanged(declaration);
+    if (Node.isIdentifier(nameNode) && isConst) {
       return nameNode;
     }
     if (Node.isObjectBindingPattern(nameNode)
@@ -47,9 +50,9 @@ class ImportValidator {
     .getElements()
     .reduce(
       (valid: boolean, element: BindingElement) => valid
-          && !element.getDotDotDotToken()
-          && !!element.getNameNode().asKind(SyntaxKind.Identifier)
-          && this.validPropertyNameNode(element),
+        && !element.getDotDotDotToken()
+        && !!element.getNameNode().asKind(SyntaxKind.Identifier)
+        && this.validPropertyNameNode(element),
       true,
     );
 

@@ -4,7 +4,9 @@ import {
 import { isAccessExpression } from '../combined-types/combined-types';
 
 export const getInnerExpression = (node: Node | undefined) => {
-  if (Node.isParenthesizedExpression(node)) { getInnerExpression(node.getExpression()); }
+  if (Node.isParenthesizedExpression(node)) {
+    getInnerExpression(node.getExpression());
+  }
   return node;
 };
 
@@ -12,14 +14,19 @@ export const getExpressionParent = (node: Node | undefined): Node | undefined =>
   const parent = node?.getParent();
   if (Node.isPropertyAccessExpression(parent)
     || Node.isElementAccessExpression(parent)
-    || Node.isParenthesizedExpression(parent)
-  ) return getExpressionParent(parent);
+    || Node.isParenthesizedExpression(parent)) {
+    return getExpressionParent(parent);
+  }
   return getInnerExpression(node);
 };
 
 export const isAccessExpressionTarget = (expression: PropertyAccessExpression | ElementAccessExpression | PropertyName, target: Node): boolean => {
-  if (Node.isPropertyAccessExpression(expression)) { return expression.getNameNode().getPos() === target.getPos(); }
-  if (Node.isElementAccessExpression(expression)) { return expression.getArgumentExpression()?.getPos() === target.getPos(); }
+  if (Node.isPropertyAccessExpression(expression)) {
+    return expression.getNameNode().getPos() === target.getPos();
+  }
+  if (Node.isElementAccessExpression(expression)) {
+    return expression.getArgumentExpression()?.getPos() === target.getPos();
+  }
   return expression.getPos() === target.getPos();
 };
 

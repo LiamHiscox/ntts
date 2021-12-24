@@ -136,11 +136,12 @@ class TypesRefactor {
         return;
       }
       if (Node.isImportTypeNode(descendant)) {
-        TypeNodeRefactor.refactor(descendant, sourceFile);
+        return TypeNodeRefactor.refactor(descendant, sourceFile);
       }
       if (Node.isTypeReference(descendant)) {
-        TypeNodeRefactor.importGlobalTypes(descendant, sourceFile);
+        return TypeNodeRefactor.importGlobalTypes(descendant, sourceFile);
       }
+      return;
     });
     sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).forEach((importType) => {
       if (!importType.wasForgotten()) {
