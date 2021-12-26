@@ -12,55 +12,59 @@ import {
 import TypeHandler from '../type-handler/type-handler';
 import TypeChecker from '../helpers/type-checker/type-checker';
 import TypeInferenceValidator from './type-inference-validator/type-inference-validator';
-import { findReferencesAsNodes } from '../../helpers/reference-finder/reference-finder';
+import {findReferencesAsNodes} from '../../helpers/reference-finder/reference-finder';
 import DeepTypeInference from '../deep-type-inference/deep-type-inference';
 import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
 
 class ParameterTypeInference {
   static inferSetAccessorParameterTypes = (setter: SetAccessorDeclaration) => {
+    const initialTypes = setter.getParameters().map((p) => TypeHandler.getType(p).getText());
     findReferencesAsNodes(setter).forEach((ref) => {
       const parent = TypeInferenceValidator.validateSetAccessorParent(ref);
       const binary = TypeInferenceValidator.getBinaryAssignmentExpression(parent);
       binary && this.inferParameterTypes(setter.getParameters(), [binary.getRight()]);
     });
-    const parameters = setter.getParameters();
-    this.simplifyParameterTypes(parameters);
+    this.simplifyParameterTypes(setter.getParameters());
+    const parameters = setter.getParameters()
+      .filter((p, i) => initialTypes[i] !== TypeHandler.getType(p).getText());
     DeepTypeInference.propagateParameterTypes(parameters);
   };
 
   static inferFunctionAssignmentParameterTypes = (assignment: PropertyAssignment | VariableDeclaration | PropertyDeclaration) => {
     const initializer = assignment.getInitializer();
-    const nameNode = assignment.getNameNode();
-    if (!Node.isArrayBindingPattern(nameNode)
-      && !Node.isObjectBindingPattern(nameNode)
-      && (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer))) {
+    if (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer)) {
       const parameters = initializer.getParameters();
+      const initialTypes = parameters.map((p) => TypeHandler.getType(p).getText());
       this.inferFunctionExpressionParameterTypes(assignment, parameters);
       this.simplifyParameterTypes(parameters);
-      DeepTypeInference.propagateParameterTypes(parameters);
+      const filteredParameters = initializer.getParameters()
+        .filter((p, i) => initialTypes[i] !== TypeHandler.getType(p).getText());
+      DeepTypeInference.propagateParameterTypes(filteredParameters);
     }
   };
 
   static inferFunctionDeclarationParameterTypes = (declaration: FunctionDeclaration | MethodDeclaration) => {
-    const initialTypes = declaration.getParameters().map((p) => p.getType().getText());
+    const initialTypes = declaration.getParameters().map((p) => TypeHandler.getType(p).getText());
     findReferencesAsNodes(declaration).forEach((ref) => {
       const parent = TypeInferenceValidator.validateCallExpressionParent(ref);
       const expression = TypeInferenceValidator.getCallExpression(parent);
       expression && this.inferParameterTypes(declaration.getParameters(), expression.getArguments());
     });
     this.simplifyParameterTypes(declaration.getParameters());
-    const parameters = declaration.getParameters().filter((p, i) =>
-      !TypeChecker.isAnyOrUnknown(p.getType()) && initialTypes[i] !== p.getType().getText());
+    const parameters = declaration.getParameters()
+      .filter((p, i) => initialTypes[i] !== TypeHandler.getType(p).getText());
     DeepTypeInference.propagateParameterTypes(parameters);
   };
 
   static inferConstructorParameterTypes = (declaration: ConstructorDeclaration) => {
+    const initialTypes = declaration.getParameters().map((p) => TypeHandler.getType(p).getText());
     findReferencesAsNodes(declaration).forEach((ref) => {
       const parent = TypeInferenceValidator.getNewExpression(ref.getParent());
       parent && this.inferParameterTypes(declaration.getParameters(), parent.getArguments());
     });
-    const parameters = declaration.getParameters();
-    this.simplifyParameterTypes(parameters);
+    this.simplifyParameterTypes(declaration.getParameters());
+    const parameters = declaration.getParameters()
+      .filter((p, i) => initialTypes[i] !== TypeHandler.getType(p).getText());
     DeepTypeInference.propagateParameterTypes(parameters);
   };
 
@@ -88,7 +92,7 @@ class ParameterTypeInference {
         this.setRestParameterType(parameter, _arguments.slice(i));
       } else if (i < _arguments.length) {
         this.setParameterType(parameter, _arguments[i]);
-      } else if (!parameter.hasQuestionToken()) {
+      } else if (!parameter.hasQuestionToken() && !parameter.isRestParameter()) {
         parameter.setHasQuestionToken(true);
       }
     });
@@ -102,7 +106,7 @@ class ParameterTypeInference {
         return list.concat(type.getText());
       }
       return list;
-    }, []).map((t) => `${t}`).join(' | ');
+    }, []).map((t) => `(${t})`).join(' | ');
 
     const parameterText = parameterType.getText();
     if (argumentsType && (TypeChecker.isAnyOrUnknown(parameterType) || TypeChecker.isAnyOrUnknownArray(parameterType) || parameterText === 'never[]')) {

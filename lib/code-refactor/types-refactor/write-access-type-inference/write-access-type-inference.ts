@@ -25,7 +25,8 @@ class WriteAccessTypeInference {
     const isConstant = this.isConstantDeclaration(declaration);
     if (!isConstant && !Node.isObjectBindingPattern(nameNode) && !Node.isArrayBindingPattern(nameNode)) {
       const newTypes = this.checkReferenceSymbols(declaration);
-      const newDeclaration = TypeHandler.addTypes(declaration, ...newTypes);
+      const combined = TypeHandler.combineTypeWithList(TypeHandler.getType(declaration), ...newTypes);
+      const newDeclaration = TypeHandler.setTypeFiltered(declaration, combined);
       this.simplifyTypeNode(newDeclaration);
       if (TypeChecker.isNullOrUndefined(TypeHandler.getType(newDeclaration))) {
         newDeclaration.removeType();

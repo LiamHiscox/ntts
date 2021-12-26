@@ -12,7 +12,7 @@ import IndexSignatureHandler from './index-signature-handler/index-signature-han
 import { TypeMemberKind } from '../../../helpers/combined-types/combined-types';
 
 class TypeSimplifier {
-  static simplifyTypeNode = (typeNode: TypeNode): string | undefined => {
+  static simplifyTypeNode = (typeNode: TypeNode): string => {
     const innerTypeNode = TypeHandler.getNonParenthesizedType(typeNode);
     if (Node.isUnionTypeNode(innerTypeNode)) {
       const typeNodes = innerTypeNode.getTypeNodes();
@@ -24,7 +24,7 @@ class TypeSimplifier {
         stringSimplified && TypeHandler.setTypeFiltered(property, stringSimplified);
       });
     }
-    return undefined;
+    return typeNode.getText();
   };
 
   static simplifyTypeNodeList = (typeNodes: TypeNode[]): string => {
@@ -96,13 +96,11 @@ class TypeSimplifier {
           const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(newParameter));
           stringSimplified && TypeHandler.setTypeFiltered(newParameter, stringSimplified);
         }
-      } else {
-        leftParameter.setHasQuestionToken(true);
       }
     });
     for (let i = leftParameters.length; i < rightParameters.length; i += 1) {
       left.addParameter({
-        hasQuestionToken: !rightParameters[i].isRestParameter(),
+        hasQuestionToken: rightParameters[i].hasQuestionToken(),
         initializer: rightParameters[i].getInitializer()?.getText(),
         isRestParameter: rightParameters[i].isRestParameter(),
         name: rightParameters[i].getName(),

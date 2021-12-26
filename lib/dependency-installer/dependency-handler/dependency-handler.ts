@@ -9,7 +9,7 @@ class DependencyHandler {
    */
   static installedPackages = async (): Promise<PackageListModel> => {
     const packageVersion = await ScriptRunner.runParsed<PackageVersionModel>('npm ls --json');
-    return packageVersion.dependencies;
+    return packageVersion.dependencies || {};
   };
 
   /**

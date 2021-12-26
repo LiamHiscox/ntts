@@ -43,27 +43,6 @@ class TypeHandler {
     return node;
   };
 
-  static addType = <T extends Node & TypedNode>(node: T, type: string): T => {
-    const existingType = this.getType(node).getBaseTypeOfLiteralType();
-    if (!TypeChecker.isAny(existingType) && existingType.getText() !== type) {
-      return this.setTypeFiltered(node, `${existingType.getText()} | ${type}`);
-    }
-    return this.setTypeFiltered(node, type);
-  };
-
-  static addArrayType = <T extends Node & TypedNode>(node: T, type: string): T => {
-    const existingType = this.getType(node).getBaseTypeOfLiteralType();
-    if (TypeChecker.isAny(existingType)) {
-      return this.setTypeFiltered(node, type);
-    }
-    const existingTypeNode = this.getTypeNode(node);
-    if (Node.isUnionTypeNode(existingTypeNode)) {
-      const newType = existingTypeNode.getTypeNodes().map((t) => t.getText()).concat(`${type}[]`).join(' | ');
-      return this.setTypeFiltered(node, newType);
-    }
-    return this.setTypeFiltered(node, `${existingTypeNode.getText()} | ${type}`);
-  };
-
   static getType = (node: Node): Type => {
     if (Node.isVariableDeclaration(node)) {
       return this.getVariableDeclarationType(node).getBaseTypeOfLiteralType();
@@ -104,7 +83,7 @@ class TypeHandler {
     return `(${type1.getText()}) | (${type2.getText()})`;
   };
 
-  static combineTypeWithList = (type: Type, ...types: string[]): string | undefined => {
+  static combineTypeWithList = (type: Type, ...types: string[]): string => {
     const baseType = type.getBaseTypeOfLiteralType();
     if (TypeChecker.isAnyOrUnknown(baseType) && types.length > 0) {
       return types.map((t) => `(${t})`).join(' | ');
@@ -112,7 +91,7 @@ class TypeHandler {
     if (types.length > 0) {
       return `(${baseType.getText()}) | ${types.map((t) => `(${t})`).join(' | ')}`;
     }
-    return undefined;
+    return type.getText();
   };
 
   static getFilteredUnionTypes = (type: Type): Type[] => {

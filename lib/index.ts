@@ -49,9 +49,9 @@ const main = async (target: string) => {
   if (validTarget !== null) {
     const packageManager = DependencyInstaller.getPackageManager();
     const ignores = IgnoreConfigParser.getIgnores();
+    await basicSetup(packageManager);
     if (await lintProject(validTarget, ignores)) {
       addTsconfig(validTarget, ignores);
-      await basicSetup(packageManager);
       await installDependencies(packageManager);
       renameFiles(validTarget, ignores);
       renameScripts(validTarget);

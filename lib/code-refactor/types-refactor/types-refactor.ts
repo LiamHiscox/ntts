@@ -23,7 +23,9 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return undefined;
       }
-      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant) || Node.isParameterDeclaration(descendant)) {
+      if (Node.isVariableDeclaration(descendant)
+        || Node.isPropertyDeclaration(descendant)
+        || Node.isParameterDeclaration(descendant)) {
         return InterfaceHandler.createInterfaceFromObjectLiterals(descendant, project, target);
       }
       return undefined;

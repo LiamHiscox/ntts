@@ -5,7 +5,7 @@ export interface PackageListModel {
 }
 
 export interface PackageVersionModel {
-  dependencies: PackageListModel;
+  dependencies: PackageListModel | undefined;
 }
 
 export interface PackageModel {

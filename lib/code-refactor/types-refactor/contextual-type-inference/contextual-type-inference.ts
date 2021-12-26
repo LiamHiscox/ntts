@@ -19,10 +19,13 @@ class ContextualTypeInference {
   static inferTypeByContextualType = (declaration: VariableDeclaration | PropertyDeclaration | ParameterDeclaration) => {
     const type = TypeHandler.getType(declaration);
     const nameNode = declaration.getNameNode();
-    if ((type.isAny() || type.isUnknown()) && !Node.isObjectBindingPattern(nameNode) && !Node.isArrayBindingPattern(nameNode)) {
+    if (TypeChecker.isAnyOrUnknown(type) && !Node.isObjectBindingPattern(nameNode) && !Node.isArrayBindingPattern(nameNode)) {
       const newTypes = findReferences(declaration)
         .reduce((types: string[], ref) => types.concat(...this.checkReferences(ref, declaration)), []);
-      TypeHandler.addTypes(declaration, ...newTypes);
+      const combined = TypeHandler.combineTypeWithList(TypeHandler.getType(declaration), ...newTypes);
+      if (newTypes.length > 0) {
+        TypeHandler.setTypeFiltered(declaration, combined);
+      }
     }
   };
 

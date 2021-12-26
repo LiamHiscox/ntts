@@ -6,9 +6,10 @@ class InitialTypeHandler {
   static setInitialType = (declaration: VariableDeclaration | PropertyDeclaration) => {
     const initializer = declaration.getInitializer();
     const initializerType = initializer && TypeHandler.getType(initializer);
-    const currentType = TypeHandler.getType(declaration).getText();
-    if (initializerType && !TypeChecker.isAnyOrUnknown(initializerType) && initializerType.getText() !== currentType) {
-      TypeHandler.addType(declaration, initializerType.getText());
+    const currentType = TypeHandler.getType(declaration);
+    if (initializerType && !TypeChecker.isAnyOrUnknown(initializerType) && initializerType.getText() !== currentType.getText()) {
+      const combined = TypeHandler.combineTypes(declaration.getType(), initializerType);
+      TypeHandler.setTypeFiltered(declaration, combined);
     }
   };
 }

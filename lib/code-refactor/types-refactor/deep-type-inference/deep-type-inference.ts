@@ -15,11 +15,12 @@ import {
 } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
 import DeclarationFinder from '../../helpers/declaration-finder/declaration-finder';
-import { FieldDeclarationKind, FunctionKind, isFieldDeclaration } from '../../helpers/combined-types/combined-types';
-import { findReferencesAsNodes } from '../../helpers/reference-finder/reference-finder';
-import { getExpressionParent, getInnerExpression } from '../../helpers/expression-handler/expression-handler';
+import {FieldDeclarationKind, FunctionKind, isFieldDeclaration} from '../../helpers/combined-types/combined-types';
+import {findReferencesAsNodes} from '../../helpers/reference-finder/reference-finder';
+import {getExpressionParent, getInnerExpression} from '../../helpers/expression-handler/expression-handler';
 import TypeChecker from '../helpers/type-checker/type-checker';
 import BindingNameHandler from '../helpers/binding-name-handler/binding-name-handler';
+import TypeSimplifier from "../helpers/type-simplifier/type-simplifier";
 
 type LeftExpression =
   FunctionExpression
@@ -53,21 +54,30 @@ class DeepTypeInference {
 
   private static checkDeclarationUsage = (declaration: ReferenceFindableNode & Node) => {
     findReferencesAsNodes(declaration).forEach((ref) => {
-      const innerExpression = getExpressionParent(ref);
-      const parent = innerExpression?.getParent();
-      if (this.isCallOrNewExpression(parent) && innerExpression && parent.getExpression().getPos() !== innerExpression.getPos()) {
-        const _arguments = parent.getArguments();
-        const index = _arguments.findIndex((node) => node.getPos() === innerExpression.getPos());
-        const expression = this.getLeftExpression(parent.getExpression());
-        const argumentType = TypeHandler.getType(_arguments[index]);
-        if (!TypeChecker.isAnyOrUnknown(argumentType)) {
-          this.checkCallOrNewExpressionTarget(expression, index, argumentType);
-        }
-      } else if (isFieldDeclaration(parent) && parent.getInitializer()?.getPos() === ref.getPos()) {
-        this.checkDeclarationUsage(parent);
+      const parent = ref.getParent();
+      if (Node.isSpreadElement(parent)) {
+        this.checkReferenceNode(parent);
+      } else {
+        this.checkReferenceNode(ref);
       }
     });
   };
+
+  private static checkReferenceNode = (ref: Node) => {
+    const innerExpression = getExpressionParent(ref);
+    const parent = innerExpression?.getParent();
+    if (this.isCallOrNewExpression(parent) && innerExpression && parent.getExpression().getPos() !== innerExpression.getPos()) {
+      const _arguments = parent.getArguments();
+      const index = _arguments.findIndex((node) => node.getPos() === innerExpression.getPos());
+      const expression = this.getLeftExpression(parent.getExpression());
+      const argumentType = TypeHandler.getType(_arguments[index]);
+      if (!TypeChecker.isAnyOrUnknown(argumentType)) {
+        this.checkCallOrNewExpressionTarget(expression, index, argumentType);
+      }
+    } else if (isFieldDeclaration(parent) && parent.getInitializer()?.getPos() === ref.getPos()) {
+      this.checkDeclarationUsage(parent);
+    }
+  }
 
   private static checkCallOrNewExpressionTarget = (expression: LeftExpression | undefined, index: number, type: Type) => {
     if (Node.isIdentifier(expression) || Node.isPropertyAccessExpression(expression)) {
@@ -79,32 +89,51 @@ class DeepTypeInference {
   private static checkDeclaration = (declaration: Node, index: number, type: Type) => {
     if (Node.isClassDeclaration(declaration)
       || Node.isClassExpression(declaration)) {
-      declaration.getConstructors().forEach((c) => this.setParameterType(c, index, type));
+      declaration.getConstructors().forEach((c) => this.checkParameterType(c, index, type));
     }
     if (Node.isFunctionDeclaration(declaration)
       || Node.isMethodDeclaration(declaration)
       || Node.isFunctionExpression(declaration)
       || Node.isArrowFunction(declaration)) {
-      this.setParameterType(declaration, index, type);
+      this.checkParameterType(declaration, index, type);
     }
   };
 
-  private static setParameterType = (_function: FunctionTypes, index: number, type: Type) => {
+  private static checkParameterType = (_function: FunctionTypes, index: number, type: Type) => {
     const parameters = _function.getParameters();
     const lastParameter = parameters[parameters.length - 1];
-    const lastType = TypeHandler.getType(lastParameter).getArrayElementType()?.getText();
-    if (index >= parameters.length && lastParameter.isRestParameter() && type.getText() !== lastType) {
-      const parameter = TypeHandler.addArrayType(lastParameter, type.getText());
-      Node.isParameterDeclaration(parameter) && this.checkDeclarationUsage(parameter);
-    } else {
-      parameters.forEach((p, i) => {
-        if (i === index && type.getText() !== TypeHandler.getType(p).getText()) {
-          const parameter = TypeHandler.addType(p, type.getText());
-          Node.isParameterDeclaration(parameter) && this.checkDeclarationUsage(parameter);
-        }
-      });
+    if (index >= parameters.length && lastParameter.isRestParameter() && type.getText() !== TypeHandler.getType(lastParameter).getText()) {
+      this.setRestParameterType(lastParameter, `(${type.getText()})[]`);
+      return;
+    }
+    const parameter = parameters[index];
+    const parameterTypeText = TypeHandler.getType(parameter).getText();
+    if (parameter && parameter.isRestParameter() && type.getText() !== parameterTypeText) {
+      this.setRestParameterType(parameter, `(${type.getText()})[]`);
+      return;
+    }
+    if (parameter && type.getText() !== parameterTypeText) {
+      const combined = TypeHandler.combineTypes(TypeHandler.getType(parameter), type);
+      this.simplifyTypeNode(parameter, combined, parameterTypeText);
+      return;
     }
   };
+
+  private static setRestParameterType = (parameter: ParameterDeclaration, typeText: string) => {
+    const initialTypeText = TypeHandler.getType(parameter).getText();
+    const combined = TypeHandler.combineTypeWithList(TypeHandler.getType(parameter), typeText);
+    this.simplifyTypeNode(parameter, combined, initialTypeText);
+  }
+
+  private static simplifyTypeNode = (parameter: ParameterDeclaration, combined: string, initialTypeText: string) => {
+    const filteredParameter = TypeHandler.setTypeFiltered(parameter, combined);
+    const simplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(filteredParameter));
+    const newParameter = TypeHandler.setTypeFiltered(filteredParameter, simplified);
+    const newTypeText = TypeHandler.getType(newParameter).getText();
+    if (newTypeText !== initialTypeText && Node.isParameterDeclaration(newParameter)) {
+      this.checkDeclarationUsage(newParameter);
+    }
+  }
 
   private static isCallOrNewExpression = (node: Node | undefined): node is (CallExpression | NewExpression) =>
     Node.isNewExpression(node) || Node.isCallExpression(node);

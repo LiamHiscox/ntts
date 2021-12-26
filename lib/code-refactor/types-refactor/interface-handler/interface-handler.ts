@@ -20,6 +20,10 @@ type NameNodeKind = PropertyName | BindingName;
 
 class InterfaceHandler {
   static createInterfaceFromObjectLiterals = (declaration: DeclarationKind, project: Project, target: string) => {
+    const initializer = declaration.getInitializer();
+    if (initializer && (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer))) {
+      return;
+    }
     const initialTypeNode = declaration.getTypeNode();
     const typeNode = initialTypeNode || TypeHandler.getTypeNode(declaration);
     const nameNode = declaration.getNameNode();
@@ -30,6 +34,11 @@ class InterfaceHandler {
       declaration.removeType();
     }
   };
+
+  static validateDeclaration = (declaration: DeclarationKind) => {
+    const initializer = declaration.getInitializer();
+    return !initializer || (!Node.isArrowFunction(initializer) && !Node.isFunctionExpression(initializer));
+  }
 
   private static checkTypeLiteral = (
     typeLiteral: TypeLiteralNode,

@@ -37,6 +37,6 @@ test('should replace simple any and never types 3', () => {
 test('should replace implicit any', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile);
-  expect(sourceFile.getText()).toEqual('function fun (a: any);');
+  expect(sourceFile.getText()).toEqual('function fun (a: unknown);');
 });
 
