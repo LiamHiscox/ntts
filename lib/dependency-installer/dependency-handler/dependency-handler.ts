@@ -1,16 +1,16 @@
-import {ScriptRunner} from "../../helpers/script-runner/script-runner";
-import {existsSync, readFileSync} from "fs";
-import {join} from "path";
-import {PackageListModel, PackageVersionModel} from "../../models/package.model";
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
+import ScriptRunner from '../../helpers/script-runner/script-runner';
+import { PackageListModel, PackageVersionModel } from '../../models/package.model';
 
-export class DependencyHandler {
+class DependencyHandler {
   /**
    * @returns Promise<PackageListModel> object with all the dependencies pf the project
    */
   static installedPackages = async (): Promise<PackageListModel> => {
     const packageVersion = await ScriptRunner.runParsed<PackageVersionModel>('npm ls --json');
-    return packageVersion.dependencies;
-  }
+    return packageVersion.dependencies || {};
+  };
 
   /**
    * @param packageName the name the package to check if it has types already provided
@@ -22,9 +22,10 @@ export class DependencyHandler {
       return true;
     }
     const fullPath = join(pathToPackage, 'package.json');
-    const packageJSON = JSON.parse(readFileSync(fullPath, {encoding: 'utf-8'})) as { [key: string]: any };
-    return packageJSON.hasOwnProperty('types') || packageJSON.hasOwnProperty('typings');
-  }
+    const packageJSON = JSON.parse(readFileSync(fullPath, { encoding: 'utf-8' })) as { [key: string]: unknown };
+    return Object.prototype.hasOwnProperty.call(packageJSON, 'types')
+      || Object.prototype.hasOwnProperty.call(packageJSON, 'typings');
+  };
 
   /**
    * @param packageName format a package name to the appropriate type definitions format
@@ -33,19 +34,16 @@ export class DependencyHandler {
     if (DependencyHandler.isScoped(packageName)) {
       const formattedName = packageName.substring(1).replace('/', '__');
       return `@types/${formattedName}`;
-    } else {
-      return `@types/${packageName}`;
     }
-  }
+    return `@types/${packageName}`;
+  };
 
   /**
    * @param packageName the package name to check if it already is a type definition package
    */
-  static isTypeDefinition = (packageName: string): boolean => {
-    return /^@types\/.+$/.test(packageName);
-  }
+  static isTypeDefinition = (packageName: string): boolean => /^@types\/.+$/.test(packageName);
 
-  private static isScoped = (packageName: string): boolean => {
-    return /^@.+\/.+$/.test(packageName);
-  }
+  private static isScoped = (packageName: string): boolean => /^@.+\/.+$/.test(packageName);
 }
+
+export default DependencyHandler;

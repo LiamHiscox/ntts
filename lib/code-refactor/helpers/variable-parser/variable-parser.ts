@@ -5,19 +5,16 @@ import {
   Identifier,
   Node,
   ObjectBindingPattern,
-  OmittedExpression
-} from "ts-morph";
+  OmittedExpression,
+} from 'ts-morph';
 
-export class VariableParser {
+class VariableParser {
   static getIdentifiers = (nameNode: BindingName, result: Identifier[] = []): Identifier[] => {
-    if (Node.isObjectBindingPattern(nameNode))
-      return this.parseBindingPattern(nameNode, result);
-    if (Node.isArrayBindingPattern(nameNode))
-      return this.parseBindingPattern(nameNode, result);
-    if (Node.isIdentifier(nameNode))
-      return result.concat(nameNode);
+    if (Node.isObjectBindingPattern(nameNode)) { return this.parseBindingPattern(nameNode, result); }
+    if (Node.isArrayBindingPattern(nameNode)) { return this.parseBindingPattern(nameNode, result); }
+    if (Node.isIdentifier(nameNode)) { return result.concat(nameNode); }
     return [];
-  }
+  };
 
   private static parseBindingPattern = (nameNode: ArrayBindingPattern|ObjectBindingPattern, result: Identifier[]): Identifier[] => {
     const arrayIdentifiers = nameNode
@@ -28,7 +25,9 @@ export class VariableParser {
           return identifiers.concat(res);
         }
         return identifiers;
-      }, new Array<Identifier>());
+      }, []);
     return result.concat(arrayIdentifiers);
-  }
+  };
 }
+
+export default VariableParser;

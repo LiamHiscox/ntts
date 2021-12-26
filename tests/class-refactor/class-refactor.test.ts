@@ -1,10 +1,21 @@
-import {Project} from "ts-morph";
-import {ClassRefactor} from "../../lib/code-refactor/class-refactor/class-refactor";
+import { Project } from 'ts-morph';
+import ClassRefactor from '../../lib/code-refactor/class-refactor/class-refactor';
+import {existsSync} from "fs";
+import fs from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 const content = `
 class Car {
@@ -42,8 +53,7 @@ class Car {
 }
 `;
 
-const expectedContent =
-`class Car {
+const expectedContent = `class Car {
     mile;
     speed;
   private year;
@@ -81,7 +91,7 @@ const expectedContent =
 `;
 
 test('should refactor simple class', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', content, {overwrite: true});
+  const sourceFile = project.createSourceFile('standard-require.ts', content, { overwrite: true });
   ClassRefactor.toTypeScriptClasses(sourceFile);
   expect(sourceFile.getText()).toEqual(expectedContent);
 });

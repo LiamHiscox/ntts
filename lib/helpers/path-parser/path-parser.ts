@@ -1,5 +1,5 @@
-export class PathParser {
-  static win32ToPosixPath = (path: string): string => {
-    return path.split('\\').join('/');
-  }
+class PathParser {
+  static win32ToPosixPath = (path: string): string => path.split(/\\+/).join('/');
 }
+
+export default PathParser;

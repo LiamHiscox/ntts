@@ -1,9 +1,9 @@
-import {readFileSync, writeFileSync} from "fs";
-import {PackageJsonModel, Scripts} from "../models/package-json.model";
-import {resolve} from "path";
-import {Logger} from "../logger/logger";
-import {FileRename} from "../file-rename/file-rename";
-import {TsconfigHandler} from "../tsconfig-handler/tsconfig-handler";
+import { readFileSync, writeFileSync } from 'fs';
+import { resolve } from 'path';
+import { PackageJsonModel, Scripts } from '../models/package-json.model';
+import Logger from '../logger/logger';
+import FileRename from '../file-rename/file-rename';
+import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
 
 interface NodeCliModel {
   preNodeArguments: string[];
@@ -13,32 +13,31 @@ interface NodeCliModel {
   arguments: string[];
 }
 
-export class PackageJsonHandler {
-  private static isNodeScript = (script: string): boolean => {
-    return /^(.*? +)?node(?! +inspect)(\s+-.*?)* [^\-\s].*$/.test(script);
-  }
+class PackageJsonHandler {
+  private static isNodeScript = (script: string): boolean => /^(.*? +)?node(?! +inspect)(\s+-.*?)* [^\-\s].*$/.test(script);
 
-  private static parseNodeScript = (script: string): NodeCliModel => {
-    return script
-      .replace(/\s+/g, ' ')
-      .split(' ')
-      .reduce((acc: NodeCliModel, parameter: string) => {
-        if (!acc.node && parameter !== 'node') {
-          return {...acc, preNodeArguments: [...acc.preNodeArguments, parameter]};
-        } if (!acc.node && parameter === 'node') {
-          return {...acc, node: true};
-        } if (!acc.scriptFile && parameter.startsWith('-')) {
-          return {...acc, options: [...acc.options, parameter]};
-        } if (!acc.scriptFile) {
-          return {...acc, scriptFile: FileRename.renameFileName(parameter)};
-        }
-        return {...acc, arguments: [...acc.arguments, parameter]};
-      }, {preNodeArguments: [], node: false, options: [], arguments: []});
-  }
+  private static parseNodeScript = (script: string): NodeCliModel => script
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .reduce((acc: NodeCliModel, parameter: string) => {
+      if (!acc.node && parameter !== 'node') {
+        return { ...acc, preNodeArguments: [...acc.preNodeArguments, parameter] };
+      }
+      if (!acc.node && parameter === 'node') {
+        return { ...acc, node: true };
+      }
+      if (!acc.scriptFile && parameter.startsWith('-')) {
+        return { ...acc, options: [...acc.options, parameter] };
+      }
+      if (!acc.scriptFile) {
+        return { ...acc, scriptFile: FileRename.renameFileName(parameter) };
+      }
+      return { ...acc, arguments: [...acc.arguments, parameter] };
+    }, {
+      preNodeArguments: [], node: false, options: [], arguments: [],
+    });
 
-  private static fileInTargetPath = (path: string, file?: string): boolean => {
-    return !!file && resolve(file).startsWith(resolve(path));
-  }
+  private static fileInTargetPath = (path: string, file?: string): boolean => !!file && resolve(file).startsWith(resolve(path));
 
   private static transformNodeScript = (script: string, path: string, tsconfig: string): string => {
     const trimmed = script.trim();
@@ -47,39 +46,40 @@ export class PackageJsonHandler {
     }
     const parsedScript = this.parseNodeScript(trimmed);
     if (this.fileInTargetPath(path, parsedScript.scriptFile)) {
-      return (`${parsedScript.preNodeArguments.join(' ')} ts-node -P ${tsconfig} ${parsedScript.scriptFile} ${parsedScript.arguments.join(' ')}`).trim();
+      return (`${parsedScript.preNodeArguments.join(' ')} ts-node -P `
+        + `${tsconfig} ${parsedScript.scriptFile} ${parsedScript.arguments.join(' ')}`).trim();
     }
     return trimmed;
-  }
+  };
 
-  private static splitScript = (script: string): string[] => {
-    return script.split(' && ').reduce((acc, s) => acc.concat(s.split(' & ')), new Array<string>());
-  }
+  private static splitScript = (script: string): string[] => script
+    .split(' && ')
+    .reduce((acc: string[], s) => acc.concat(s.split(' & ')), []);
 
-  private static joinScripts = (scripts: string[], connectors: RegExpMatchArray | null) => {
-    return scripts.reduce((acc, s, index) => {
-      if (index == 0) {
+  private static joinScripts = (scripts: string[], connectors: RegExpMatchArray | null) => scripts
+    .reduce((acc, s, index) => {
+      if (index === 0) {
         return s;
       }
-      return acc + (connectors ? connectors[index-1] : ' && ') + s;
+      return acc + (connectors ? connectors[index - 1] : ' && ') + s;
     }, '');
-  }
 
   private static uniqueName = (scripts: Scripts, name: string, counter: number): string => {
     const newName = `${name}-${counter}`;
-    if (scripts.hasOwnProperty(newName)) {
-      return this.uniqueName(scripts, name, ++counter);
+    if (Object.prototype.hasOwnProperty.call(scripts, newName)) {
+      const newCounter = counter + 1;
+      return this.uniqueName(scripts, name, newCounter);
     }
     return newName;
-  }
+  };
 
   private static addTscScriptName = (scripts: Scripts, name: string, script: string): Scripts => {
-    if (scripts.hasOwnProperty(name)) {
+    if (Object.prototype.hasOwnProperty.call(scripts, name)) {
       const newName = this.uniqueName(scripts, name, 1);
-      return {...scripts, [newName]: script};
+      return { ...scripts, [newName]: script };
     }
-    return {...scripts, [name]: script};
-  }
+    return { ...scripts, [name]: script };
+  };
 
   /**
    * @param packageJson the package.json content to change the main target in
@@ -87,10 +87,10 @@ export class PackageJsonHandler {
    */
   static changeMainFile = (packageJson: PackageJsonModel, target: string): PackageJsonModel => {
     if (packageJson.main && this.fileInTargetPath(target, packageJson.main)) {
-      return {...packageJson, "main": FileRename.renameFileName(packageJson.main)};
+      return { ...packageJson, main: FileRename.renameFileName(packageJson.main) };
     }
     return packageJson;
-  }
+  };
 
   /**
    * @param scripts the existing scripts in the package.json
@@ -105,29 +105,29 @@ export class PackageJsonHandler {
       .entries(fullScripts)
       .reduce((acc: Scripts, [name, script]: [string, string]) => {
         const connectors = script.match(/ +[&]{1,2} +/g);
-        const transformed = this.splitScript(script).map(s => this.transformNodeScript(s, path, tsconfig));
+        const transformed = this.splitScript(script).map((s) => this.transformNodeScript(s, path, tsconfig));
         const result = this.joinScripts(transformed, connectors);
-        return {...acc, [name]: result};
+        return { ...acc, [name]: result };
       }, {});
-  }
+  };
 
   /**
    * @returns PackageJsonHandler the parsed contents of the root package.json
    */
   static readPackageJson = (): PackageJsonModel => {
-    const packageJson = JSON.parse(readFileSync('package.json', {encoding: 'utf-8'}));
-    if (!packageJson.hasOwnProperty('scripts')) {
-      return {...packageJson, scripts: {}} as PackageJsonModel;
+    const packageJson = JSON.parse(readFileSync('package.json', { encoding: 'utf-8' }));
+    if (!Object.prototype.hasOwnProperty.call(packageJson, 'scripts')) {
+      return { ...packageJson, scripts: {} } as PackageJsonModel;
     }
     return packageJson as PackageJsonModel;
-  }
+  };
 
   /**
    * @param packageJson writes to the root package.json
    */
   static writePackageJson = (packageJson: PackageJsonModel) => {
     writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
-  }
+  };
 
   /**
    * @param target the target folder to refactor the files in
@@ -137,7 +137,9 @@ export class PackageJsonHandler {
     Logger.info('Adding new scripts to package.json');
     const packageJson = this.changeMainFile(PackageJsonHandler.readPackageJson(), target);
     const scripts = PackageJsonHandler.addTsScripts(packageJson.scripts, target);
-    PackageJsonHandler.writePackageJson({...packageJson, scripts});
+    PackageJsonHandler.writePackageJson({ ...packageJson, scripts });
     Logger.success('Scripts added to package.json!');
-  }
+  };
 }
+
+export default PackageJsonHandler;

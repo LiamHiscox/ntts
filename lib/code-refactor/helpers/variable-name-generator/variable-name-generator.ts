@@ -1,29 +1,41 @@
-import {reservedKeywords} from "../../../assets/reserved-keywords";
+import reservedKeywords from '../../../assets/reserved-keywords';
 
-export class VariableNameGenerator {
+class VariableNameGenerator {
   static variableNameFromImportId = (importId: string) => {
-    const newName = importId
+    const splitPath = importId.split('/');
+    const newName = splitPath[splitPath.length - 1]
+      .replace(/\.ts$/, '')
       .replace(/[^_\d\w$]/g, '_')
       .replace(/^_+/, '')
       .replace(/_+$/, '');
     if (newName.match(/^\d.*$/)) {
-      return '_' + newName;
+      return `_${newName}`;
+    }
+    if (!newName) {
+      return '_';
     }
     return newName;
-  }
+  };
 
   static getUsableVariableName = (name: string, usedNames: string[]) => {
-    if (usedNames.includes(name) || reservedKeywords.includes(name)) {
-      return this.iterateVariableNames(name, 0, usedNames);
+    if (!usedNames.includes(name) && !reservedKeywords.includes(name)) {
+      return name;
     }
-    return name;
-  }
+    const underscoreName = `_${name}`;
+    if (!usedNames.includes(underscoreName) && !reservedKeywords.includes(underscoreName)) {
+      return underscoreName;
+    }
+    return this.iterateVariableNames(name, 0, usedNames);
+  };
 
   private static iterateVariableNames = (name: string, counter: number, usedNames: string[]): string => {
     const newName = name + counter;
     if (usedNames.includes(newName) || reservedKeywords.includes(newName)) {
-      return this.iterateVariableNames(name, ++counter, usedNames);
+      const newCounter = counter + 1;
+      return this.iterateVariableNames(name, newCounter, usedNames);
     }
     return newName;
-  }
+  };
 }
+
+export default VariableNameGenerator;

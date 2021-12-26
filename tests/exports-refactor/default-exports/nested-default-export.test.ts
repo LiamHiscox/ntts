@@ -1,37 +1,72 @@
-import {Project} from "ts-morph";
-import {ExportsRefactor} from "../../../lib/code-refactor/exports-refactor/exports-refactor";
+import {Project} from 'ts-morph';
+import ExportsRefactor from '../../../lib/code-refactor/exports-refactor/exports-refactor';
+import fs, {existsSync} from "fs";
 
-const project = new Project({
-  tsConfigFilePath: 'tsconfig.json',
-  skipAddingFilesFromTsConfig: true
-});
+let project: Project;
+
+beforeEach(() => {
+  project = new Project({
+    tsConfigFilePath: 'tsconfig.json',
+    skipAddingFilesFromTsConfig: true,
+  });
+})
+
+afterEach(() => {
+  if (existsSync('ntts-generated-models.ts')) {
+    fs.unlinkSync('ntts-generated-models.ts');  }
+})
 
 test('should refactor nested default export', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', 'if (true) module.exports = 2;', {overwrite: true});
+  const sourceFile = project.createSourceFile(
+    'standard-require.ts',
+    'if (true) module.exports = 2;',
+    {overwrite: true},
+  );
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('let _default;\n\nif (true) _default = 2;\n\nexport default _default;\n');
+  expect(sourceFile.getText())
+    .toEqual('let standard_require;\n\nif (true) standard_require = 2;\n\nexport default standard_require;\n');
 });
 
 test('should refactor nested element access default export', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', 'if (true) module.exports["item"] = 2;', {overwrite: true});
+  const sourceFile = project.createSourceFile(
+    'standard-require.ts',
+    'if (true) module.exports["item"] = 2;',
+    {overwrite: true},
+  );
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('let _default = {};\n\nif (true) _default["item"] = 2;\n\nexport default _default;\n');
+  expect(sourceFile.getText())
+    .toEqual('let standard_require = {};\n\nif (true) standard_require["item"] = 2;\n\nexport default standard_require;\n');
 });
 
 test('should refactor nested shorthand default export', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', 'if (true) exports = 2;', {overwrite: true});
+  const sourceFile = project.createSourceFile(
+    'standard-require.ts',
+    'if (true) exports = 2;',
+    {overwrite: true},
+  );
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('let _default;\n\nif (true) _default = 2;\n\nexport default _default;\n');
+  expect(sourceFile.getText())
+    .toEqual('let standard_require;\n\nif (true) standard_require = 2;\n\nexport default standard_require;\n');
 });
 
 test('should refactor nested identifier default export', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', 'let item = 2;\nif (true) module.exports = item;', {overwrite: true});
+  const sourceFile = project.createSourceFile(
+    'standard-require.ts',
+    'let item = 2;\nif (true) module.exports = item;',
+    {overwrite: true},
+  );
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('let item = 2;\nlet _default;\n\nif (true) _default = item;\n\nexport default _default;\n');
+  expect(sourceFile.getText())
+    .toEqual('let item = 2;\nlet standard_require;\n\nif (true) standard_require = item;\n\nexport default standard_require;\n');
 });
 
 test('should refactor nested export with nested default identifier', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', 'if (true) {\nlet item = 2;\nmodule.exports = item;\n}', {overwrite: true});
+  const sourceFile = project.createSourceFile(
+    'standard-require.ts',
+    'if (true) {\nlet item = 2;\nmodule.exports = item;\n}',
+    {overwrite: true},
+  );
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('let _default;\n\nif (true) {\nlet item = 2;\n_default = item;\n}\n\nexport default _default;\n');
+  expect(sourceFile.getText())
+    .toEqual('let standard_require;\n\nif (true) {\nlet item = 2;\nstandard_require = item;\n}\n\nexport default standard_require;\n');
 });

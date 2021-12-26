@@ -1,19 +1,23 @@
-import {appendFileSync, existsSync, writeFileSync} from "fs";
-import {TsconfigHandler} from "../tsconfig-handler/tsconfig-handler";
+import { appendFileSync, existsSync, writeFileSync } from 'fs';
+import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
 
-export class ModuleDeclarator {
-  static handleUntypedPackages = (untyped: string[], fileEndings: boolean = false): void => {
-    if (untyped.length > 0) {
-      const modules = fileEndings ?
-        untyped.map(file => `declare module "*.${file}";`) :
-        untyped.map(file => `declare module "${file}";\ndeclare module "${file}/*";`);
-      const moduleFile = './ntts-modules.d.ts';
-      if (existsSync(moduleFile)) {
-        appendFileSync(moduleFile, modules.join('\n'));
-      } else {
-        writeFileSync(moduleFile, modules.join('\n'));
-        TsconfigHandler.addModuleFile('./ntts-modules.d.ts');
-      }
+const moduleFile = './ntts-modules.d.ts';
+
+class ModuleDeclarator {
+  static handleUntypedPackages = (untyped: string[], fileEndings = false): void => {
+    if (untyped.length <= 0) { return undefined; }
+    const modules = this.getModules(untyped, fileEndings);
+    if (!existsSync(moduleFile)) {
+      writeFileSync(moduleFile, `${modules.join('\n')}\n`);
+      return TsconfigHandler.addModuleFile('./ntts-modules.d.ts');
     }
-  }
+    return appendFileSync(moduleFile, `${modules.join('\n')}\n`);
+  };
+
+  private static getModules = (untyped: string[], fileEndings: boolean) => {
+    if (fileEndings) { return untyped.map((file) => `declare module "*.${file}";`); }
+    return untyped.map((file) => `declare module "${file}";\ndeclare module "${file}/*";`);
+  };
 }
+
+export default ModuleDeclarator;

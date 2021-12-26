@@ -1,10 +1,9 @@
-import {Dirent, readdirSync, renameSync} from "fs";
-import {join} from "path";
-import ignore, {Ignore} from "ignore";
-import {Logger} from "../logger/logger";
+import { Dirent, readdirSync, renameSync } from 'fs';
+import { join } from 'path';
+import ignore, { Ignore } from 'ignore';
+import Logger from '../logger/logger';
 
-
-export class FileRename {
+class FileRename {
   private static javaScriptEnding = /\.[mc]?js$/g;
 
   /**
@@ -15,35 +14,29 @@ export class FileRename {
     Logger.info('Renaming all JavaScript files');
     FileRename.findFiles(ignores, target || '.');
     Logger.success('All JavaScript files renamed to TypeScript files');
-  }
+  };
 
   /**
    * @param file the filename of the javascript file to change
    * @returns string returns the formatted filename
    */
-  static renameFileName = (file: string): string => {
-    return file.replace(this.javaScriptEnding, '.ts');
-  }
+  static renameFileName = (file: string): string => file.replace(this.javaScriptEnding, '.ts');
 
   /**
    * @param file the filename of the javascript file to change
    * @returns string returns the formatted filename
    */
-  static replaceEnding = (file: string): string => {
-    return file.replace(this.javaScriptEnding, '');
-  }
+  static replaceEnding = (file: string): string => file.replace(this.javaScriptEnding, '');
 
   /**
    * @param file the filename to check if it is JavaScript
    * @returns boolean returns if the file is JavaScript or not
    */
-  static isJavaScriptFile = (file: string): boolean => {
-    return this.javaScriptEnding.test(file);
-  }
+  static isJavaScriptFile = (file: string): boolean => this.javaScriptEnding.test(file);
 
   private static renameFile = (file: string): void => {
     renameSync(file, this.renameFileName(file));
-  }
+  };
 
   private static checkDirectoryEntry = (item: Dirent, path: string, ig: Ignore, ignoreList: string[]) => {
     const fullPath = join(path, item.name);
@@ -53,11 +46,13 @@ export class FileRename {
     if (item.isDirectory() && !ig.ignores(fullPath)) {
       this.findFiles(ignoreList, fullPath);
     }
-  }
+  };
 
   private static findFiles = (ignoreList: string[], path: string): void => {
     const ig = ignore().add(ignoreList);
-    readdirSync(path, {withFileTypes: true})
-      .forEach(item => this.checkDirectoryEntry(item, path, ig, ignoreList))
-  }
+    readdirSync(path, { withFileTypes: true })
+      .forEach((item) => this.checkDirectoryEntry(item, path, ig, ignoreList));
+  };
 }
+
+export default FileRename;

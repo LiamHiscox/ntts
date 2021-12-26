@@ -1,27 +1,26 @@
 import {
   BinaryExpression,
-  ElementAccessExpression,
-  Identifier,
-  PropertyAccessExpression,
   SourceFile,
-  VariableDeclarationKind
-} from "ts-morph";
-import {ExportedVariableModel} from "../../../models/exported-variable.model";
-import {VariableNameGenerator} from "../../helpers/variable-name-generator/variable-name-generator";
-import {VariableCreator} from "../helpers/variable-creator";
-import {ExportParser} from "../helpers/export-parser";
+  VariableDeclarationKind,
+} from 'ts-morph';
+import ExportedVariableModel from '../../../models/exported-variable.model';
+import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator';
+import VariableCreator from '../helpers/variable-creator';
+import ExportParser from '../helpers/export-parser';
+import { AccessExpressionKind } from '../../helpers/combined-types/combined-types';
 
-export class NestedRefactor {
-  static refactorNestedExport = (exportName: string,
-                                 binary: BinaryExpression,
-                                 accessExpression: Identifier | PropertyAccessExpression | ElementAccessExpression,
-                                 exportedVariables: ExportedVariableModel[],
-                                 usedNames: string[],
-                                 defaultExport: boolean,
-                                 sourceFile: SourceFile
+class NestedRefactor {
+  static refactorNestedExport = (
+    exportName: string,
+    binary: BinaryExpression,
+    accessExpression: AccessExpressionKind,
+    exportedVariables: ExportedVariableModel[],
+    usedNames: string[],
+    defaultExport: boolean,
+    sourceFile: SourceFile,
   ): ExportedVariableModel[] => {
     const exported = ExportParser.exportVariableExists(exportName, exportedVariables, defaultExport);
-    const exportedNames = exportedVariables.map(e => e.name);
+    const exportedNames = exportedVariables.map((e) => e.name);
     if (exported) {
       sourceFile.getVariableStatementOrThrow(exported.name).setDeclarationKind(VariableDeclarationKind.Let);
       accessExpression.replaceWithText(exported.name);
@@ -33,7 +32,9 @@ export class NestedRefactor {
     return exportedVariables.concat({
       name: usableName,
       alias: exportName !== usableName ? exportName : undefined,
-      defaultExport
+      defaultExport,
     });
-  }
+  };
 }
+
+export default NestedRefactor;
