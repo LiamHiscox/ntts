@@ -232,7 +232,7 @@ fun ((resolve, reject) => { return 12; })`,
   const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.FunctionDeclaration);
   ParameterTypeInference.inferFunctionDeclarationParameterTypes(_function);
   expect(sourceFile.getText()).toEqual(
-    `function fun (a: (resolve: any, reject?: any) => number | void) {}
+    `function fun (a: (resolve: any, reject: any) => number | void) {}
 fun ((resolve) => {})
 fun ((resolve, reject) => { return 12; })`,
   );

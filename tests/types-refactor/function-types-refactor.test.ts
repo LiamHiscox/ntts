@@ -32,5 +32,5 @@ test('simplify function union type node', () => {
   if (simplified) {
     TypeHandler.setTypeFiltered(declaration, simplified);
   }
-  expect(sourceFile.getText()).toEqual('const cb: (resolve: any, reject?: any) => Promise<void> | NodeJS.Timeout;');
+  expect(sourceFile.getText()).toEqual('const cb: (resolve: any, reject: any) => Promise<void> | NodeJS.Timeout;');
 });
