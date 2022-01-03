@@ -65,14 +65,14 @@ yargs
   .command(
     'refactor',
     'refactor an existing Node.js application to support TypeScript',
-    (args) => {
-      args.option('t', {
+    {
+      't': {
         alias: 'target',
         type: 'string',
         describe: 'Provide the target folder to refactor the files in',
         default: '.',
-      });
+      }
     },
-    async ({ target }: Arguments<{ target: string }>) => main(target),
+    async ({ t }: Arguments<{ t: string }>) => main(t),
   )
   .argv;
