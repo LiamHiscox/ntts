@@ -16,12 +16,10 @@ import NestedRefactor from './nested-refactor/nested-refactor';
 import ExportRename from './export-rename/export-rename';
 import VariableNameGenerator from '../helpers/variable-name-generator/variable-name-generator';
 import VariableCreator from './helpers/variable-creator';
-import Logger from '../../logger/logger';
 import { AccessExpressionKind } from '../helpers/combined-types/combined-types';
 
 class ExportsRefactor {
   static moduleExportsToExport = (sourceFile: SourceFile) => {
-    Logger.info(sourceFile.getFilePath());
     const usedNames = UsedNames.getDeclaredNames(sourceFile);
 
     const exportedVariables = sourceFile

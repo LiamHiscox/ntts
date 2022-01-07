@@ -9,81 +9,24 @@ import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.mo
 import Logger from '../logger/logger';
 import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
 import TypesRefactor from './types-refactor/types-refactor';
+import {generateProgressBar} from "./helpers/generate-progress-bar/generate-progress-bar";
 
 class CodeRefactor {
   static convertToTypescript = (project: Project, target: string) => {
-    Logger.info('Refactoring exports');
-    project.getSourceFiles().forEach(ExportsRefactor.moduleExportsToExport);
-    Logger.success('Exports refactored');
-    project.saveSync();
-
-    Logger.info('Refactoring requires to imports');
-    const modulesResult = project.getSourceFiles()
-      .reduce((moduleSpecifierResult: ModuleSpecifierRefactorModel, sourceFile) => {
-        Logger.info(sourceFile.getFilePath());
-        ImportsRefactor.requiresToImports(sourceFile);
-        ImportsRefactor.refactorImportClauses(sourceFile);
-        return ImportsRefactor.reformatImports(sourceFile, moduleSpecifierResult);
-      }, { fileEndings: [] });
-    ImportsRefactor.resolveModuleSpecifierResults(modulesResult);
-    Logger.success('Requires refactored');
-    project.saveSync();
-
-    Logger.info('Refactoring classes');
-    project.getSourceFiles().forEach(ClassRefactor.toTypeScriptClasses);
-    Logger.success('Classes refactored');
-    project.saveSync();
-
-    Logger.info('Generating interfaces from object literal types');
-    project.getSourceFiles().forEach((s) => TypesRefactor.createInterfacesFromObjectTypes(s, project, target));
-    Logger.success('Generated interfaces from object literal types where possible');
-    project.saveSync();
-
-    Logger.info('Declaring parameter types by usage');
-    project.getSourceFiles().forEach(TypesRefactor.inferParameterTypes);
-    project.getSourceFiles().forEach(TypesRefactor.inferParameterTypes);
-    Logger.success('Parameter type declared where possible');
-    project.saveSync();
-
-    Logger.info('Declaring variable and property types by initialization');
-    project.getSourceFiles().forEach(TypesRefactor.setInitialTypes);
-    Logger.success('Declared variable and property types by initialization');
-    project.saveSync();
-
-    Logger.info('Declaring variable and property types by write access');
-    project.getSourceFiles().forEach((s) => TypesRefactor.inferWriteAccessType(s, project, target));
-    Logger.success('Variable and Property type declared where possible');
-    project.saveSync();
-
-    Logger.info('Checking usage of generated interfaces for additional Properties and types');
-    project.getSourceFiles().forEach((s) => TypesRefactor.addPropertiesFromUsageOfInterface(s, project, target));
-    Logger.success('Defined type and added properties to interfaces where possible');
-    project.saveSync();
-
-    Logger.info('Checking usage of properties of generated interfaces for write access');
-    TypesRefactor.checkInterfaceProperties(project, target);
-    Logger.success('Checked write access of properties of interfaces where possible');
-    project.saveSync();
-
-    Logger.info('Inferring type of untyped declarations by contextual type');
-    project.getSourceFiles().forEach(TypesRefactor.inferContextualType);
-    Logger.success('Inferred type where possible');
-    project.saveSync();
-
-    Logger.info('Replacing types any and never with unknown');
-    project.getSourceFiles().forEach(TypesRefactor.replaceInvalidTypes);
-    Logger.success('Replaced types any and never with unknown where possible');
-    project.saveSync();
-
-    Logger.info('Merging duplicate interfaces');
-    TypesRefactor.mergeDuplicateInterfaces(project, target);
-    Logger.success('Merged duplicate interfaces where possible');
-    project.saveSync();
-
-    Logger.info('Refactoring import types to simple type references and importing global variables');
-    project.getSourceFiles().forEach(TypesRefactor.refactorImportTypesAndTypeReferences);
-    Logger.success('Refactored import types to simple type references and imported global variables where possible');
-    project.saveSync();
+    this.refactorExports(project);
+    this.refactorImports(project);
+    this.refactorClasses(project);
+    this.generateInterfaces(project, target);
+    this.inferParameterTypes(project);
+    this.inferParameterTypes(project);
+    this.setInitialTypes(project);
+    this.inferWriteAccessType(project, target);
+    this.checkInterfaceUsage(project, target);
+    this.checkInterfaceWriteAccess(project, target);
+    this.inferContextualType(project);
+    this.replaceAnyAndUnknown(project);
+    this.mergingInterfaces(project, target);
+    this.refactorImportTypesAndGlobalVariables(project);
   };
 
   static addSourceFiles = (ignores: string[], path: string): Project => {
@@ -103,12 +46,7 @@ class CodeRefactor {
     return project;
   };
 
-  private static checkDirectoryEntry = (
-    project: Project,
-    item: Dirent,
-    path: string,
-    ig: Ignore,
-  ): Project => {
+  private static checkDirectoryEntry = (project: Project, item: Dirent, path: string, ig: Ignore): Project => {
     const fullPath = join(path, item.name);
     const ignores = ig.ignores(fullPath);
 
@@ -120,6 +58,143 @@ class CodeRefactor {
     }
     return project;
   };
+
+  private static refactorExports = (project: Project) => {
+    Logger.info('Refactoring exports');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      ExportsRefactor.moduleExportsToExport(s);
+      bar.tick();
+    });
+    Logger.success('Exports refactored');
+  }
+
+  private static refactorImports = (project: Project) => {
+    Logger.info('Refactoring requires to imports');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    const modulesResult = sourceFiles.reduce((moduleSpecifierResult: ModuleSpecifierRefactorModel, s) => {
+      ImportsRefactor.requiresToImports(s);
+      ImportsRefactor.refactorImportClauses(s);
+      const result = ImportsRefactor.reformatImports(s, moduleSpecifierResult);
+      bar.tick();
+      return result;
+    }, {fileEndings: []});
+    ImportsRefactor.resolveModuleSpecifierResults(modulesResult);
+    Logger.success('Requires refactored');
+  }
+
+  private static refactorClasses = (project: Project) => {
+    Logger.info('Refactoring classes');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      ClassRefactor.toTypeScriptClasses(s);
+      bar.tick();
+    });
+    Logger.success('Classes refactored');
+  }
+
+  private static generateInterfaces = (project: Project, target: string) => {
+    Logger.info('Generating interfaces from object literal types');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    project.getSourceFiles().forEach((s) => {
+      TypesRefactor.createInterfacesFromObjectTypes(s, project, target);
+      bar.tick();
+    });
+    Logger.success('Generated interfaces from object literal types where possible');
+  }
+
+  private static inferParameterTypes = (project: Project) => {
+    Logger.info('Declaring parameter types by usage');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach(s => {
+      TypesRefactor.inferParameterTypes(s);
+      bar.tick();
+    });
+    Logger.success('Parameter type declared where possible');
+  }
+
+  private static setInitialTypes = (project: Project) => {
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    Logger.info('Declaring variable and property types by initialization');
+    sourceFiles.forEach((s) => {
+      TypesRefactor.setInitialTypes(s);
+      bar.tick();
+    });
+    Logger.success('Declared variable and property types by initialization');
+  }
+
+  private static inferWriteAccessType = (project: Project, target: string) => {
+    Logger.info('Declaring variable and property types by write access');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.inferWriteAccessType(s, project, target);
+      bar.tick();
+    });
+    Logger.success('Variable and Property type declared where possible');
+  };
+
+  private static checkInterfaceUsage(project: Project, target: string) {
+    Logger.info('Checking usage of generated interfaces for additional Properties and types');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.addPropertiesFromUsageOfInterface(s, project, target);
+      bar.tick();
+    });
+    Logger.success('Defined type and added properties to interfaces where possible');
+  }
+
+  private static checkInterfaceWriteAccess = (project: Project, target: string) => {
+    Logger.info('Checking usage of properties of generated interfaces for write access');
+    TypesRefactor.checkInterfaceProperties(project, target);
+    Logger.success('Checked write access of properties of interfaces where possible');
+  }
+
+  private static inferContextualType = (project: Project) => {
+    Logger.info('Inferring type of untyped declarations by contextual type');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.inferContextualType(s);
+      bar.tick();
+    });
+    Logger.success('Inferred type where possible');
+  }
+
+  private static replaceAnyAndUnknown = (project: Project) => {
+    Logger.info('Replacing types any and never with unknown');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.replaceInvalidTypes(s);
+      bar.tick();
+    });
+    Logger.success('Replaced types any and never with unknown where possible');
+  }
+
+  private static mergingInterfaces = (project: Project, target: string) => {
+    Logger.info('Merging duplicate interfaces');
+    TypesRefactor.mergeDuplicateInterfaces(project, target);
+    Logger.success('Merged duplicate interfaces where possible');
+  }
+
+  private static refactorImportTypesAndGlobalVariables = (project: Project) => {
+    Logger.info('Refactoring import types to simple type references and importing global variables');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.refactorImportTypesAndTypeReferences(s);
+      bar.tick();
+    });
+    Logger.success('Refactored import types to simple type references and imported global variables where possible');
+  }
 }
 
 export default CodeRefactor;

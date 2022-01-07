@@ -10,8 +10,6 @@ import VariableNameGenerator from '../../../helpers/variable-name-generator/vari
 import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier';
 import TypeHandler from '../../type-handler/type-handler';
 
-const generatedFileName = 'ntts-generated-models.ts';
-
 const createInterfaceFile = (project: Project, fullPath: string): SourceFile => {
   if (!existsSync(fullPath)) {
     writeFileSync(fullPath, '');
@@ -20,7 +18,7 @@ const createInterfaceFile = (project: Project, fullPath: string): SourceFile => 
 };
 
 export const getSourceFile = (project: Project, target: string): SourceFile => {
-  const fullPath = join(target, generatedFileName);
+  const fullPath = join(target, 'ntts-generated-models.ts');
   return project.getSourceFile(fullPath) || createInterfaceFile(project, fullPath);
 };
 
