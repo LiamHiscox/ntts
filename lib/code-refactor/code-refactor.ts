@@ -87,11 +87,11 @@ class CodeRefactor {
   };
 
   static addSourceFiles = (ignores: string[], path: string): Project => {
+    Logger.info('Loading project files');
     const project = new Project({
       tsConfigFilePath: TsconfigHandler.tsconfigFileName(),
       skipAddingFilesFromTsConfig: true,
     });
-    Logger.info('Loading project files');
     const ig = ignore().add(ignores);
     this.readDirectory(project, path || '.', ig);
     return project;
