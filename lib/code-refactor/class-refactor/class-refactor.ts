@@ -7,11 +7,9 @@ import {
   SyntaxKind,
 } from 'ts-morph';
 import MethodFunctionHandler from './method-function-handler/method-function-handler';
-import Logger from '../../logger/logger';
 
 class ClassRefactor {
   static toTypeScriptClasses = (sourceFile: SourceFile) => {
-    Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach((descendant) => {
       if (!descendant.wasForgotten() && (
         Node.isClassExpression(descendant)

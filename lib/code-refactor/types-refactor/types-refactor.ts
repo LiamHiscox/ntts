@@ -4,7 +4,6 @@ import {
   SourceFile,
   SyntaxKind,
 } from 'ts-morph';
-import Logger from '../../logger/logger';
 import InitialTypeHandler from './initial-type-handler/initial-type-handler';
 import ParameterTypeInference from './parameter-type-inference/parameter-type-inference';
 import WriteAccessTypeInference from './write-access-type-inference/write-access-type-inference';
@@ -15,10 +14,10 @@ import { getInterfaces } from './interface-handler/interface-creator/interface-c
 import InterfaceMerger from './interface-merger/interface-merger';
 import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
+import { generateProgressBar } from "../helpers/generate-progress-bar/generate-progress-bar";
 
 class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project, target: string) => {
-    Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return undefined;
@@ -35,20 +34,21 @@ class TypesRefactor {
   static checkInterfaceProperties = (project: Project, target: string) => {
     const interfaces = getInterfaces(project, target);
     if (interfaces.length > 0) {
+      const bar = generateProgressBar(interfaces.length);
       interfaces.forEach((interfaceDeclaration) => {
-        Logger.info(interfaceDeclaration.getName());
         InterfaceUsageInference.checkProperties(interfaceDeclaration, interfaces, project, target);
+        bar.tick();
       });
     }
   };
 
   static mergeDuplicateInterfaces = (project: Project, target: string) => {
     const interfaces = getInterfaces(project, target);
-    InterfaceMerger.mergeDuplicates(interfaces);
+    const bar = generateProgressBar(interfaces.length);
+    InterfaceMerger.mergeDuplicates(interfaces, bar);
   };
 
   static addPropertiesFromUsageOfInterface = (sourceFile: SourceFile, project: Project, target: string) => {
-    Logger.info(sourceFile.getFilePath());
     const interfaces = getInterfaces(project, target);
     if (interfaces.length > 0) {
       sourceFile.getDescendants().forEach((descendant) => {
@@ -63,7 +63,6 @@ class TypesRefactor {
   };
 
   static replaceInvalidTypes = (sourceFile: SourceFile) => {
-    Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
@@ -81,7 +80,6 @@ class TypesRefactor {
   };
 
   static inferContextualType = (sourceFile: SourceFile) => {
-    Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return undefined;
@@ -96,7 +94,6 @@ class TypesRefactor {
   };
 
   static inferWriteAccessType = (sourceFile: SourceFile, project: Project, target: string) => {
-    Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return undefined;
@@ -109,7 +106,6 @@ class TypesRefactor {
   };
 
   static inferParameterTypes = (sourceFile: SourceFile) => {
-    Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return undefined;
@@ -134,7 +130,6 @@ class TypesRefactor {
   };
 
   static refactorImportTypesAndTypeReferences = (sourceFile: SourceFile) => {
-    Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
@@ -155,7 +150,6 @@ class TypesRefactor {
   };
 
   static setInitialTypes = (sourceFile: SourceFile) => {
-    Logger.info(sourceFile.getFilePath());
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;

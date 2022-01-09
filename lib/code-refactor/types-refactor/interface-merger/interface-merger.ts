@@ -1,8 +1,9 @@
 import { InterfaceDeclaration } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
+import ProgressBar from "progress";
 
 class InterfaceMerger {
-  static mergeDuplicates = (interfaceDeclarations: InterfaceDeclaration[]) => {
+  static mergeDuplicates = (interfaceDeclarations: InterfaceDeclaration[], bar: ProgressBar) => {
     interfaceDeclarations.forEach((declaration) => {
       if (!declaration.wasForgotten()) {
         const duplicates = this.findDuplicates(
@@ -14,6 +15,7 @@ class InterfaceMerger {
           duplicate.remove();
         });
       }
+      bar.tick();
     });
   };
 
