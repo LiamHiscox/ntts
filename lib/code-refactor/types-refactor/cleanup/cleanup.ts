@@ -4,11 +4,18 @@ import TypeHandler from "../type-handler/type-handler";
 class Cleanup {
   static filterDuplicateTypes = (typedNode: TypedNode & Node) => {
     const typeNode = typedNode.getTypeNode();
-    const unionType = Node.isUnionTypeNode(typeNode) ? typeNode : typeNode?.getFirstDescendantByKind(SyntaxKind.UnionType);
-    if (typeNode && unionType) {
+    if (typeNode) {
+      this.filterNode(typedNode);
+      TypeHandler.setTypeFiltered(typedNode, TypeHandler.getTypeNode(typedNode).getText());
+    }
+  }
+
+  private static filterNode = (node: Node) => {
+    const unionType = node.getFirstDescendantByKind(SyntaxKind.UnionType);
+    if (unionType) {
       const filtered = this.filterUnionType(unionType);
-      TypeHandler.setTypeFiltered(typedNode, filtered);
-      this.filterDuplicateTypes(typedNode);
+      const newUnionType = unionType.replaceWithText(filtered);
+      this.filterNode(newUnionType);
     }
   }
 
