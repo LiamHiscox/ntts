@@ -30,13 +30,16 @@ class TopLevelRefactor {
     const exportedNames = exportedVariables.map((e) => e.name);
     if (exported && exported.directExport) {
       return this.refactorExistingDirectExport(exported, usedNames.concat(exportedNames), binary, accessExpression, exportedVariables, sourceFile);
-    } if (exported) {
+    }
+    if (exported) {
       this.refactorExistingExport(exported, accessExpression, sourceFile);
       return exportedVariables;
-    } if (Node.isIdentifier(binary.getRight())) {
+    }
+    if (Node.isIdentifier(binary.getRight())) {
       const newExport = this.refactorIdentifierAssignment(exportName, binary, expression, usedNames.concat(exportedNames), defaultExport, sourceFile);
       return exportedVariables.concat(newExport);
-    } if (Node.isClassExpression(binary.getRight())) {
+    }
+    if (Node.isClassExpression(binary.getRight())) {
       const newExport = this.refactorClassAssignment(exportName, binary, expression, usedNames.concat(exportedNames), defaultExport, sourceFile);
       return exportedVariables.concat(newExport);
     }
@@ -165,8 +168,12 @@ class TopLevelRefactor {
   private static canExportDirectly = (identifier: Identifier, sourceFile: SourceFile): boolean => {
     const nodeName = identifier.getText();
     const implementation = sourceFile.getVariableDeclaration(nodeName) || sourceFile.getFunction(nodeName) || sourceFile.getClass(nodeName);
-    if (Node.isFunctionDeclaration(implementation) || Node.isClassDeclaration(implementation)) { return true; }
-    if (Node.isVariableDeclaration(implementation)) { return !WriteAccessChecker.hasValueChanged(implementation); }
+    if (Node.isFunctionDeclaration(implementation) || Node.isClassDeclaration(implementation)) {
+      return true;
+    }
+    if (Node.isVariableDeclaration(implementation)) {
+      return !WriteAccessChecker.hasValueChanged(implementation);
+    }
     return false;
   };
 }
