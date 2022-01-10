@@ -9,7 +9,7 @@ import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.mo
 import Logger from '../logger/logger';
 import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
 import TypesRefactor from './types-refactor/types-refactor';
-import {generateProgressBar} from "./helpers/generate-progress-bar/generate-progress-bar";
+import { generateProgressBar } from './helpers/generate-progress-bar/generate-progress-bar';
 
 class CodeRefactor {
   static convertToTypescript = (project: Project, target: string) => {
@@ -100,11 +100,13 @@ class CodeRefactor {
   private static generateInterfaces = (project: Project, target: string) => {
     Logger.info('Generating interfaces from object literal types');
     const sourceFiles = project.getSourceFiles();
-    const bar = generateProgressBar(sourceFiles.length);
+    const bar = generateProgressBar(sourceFiles.length + 1);
     sourceFiles.forEach((s) => {
       TypesRefactor.createInterfacesFromObjectTypes(s, project, target);
       bar.tick();
     });
+    TypesRefactor.createInterfacesFromTypeLiterals(project, target);
+    bar.tick();
     Logger.success('Generated interfaces from object literal types where possible');
   }
 

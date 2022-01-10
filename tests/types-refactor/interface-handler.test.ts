@@ -1,6 +1,9 @@
 import { Project, SyntaxKind } from 'ts-morph';
 import InterfaceHandler from '../../lib/code-refactor/types-refactor/interface-handler/interface-handler';
-import { getSourceFile } from '../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator';
+import {
+  getInterfaces,
+  getSourceFile
+} from '../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator';
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 import TypeHandler from '../../lib/code-refactor/types-refactor/type-handler/type-handler';
 import flatten from './helpers';
@@ -17,7 +20,8 @@ beforeEach(() => {
 
 afterEach(() => {
   if (existsSync('ntts-generated-models.ts')) {
-    fs.unlinkSync('ntts-generated-models.ts');  }
+    fs.unlinkSync('ntts-generated-models.ts');
+  }
 })
 
 test('should create interface and set type of variable with object assignment', () => {
@@ -56,6 +60,30 @@ test('should create interface and replace object type with interface', () => {
       .toEqual(`let a: ${TypeHandler.getType(interfaceDeclaration).getText()};`);
   }
 });
+
+test('should create interface and replace object union type with interface with nested type literals', () => {
+  const sourceFile = project.createSourceFile(
+    'write-access.ts',
+    'let a: { a: { c: { d: number; } }; b: string; } | { a: { c: { d: string; }; }; c: number; };',
+    {overwrite: true},
+  );
+  TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project, '');
+  TypesRefactor.createInterfacesFromTypeLiterals(project, '');
+  const interfaces = getInterfaces(project, '');
+  const A = interfaces.find((i) => i.getName() === 'A');
+  const _A = interfaces.find((i) => i.getName() === '_A');
+  const C = interfaces.find((i) => i.getName() === 'C');
+  expect(A).not.toBeUndefined();
+  expect(_A).not.toBeUndefined();
+  expect(C).not.toBeUndefined();
+  if (A && _A && C) {
+    expect(sourceFile.getText()).toEqual(`let a: ${TypeHandler.getType(A).getText()};`);
+    expect(flatten(A)).toEqual(`export interface A { a: ${TypeHandler.getType(_A).getText()}; b?: string; c?: number; }`);
+    expect(flatten(_A)).toEqual(`export interface _A { c: ${TypeHandler.getType(C).getText()}; }`);
+    expect(flatten(C)).toEqual(`export interface C { d: string | number; }`);
+  }
+});
+
 
 test('should create interface and replace object union type with interface', () => {
   const sourceFile = project.createSourceFile(

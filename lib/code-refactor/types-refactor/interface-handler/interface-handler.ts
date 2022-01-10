@@ -6,6 +6,9 @@ import {
   Project,
   PropertyDeclaration,
   PropertyName,
+  PropertySignature,
+  SourceFile,
+  SyntaxKind,
   TypeLiteralNode,
   UnionTypeNode,
   VariableDeclaration
@@ -15,7 +18,7 @@ import TypeHandler from '../type-handler/type-handler';
 import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
 import InterfaceFinder from './interface-finder/interface-finder';
 
-type DeclarationKind = VariableDeclaration | ParameterDeclaration | PropertyDeclaration;
+type DeclarationKind = VariableDeclaration | ParameterDeclaration | PropertyDeclaration | PropertySignature;
 type NameNodeKind = PropertyName | BindingName;
 
 class InterfaceHandler {
@@ -29,11 +32,30 @@ class InterfaceHandler {
     const nameNode = declaration.getNameNode();
     const typeLiteral = InterfaceFinder.getFirstTypeLiteral(typeNode);
     if (typeLiteral) {
-      this.checkTypeLiteral(typeLiteral, declaration, nameNode, project, target);
+      const simplifiedType = this.checkTypeLiteral(typeLiteral, nameNode, project, target);
+      TypeHandler.setTypeFiltered(declaration, simplifiedType);
+      this.createInterfaceFromObjectLiterals(declaration, project, target);
     } else if (!initialTypeNode) {
       declaration.removeType();
     }
   };
+
+  static createInterfacesFromSourceFile = (sourceFile: SourceFile, project: Project, target: string) => {
+    const typeLiteral = sourceFile.getFirstDescendantByKind(SyntaxKind.TypeLiteral);
+    const propertySignature = typeLiteral?.getFirstAncestorByKind(SyntaxKind.PropertySignature);
+    const indexSignature = typeLiteral?.getFirstAncestorByKind(SyntaxKind.IndexSignature);
+    if (typeLiteral && propertySignature) {
+      const nameNode = propertySignature.getNameNode();
+      const simplifiedType = this.checkTypeLiteral(typeLiteral, nameNode, project, target);
+      TypeHandler.setTypeFiltered(propertySignature, simplifiedType);
+      this.createInterfacesFromSourceFile(sourceFile, project, target);
+    } else if (typeLiteral && indexSignature) {
+      const nameNode = indexSignature.getKeyNameNode();
+      const simplifiedType = this.checkTypeLiteral(typeLiteral, nameNode, project, target);
+      TypeHandler.setReturnTypeFiltered(indexSignature, simplifiedType);
+      this.createInterfacesFromSourceFile(sourceFile, project, target);
+    }
+  }
 
   static validateDeclaration = (declaration: DeclarationKind) => {
     const initializer = declaration.getInitializer();
@@ -42,29 +64,26 @@ class InterfaceHandler {
 
   private static checkTypeLiteral = (
     typeLiteral: TypeLiteralNode,
-    declaration: DeclarationKind,
     nameNode: NameNodeKind,
     project: Project,
-    target: string,
+    target: string
   ) => {
     const parent = typeLiteral.getParent();
     if (Node.isUnionTypeNode(parent)) {
-      this.checkUnionTypeNode(parent, declaration, nameNode, project, target);
+      const simplifiedType = this.checkUnionTypeNode(parent, nameNode, project, target);
+      return parent.replaceWithText(simplifiedType).getText();
     } else {
       const interfaceName = getInterfaceName(nameNode);
       const interfaceDeclaration = createInterface(interfaceName, project, target, typeLiteral.getMembers());
-      typeLiteral.replaceWithText(TypeHandler.getType(interfaceDeclaration).getText());
-      TypeHandler.setType(declaration, TypeHandler.getType(declaration));
-      this.createInterfaceFromObjectLiterals(declaration, project, target);
+      return typeLiteral.replaceWithText(TypeHandler.getType(interfaceDeclaration).getText()).getText();
     }
   };
 
   private static checkUnionTypeNode = (
     unionTypeNode: UnionTypeNode,
-    declaration: DeclarationKind,
     nameNode: NameNodeKind,
     project: Project,
-    target: string,
+    target: string
   ) => {
     const interfaces = getInterfaces(project, target);
     const typeNodes = unionTypeNode.getTypeNodes();
@@ -76,21 +95,16 @@ class InterfaceHandler {
       const [first, ...literals] = typeLiteralNodes;
       const interfaceDeclaration = createInterface(interfaceName, project, target, first.getMembers());
       this.addPropertiesToInterface(interfaceDeclaration, literals);
-      const simplifiedType = nonTypeLiterals
+      return nonTypeLiterals
         .map((c) => c.getText())
         .concat(TypeHandler.getType(interfaceDeclaration).getText())
         .join(' | ');
-      TypeHandler.setTypeFiltered(declaration, simplifiedType);
-      this.createInterfaceFromObjectLiterals(declaration, project, target);
     } else {
-      interfaceDeclarations.forEach((i) =>
-        this.addPropertiesToInterface(i, typeLiteralNodes));
-      const simplifiedType = nonTypeLiterals
+      interfaceDeclarations.forEach((i) => this.addPropertiesToInterface(i, typeLiteralNodes));
+      return nonTypeLiterals
         .map((c) => c.getText())
         .concat(interfaceDeclarations.map(i => TypeHandler.getType(i).getText()))
         .join(' | ');
-      TypeHandler.setTypeFiltered(declaration, simplifiedType);
-      this.createInterfaceFromObjectLiterals(declaration, project, target);
     }
   };
 

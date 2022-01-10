@@ -25,8 +25,7 @@ export const getSourceFile = (project: Project, target: string): SourceFile => {
 };
 
 export const getInterfaces = (project: Project, target: string) => {
-  const sourceFile = getSourceFile(project, target);
-  return sourceFile.getInterfaces();
+  return getSourceFile(project, target).getInterfaces();
 };
 
 const toInterfaceFormat = (str: string) => str
