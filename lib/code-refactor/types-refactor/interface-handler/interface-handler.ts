@@ -40,19 +40,26 @@ class InterfaceHandler {
     }
   };
 
+  private static getFirstSignatureAncestor = (node: Node | undefined) => {
+    const signature = node?.getAncestors().find(a => Node.isPropertySignature(a) || Node.isIndexSignatureDeclaration(a));
+    if (Node.isPropertySignature(signature) || Node.isIndexSignatureDeclaration(signature)) {
+      return signature;
+    }
+    return undefined;
+  }
+
   static createInterfacesFromSourceFile = (sourceFile: SourceFile, project: Project, target: string) => {
     const typeLiteral = sourceFile.getFirstDescendantByKind(SyntaxKind.TypeLiteral);
-    const propertySignature = typeLiteral?.getFirstAncestorByKind(SyntaxKind.PropertySignature);
-    const indexSignature = typeLiteral?.getFirstAncestorByKind(SyntaxKind.IndexSignature);
-    if (typeLiteral && propertySignature) {
-      const nameNode = propertySignature.getNameNode();
+    const signature = this.getFirstSignatureAncestor(typeLiteral);
+    if (typeLiteral && Node.isPropertySignature(signature)) {
+      const nameNode = signature.getNameNode();
       const simplifiedType = this.checkTypeLiteral(typeLiteral, nameNode, project, target);
-      TypeHandler.setTypeFiltered(propertySignature, simplifiedType);
+      TypeHandler.setTypeFiltered(signature, simplifiedType);
       this.createInterfacesFromSourceFile(sourceFile, project, target);
-    } else if (typeLiteral && indexSignature) {
-      const nameNode = indexSignature.getKeyNameNode();
+    } else if (typeLiteral && Node.isIndexSignatureDeclaration(signature)) {
+      const nameNode = signature.getKeyNameNode();
       const simplifiedType = this.checkTypeLiteral(typeLiteral, nameNode, project, target);
-      TypeHandler.setReturnTypeFiltered(indexSignature, simplifiedType);
+      TypeHandler.setReturnTypeFiltered(signature, simplifiedType);
       this.createInterfacesFromSourceFile(sourceFile, project, target);
     }
   }

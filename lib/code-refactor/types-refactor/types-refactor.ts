@@ -29,7 +29,7 @@ class TypesRefactor {
 
   static createInterfacesFromTypeLiterals = (project: Project, target: string) => {
     const sourceFile = getSourceFile(project, target);
-     InterfaceHandler.createInterfacesFromSourceFile(sourceFile, project, target);
+    InterfaceHandler.createInterfacesFromSourceFile(sourceFile, project, target);
   };
 
   static checkInterfaceProperties = (project: Project, target: string) => {

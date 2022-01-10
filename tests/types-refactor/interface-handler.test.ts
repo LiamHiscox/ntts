@@ -64,7 +64,7 @@ test('should create interface and replace object type with interface', () => {
 test('should create interface and replace object union type with interface with nested type literals', () => {
   const sourceFile = project.createSourceFile(
     'write-access.ts',
-    'let a: { a: { c: { d: number; } }; b: string; } | { a: { c: { d: string; }; }; c: number; };',
+    'let a: { a: { c: { d: number; } }; [key: string]: { o: 12; }; } | { a: { c: { d: string; }; }; };',
     {overwrite: true},
   );
   TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project, '');
@@ -73,14 +73,17 @@ test('should create interface and replace object union type with interface with 
   const A = interfaces.find((i) => i.getName() === 'A');
   const _A = interfaces.find((i) => i.getName() === '_A');
   const C = interfaces.find((i) => i.getName() === 'C');
+  const Key = interfaces.find((i) => i.getName() === 'Key');
   expect(A).not.toBeUndefined();
   expect(_A).not.toBeUndefined();
   expect(C).not.toBeUndefined();
-  if (A && _A && C) {
+  expect(Key).not.toBeUndefined();
+  if (A && _A && C && Key) {
     expect(sourceFile.getText()).toEqual(`let a: ${TypeHandler.getType(A).getText()};`);
-    expect(flatten(A)).toEqual(`export interface A { a: ${TypeHandler.getType(_A).getText()}; b?: string; c?: number; }`);
+    expect(flatten(A)).toEqual(`export interface A { a: ${TypeHandler.getType(_A).getText()}; [key: string]: ${TypeHandler.getType(Key).getText()}; }`);
     expect(flatten(_A)).toEqual(`export interface _A { c: ${TypeHandler.getType(C).getText()}; }`);
     expect(flatten(C)).toEqual(`export interface C { d: string | number; }`);
+    expect(flatten(Key)).toEqual(`export interface Key { o: number; }`);
   }
 });
 
