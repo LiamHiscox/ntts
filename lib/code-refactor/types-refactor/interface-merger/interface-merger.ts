@@ -1,6 +1,7 @@
 import { InterfaceDeclaration } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
 import ProgressBar from "progress";
+import { findReferencesAsNodes } from "../../helpers/reference-finder/reference-finder";
 
 class InterfaceMerger {
   static mergeDuplicates = (interfaceDeclarations: InterfaceDeclaration[], bar: ProgressBar) => {
@@ -8,16 +9,22 @@ class InterfaceMerger {
       if (!declaration.wasForgotten()) {
         const duplicates = this.findDuplicates(
           declaration,
-          interfaceDeclarations.filter((d) => !d.wasForgotten()),
+          interfaceDeclarations.filter((d) => !d.wasForgotten())
         );
         duplicates.forEach((duplicate) => {
-          duplicate.rename(declaration.getName());
+          this.rename(duplicate, declaration.getName());
           duplicate.remove();
         });
       }
       bar.tick();
     });
   };
+
+  private static rename = (i: InterfaceDeclaration, newName: string) => {
+    const nameNode = i.getNameNode();
+    findReferencesAsNodes(nameNode).forEach(ref => ref.replaceWithText(newName));
+    nameNode.replaceWithText(newName);
+  }
 
   private static findDuplicates = (
     target: InterfaceDeclaration,

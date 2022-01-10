@@ -7,10 +7,10 @@ import {
   PropertyDeclaration,
   PropertyName,
   TypeLiteralNode,
-  TypeNode, UnionTypeNode,
-  VariableDeclaration,
+  UnionTypeNode,
+  VariableDeclaration
 } from 'ts-morph';
-import { createInterface, getInterfaces } from './interface-creator/interface-creator';
+import { createInterface, getInterfaceName, getInterfaces } from './interface-creator/interface-creator';
 import TypeHandler from '../type-handler/type-handler';
 import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
 import InterfaceFinder from './interface-finder/interface-finder';
@@ -51,7 +51,7 @@ class InterfaceHandler {
     if (Node.isUnionTypeNode(parent)) {
       this.checkUnionTypeNode(parent, declaration, nameNode, project, target);
     } else {
-      const interfaceName = this.getInterfaceName(nameNode);
+      const interfaceName = getInterfaceName(nameNode);
       const interfaceDeclaration = createInterface(interfaceName, project, target, typeLiteral.getMembers());
       typeLiteral.replaceWithText(TypeHandler.getType(interfaceDeclaration).getText());
       TypeHandler.setType(declaration, TypeHandler.getType(declaration));
@@ -72,49 +72,33 @@ class InterfaceHandler {
     const interfaceDeclarations = InterfaceFinder.getInterfaceDeclarations(typeNodes, interfaces);
     const typeLiteralNodes = InterfaceFinder.getTypeLiteralNodes(typeNodes);
     if (interfaceDeclarations.length <= 0) {
-      const interfaceName = this.getInterfaceName(nameNode);
+      const interfaceName = getInterfaceName(nameNode);
       const [first, ...literals] = typeLiteralNodes;
       const interfaceDeclaration = createInterface(interfaceName, project, target, first.getMembers());
-      this.addPropertiesToInterface(interfaceDeclaration, literals, nonTypeLiterals, unionTypeNode, declaration, project, target);
+      this.addPropertiesToInterface(interfaceDeclaration, literals);
+      const simplifiedType = nonTypeLiterals
+        .map((c) => c.getText())
+        .concat(TypeHandler.getType(interfaceDeclaration).getText())
+        .join(' | ');
+      TypeHandler.setTypeFiltered(declaration, simplifiedType);
+      this.createInterfaceFromObjectLiterals(declaration, project, target);
     } else {
       interfaceDeclarations.forEach((i) =>
-        this.addPropertiesToInterface(i, typeLiteralNodes, nonTypeLiterals, unionTypeNode, declaration, project, target));
+        this.addPropertiesToInterface(i, typeLiteralNodes));
+      const simplifiedType = nonTypeLiterals
+        .map((c) => c.getText())
+        .concat(interfaceDeclarations.map(i => TypeHandler.getType(i).getText()))
+        .join(' | ');
+      TypeHandler.setTypeFiltered(declaration, simplifiedType);
+      this.createInterfaceFromObjectLiterals(declaration, project, target);
     }
   };
 
   private static addPropertiesToInterface = (
     interfaceDeclaration: InterfaceDeclaration,
-    typeLiterals: TypeLiteralNode[],
-    nonTypeLiterals: TypeNode[],
-    typeNode: TypeNode,
-    declaration: DeclarationKind,
-    project: Project,
-    target: string,
+    typeLiterals: TypeLiteralNode[]
   ) => {
-    const combined = typeLiterals
-      .reduce((c: InterfaceDeclaration, literal) => TypeSimplifier.combineTypeLiterals(c, literal), interfaceDeclaration);
-    const simplifiedType = nonTypeLiterals
-      .map((c) => c.getText())
-      .concat(TypeHandler.getType(combined).getText()).join(' | ');
-    typeNode.replaceWithText(simplifiedType);
-    TypeHandler.setType(declaration, TypeHandler.getType(declaration));
-    this.createInterfaceFromObjectLiterals(declaration, project, target);
-  };
-
-  private static getInterfaceName = (nameNode: BindingName | PropertyName) => {
-    if (Node.isIdentifier(nameNode) || Node.isPrivateIdentifier(nameNode) || Node.isStringLiteral(nameNode)) {
-      return nameNode.getText();
-    }
-    if (Node.isObjectBindingPattern(nameNode)) {
-      return 'ObjectBinding';
-    }
-    if (Node.isArrayBindingPattern(nameNode)) {
-      return 'ArrayBinding';
-    }
-    if (Node.isComputedPropertyName(nameNode)) {
-      return 'Computed';
-    }
-    return `Numeric${nameNode.getLiteralText()}`;
+    typeLiterals.reduce((c: InterfaceDeclaration, literal) => TypeSimplifier.combineTypeLiterals(c, literal), interfaceDeclaration);
   };
 }
 

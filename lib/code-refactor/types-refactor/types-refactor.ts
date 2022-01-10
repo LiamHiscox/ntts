@@ -2,7 +2,7 @@ import {
   Node,
   Project,
   SourceFile,
-  SyntaxKind,
+  SyntaxKind
 } from 'ts-morph';
 import InitialTypeHandler from './initial-type-handler/initial-type-handler';
 import ParameterTypeInference from './parameter-type-inference/parameter-type-inference';
@@ -10,11 +10,12 @@ import WriteAccessTypeInference from './write-access-type-inference/write-access
 import ContextualTypeInference from './contextual-type-inference/contextual-type-inference';
 import InterfaceHandler from './interface-handler/interface-handler';
 import InterfaceUsageInference from './interface-usage-inference/interface-usage-inference';
-import { getInterfaces } from './interface-handler/interface-creator/interface-creator';
+import {getInterfaces} from './interface-handler/interface-creator/interface-creator';
 import InterfaceMerger from './interface-merger/interface-merger';
 import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
-import { generateProgressBar } from "../helpers/generate-progress-bar/generate-progress-bar";
+import { generateProgressBar } from '../helpers/generate-progress-bar/generate-progress-bar';
+import Cleanup from "./cleanup/cleanup";
 
 class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project, target: string) => {
@@ -105,25 +106,25 @@ class TypesRefactor {
     });
   };
 
-  static inferParameterTypes = (sourceFile: SourceFile) => {
+  static inferParameterTypes = (sourceFile: SourceFile, project: Project, target: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return undefined;
       }
       if (Node.isSetAccessorDeclaration(descendant)) {
-        return ParameterTypeInference.inferSetAccessorParameterTypes(descendant);
+        return ParameterTypeInference.inferSetAccessorParameterTypes(descendant, project, target);
       }
       if (Node.isPropertyAssignment(descendant)
         || Node.isVariableDeclaration(descendant)
         || Node.isPropertyDeclaration(descendant)) {
-        return ParameterTypeInference.inferFunctionAssignmentParameterTypes(descendant);
+        return ParameterTypeInference.inferFunctionAssignmentParameterTypes(descendant, project, target);
       }
       if (Node.isFunctionDeclaration(descendant)
         || Node.isMethodDeclaration(descendant)) {
-        return ParameterTypeInference.inferFunctionDeclarationParameterTypes(descendant);
+        return ParameterTypeInference.inferFunctionDeclarationParameterTypes(descendant, project, target);
       }
       if (Node.isConstructorDeclaration(descendant)) {
-        return ParameterTypeInference.inferConstructorParameterTypes(descendant);
+        return ParameterTypeInference.inferConstructorParameterTypes(descendant, project, target);
       }
       return undefined;
     });
@@ -159,6 +160,14 @@ class TypesRefactor {
       }
     });
   };
+
+  static cleanupTypeNodes = (sourceFile: SourceFile) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (!descendant.wasForgotten() && Node.isTyped(descendant)) {
+        Cleanup.filterDuplicateTypes(descendant);
+      }
+    });
+  }
 }
 
 export default TypesRefactor;
