@@ -80,15 +80,16 @@ class TypesRefactor {
     });
   };
 
-  static inferContextualType = (sourceFile: SourceFile) => {
+  static inferContextualType = (sourceFile: SourceFile, project: Project, target: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return undefined;
       }
       if (Node.isVariableDeclaration(descendant)
         || Node.isPropertyDeclaration(descendant)
-        || Node.isParameterDeclaration(descendant)) {
-        return ContextualTypeInference.inferTypeByContextualType(descendant);
+        || Node.isParameterDeclaration(descendant)
+        || Node.isPropertySignature(descendant)) {
+        return ContextualTypeInference.inferTypeByContextualType(descendant, project, target);
       }
       return undefined;
     });

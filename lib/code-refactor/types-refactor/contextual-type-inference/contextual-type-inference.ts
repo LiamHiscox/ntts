@@ -1,7 +1,9 @@
 import {
   Node,
   ParameterDeclaration,
+  Project,
   PropertyDeclaration,
+  PropertySignature,
   ReferencedSymbol,
   VariableDeclaration,
 } from 'ts-morph';
@@ -14,9 +16,14 @@ import { findReferences } from '../../helpers/reference-finder/reference-finder'
 import { isAccessExpression } from '../../helpers/combined-types/combined-types';
 import TypeHandler from '../type-handler/type-handler';
 import TypeChecker from '../helpers/type-checker/type-checker';
+import InterfaceHandler from "../interface-handler/interface-handler";
 
 class ContextualTypeInference {
-  static inferTypeByContextualType = (declaration: VariableDeclaration | PropertyDeclaration | ParameterDeclaration) => {
+  static inferTypeByContextualType = (
+    declaration: VariableDeclaration | PropertyDeclaration | ParameterDeclaration | PropertySignature,
+    project: Project,
+    target: string
+    ) => {
     const type = TypeHandler.getType(declaration);
     const nameNode = declaration.getNameNode();
     if (TypeChecker.isAnyOrUnknown(type) && !Node.isObjectBindingPattern(nameNode) && !Node.isArrayBindingPattern(nameNode)) {
@@ -25,13 +32,14 @@ class ContextualTypeInference {
       const combined = TypeHandler.combineTypeWithList(TypeHandler.getType(declaration), ...newTypes);
       if (newTypes.length > 0) {
         TypeHandler.setTypeFiltered(declaration, combined);
+        InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, target);
       }
     }
   };
 
   private static checkReferences = (
     referencedSymbol: ReferencedSymbol,
-    declaration: VariableDeclaration | PropertyDeclaration | ParameterDeclaration,
+    declaration: VariableDeclaration | PropertyDeclaration | ParameterDeclaration | PropertySignature,
   ): string[] => referencedSymbol
     .getReferences()
     .reduce((types: string[], reference) => {
@@ -46,7 +54,7 @@ class ContextualTypeInference {
 
   private static checkForContextualType = (
     node: Node,
-    declaration: VariableDeclaration | PropertyDeclaration | ParameterDeclaration,
+    declaration: VariableDeclaration | PropertyDeclaration | ParameterDeclaration | PropertySignature,
   ): string | undefined => {
     const innerExpression = getExpressionParent(node);
     if (isAccessExpression(innerExpression) && isAccessExpressionTarget(innerExpression, node)) {

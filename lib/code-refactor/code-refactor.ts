@@ -21,9 +21,9 @@ class CodeRefactor {
     this.inferParameterTypes(project, target);
     this.setInitialTypes(project);
     this.inferWriteAccessType(project, target);
+    this.inferContextualType(project, target);
     this.checkInterfaceUsage(project, target);
     this.checkInterfaceWriteAccess(project, target);
-    this.inferContextualType(project);
     this.replaceAnyAndUnknown(project);
     this.mergingInterfaces(project, target);
     this.cleanupTypes(project);
@@ -160,12 +160,12 @@ class CodeRefactor {
     Logger.success('Checked write access of properties of interfaces where possible');
   }
 
-  private static inferContextualType = (project: Project) => {
+  private static inferContextualType = (project: Project, target: string) => {
     Logger.info('Inferring type of untyped declarations by contextual type');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
-      TypesRefactor.inferContextualType(s);
+      TypesRefactor.inferContextualType(s, project, target);
       bar.tick();
     });
     Logger.success('Inferred type where possible');

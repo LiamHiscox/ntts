@@ -1,6 +1,9 @@
 import { Project, SyntaxKind } from 'ts-morph';
 import ParameterTypeInference from '../../lib/code-refactor/types-refactor/parameter-type-inference/parameter-type-inference';
 import fs, {existsSync} from "fs";
+import {getInterfaces} from "../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator";
+import flatten from "./helpers";
+import TypeHandler from "../../lib/code-refactor/types-refactor/type-handler/type-handler";
 
 let project: Project;
 
@@ -60,8 +63,13 @@ test('should not set function parameter as union type with duplicate type by usa
   );
   const _function = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.FunctionDeclaration);
   ParameterTypeInference.inferFunctionDeclarationParameterTypes(_function, project, '');
-  expect(sourceFile.getText())
-    .toEqual('function fun (param1: { qwe: number; }) { return param1; };\nfun({qwe: 12});\nfun(({qwe: 11});\nfun(({qwe: 10});');
+  const Param1 = getInterfaces(project, '').find(i => i.getName() === 'Param1');
+  expect(Param1).not.toBeUndefined();
+  if (Param1) {
+    expect(flatten(Param1)).toEqual('export interface Param1 { qwe: number; }')
+    expect(sourceFile.getText())
+      .toEqual(`function fun (param1: ${TypeHandler.getType(Param1).getText()}) { return param1; };\nfun({qwe: 12});\nfun(({qwe: 11});\nfun(({qwe: 10});`);
+  }
 });
 
 test('should set type of variable declaration function parameters by usage', () => {

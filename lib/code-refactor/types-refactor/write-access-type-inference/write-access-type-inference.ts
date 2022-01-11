@@ -30,10 +30,10 @@ class WriteAccessTypeInference {
       this.simplifyTypeNode(newDeclaration);
       if (TypeChecker.isNullOrUndefined(TypeHandler.getType(newDeclaration))) {
         newDeclaration.removeType();
-      } else if (Node.isVariableDeclaration(newDeclaration) || Node.isPropertyDeclaration(newDeclaration)) {
+      } else {
         InterfaceHandler.createInterfaceFromObjectLiterals(newDeclaration, project, target);
       }
-    } else if (Node.isVariableDeclaration(declaration) || Node.isPropertyDeclaration(declaration)) {
+    } else {
       this.simplifyTypeNode(declaration);
       InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, target);
     }
