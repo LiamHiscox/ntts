@@ -50,6 +50,13 @@ class TypeHandler {
     return node.getType().getBaseTypeOfLiteralType();
   };
 
+  static getNonParenthesizedTypeNode = (typeNode: TypeNode): TypeNode => {
+    if (Node.isParenthesizedTypeNode(typeNode)) {
+      return this.getNonParenthesizedTypeNode(typeNode.getTypeNode());
+    }
+    return typeNode;
+  }
+
   static getTypeNode = (node: TypedNode & Node): TypeNode => {
     const typeNode = node.getTypeNode();
     if (!typeNode) {

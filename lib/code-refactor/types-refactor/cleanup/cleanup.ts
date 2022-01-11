@@ -1,4 +1,10 @@
-import { Node, ParameterDeclaration, PropertySignature, SyntaxKind, UnionTypeNode } from "ts-morph";
+import {
+  Node,
+  ParameterDeclaration,
+  PropertySignature,
+  SyntaxKind,
+  UnionTypeNode
+} from "ts-morph";
 import TypeHandler from "../type-handler/type-handler";
 
 class Cleanup {

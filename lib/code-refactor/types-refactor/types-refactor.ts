@@ -11,6 +11,7 @@ import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
 import { generateProgressBar } from '../helpers/generate-progress-bar/generate-progress-bar';
 import Cleanup from "./cleanup/cleanup";
+import {getParentFunction, isAnonymousFunction} from "./helpers/function-checker/function-checker";
 
 class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project, target: string) => {
@@ -68,6 +69,19 @@ class TypesRefactor {
     }
   };
 
+  static replaceInvalidTypesAnonymousFunction = (sourceFile: SourceFile) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (Node.isParameterDeclaration(descendant)
+        && isAnonymousFunction(getParentFunction(descendant))) {
+        return InvalidTypeReplacer.replaceParameterType(descendant);
+      }
+      return;
+    });
+  };
+
   static replaceInvalidTypes = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
@@ -76,7 +90,8 @@ class TypesRefactor {
       if (Node.isIndexSignatureDeclaration(descendant)) {
         return InvalidTypeReplacer.replaceAnyAndNeverReturnType(descendant);
       }
-      if (Node.isParameterDeclaration(descendant)) {
+      if (Node.isParameterDeclaration(descendant)
+        && !isAnonymousFunction(getParentFunction(descendant))) {
         return InvalidTypeReplacer.replaceParameterType(descendant);
       }
       if (Node.isVariableDeclaration(descendant)
@@ -108,8 +123,22 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return undefined;
       }
-      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant)) {
+      if (Node.isVariableDeclaration(descendant)
+        || Node.isPropertyDeclaration(descendant)) {
         return WriteAccessTypeInference.inferTypeByWriteAccess(descendant, project, target);
+      }
+      return undefined;
+    });
+  };
+
+  static inferFunctionTypeParameterTypes = (sourceFile: SourceFile, project: Project, target: string) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return undefined;
+      }
+      if (Node.isPropertySignature(descendant)
+        || Node.isParameterDeclaration(descendant)) {
+        return ParameterTypeInference.inferFunctionTypeParameterTypes(descendant, project, target);
       }
       return undefined;
     });
@@ -164,7 +193,8 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return;
       }
-      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant)) {
+      if (Node.isVariableDeclaration(descendant)
+        || Node.isPropertyDeclaration(descendant)) {
         InitialTypeHandler.setInitialType(descendant);
       }
     });
@@ -183,7 +213,8 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return;
       }
-      if (Node.isPropertySignature(descendant) || Node.isParameterDeclaration(descendant)) {
+      if (Node.isPropertySignature(descendant)
+        || Node.isParameterDeclaration(descendant)) {
         Cleanup.removeUndefinedFromOptional(descendant);
       }
     });

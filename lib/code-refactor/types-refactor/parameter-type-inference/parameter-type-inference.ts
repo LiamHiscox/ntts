@@ -8,7 +8,9 @@ import {
   VariableDeclaration,
   PropertyDeclaration,
   SetAccessorDeclaration,
-  Project
+  Project,
+  PropertySignature,
+  ReferenceFindableNode, TypeNode, FunctionTypeNode
 } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
 import TypeChecker from '../helpers/type-checker/type-checker';
@@ -78,6 +80,30 @@ class ParameterTypeInference {
     DeepTypeInference.propagateParameterTypes(parameters);
   };
 
+  static inferFunctionTypeParameterTypes(descendant: PropertySignature | ParameterDeclaration, project: Project, target: string) {
+    const initialTypeNode = descendant.getTypeNode();
+    const typeNode = TypeHandler.getTypeNode(descendant);
+    const functionTypes = this.getFunctionTypes(typeNode);
+    if (functionTypes.length > 0) {
+      functionTypes.forEach(functionType => {
+        const parameters = functionType.getParameters();
+        this.inferFunctionExpressionParameterTypes(descendant, parameters, project, target);
+        this.simplifyParameterTypes(parameters, project, target);
+      })
+    } else if (!initialTypeNode) {
+      descendant.removeType();
+    }
+  }
+
+  private static getFunctionTypes = (typeNode: TypeNode | undefined): FunctionTypeNode[] => {
+    if (Node.isFunctionTypeNode(typeNode)) {
+      return [typeNode];
+    } else if (Node.isUnionTypeNode(typeNode)) {
+      return typeNode.getTypeNodes().filter(n => Node.isFunctionTypeNode(TypeHandler.getNonParenthesizedTypeNode(n))) as FunctionTypeNode[];
+    }
+    return [];
+  }
+
   private static simplifyParameterTypes = (parameters: ParameterDeclaration[], project: Project, target: string) => {
     parameters.forEach((parameter) => {
       const simplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(parameter));
@@ -87,7 +113,7 @@ class ParameterTypeInference {
   };
 
   private static inferFunctionExpressionParameterTypes = (
-    assignment: PropertyAssignment | VariableDeclaration | PropertyDeclaration,
+    assignment: ReferenceFindableNode & Node,
     parameters: ParameterDeclaration[],
     project: Project,
     target: string

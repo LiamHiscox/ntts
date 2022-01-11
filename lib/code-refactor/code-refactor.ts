@@ -19,6 +19,7 @@ class CodeRefactor {
     this.generateInterfaces(project, target);
     this.inferParameterTypes(project, target);
     this.inferParameterTypes(project, target);
+    this.inferFunctionTypeParameterTypes(project, target);
     this.setInitialTypes(project);
     this.inferWriteAccessType(project, target);
     this.inferContextualType(project, target);
@@ -26,8 +27,8 @@ class CodeRefactor {
     this.checkInterfaceWriteAccess(project, target);
     this.replaceAnyAndUnknown(project);
     this.filterUnionType(project);
-    this.mergingInterfaces(project, target);
     this.refactorImportTypesAndGlobalVariables(project);
+    this.mergingInterfaces(project, target);
     this.simplifyOptionalNodes(project);
   };
 
@@ -122,6 +123,17 @@ class CodeRefactor {
     Logger.success('Parameter type declared where possible');
   }
 
+  private static inferFunctionTypeParameterTypes = (project: Project, target: string) => {
+    Logger.info('Declaring parameter types of function types by usage');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach(s => {
+      TypesRefactor.inferFunctionTypeParameterTypes(s, project, target);
+      bar.tick();
+    });
+    Logger.success('Parameter type declared where possible');
+  }
+
   private static setInitialTypes = (project: Project) => {
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
@@ -175,10 +187,15 @@ class CodeRefactor {
   private static replaceAnyAndUnknown = (project: Project) => {
     Logger.info('Replacing types any and never with unknown');
     const sourceFiles = project.getSourceFiles();
-    const bar = generateProgressBar(sourceFiles.length);
+    const bar1 = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
       TypesRefactor.replaceInvalidTypes(s);
-      bar.tick();
+      bar1.tick();
+    });
+    const bar2 = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.replaceInvalidTypesAnonymousFunction(s);
+      bar2.tick();
     });
     Logger.success('Replaced types any and never with unknown where possible');
   }
