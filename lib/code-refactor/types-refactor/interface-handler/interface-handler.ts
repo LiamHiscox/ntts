@@ -32,8 +32,8 @@ class InterfaceHandler {
     const nameNode = declaration.getNameNode();
     const typeLiteral = InterfaceFinder.getFirstTypeLiteral(typeNode);
     if (typeLiteral) {
-      const simplifiedType = this.checkTypeLiteral(typeLiteral, nameNode, project, target);
-      TypeHandler.setTypeFiltered(declaration, simplifiedType);
+      this.checkTypeLiteral(typeLiteral, nameNode, project, target);
+      TypeHandler.setType(declaration, TypeHandler.getType(declaration));
       this.createInterfaceFromObjectLiterals(declaration, project, target);
     } else if (!initialTypeNode) {
       declaration.removeType();
@@ -53,13 +53,13 @@ class InterfaceHandler {
     const signature = this.getFirstSignatureAncestor(typeLiteral);
     if (typeLiteral && Node.isPropertySignature(signature)) {
       const nameNode = signature.getNameNode();
-      const simplifiedType = this.checkTypeLiteral(typeLiteral, nameNode, project, target);
-      TypeHandler.setTypeFiltered(signature, simplifiedType);
+      this.checkTypeLiteral(typeLiteral, nameNode, project, target);
+      TypeHandler.setType(signature, TypeHandler.getType(signature));
       this.createInterfacesFromSourceFile(sourceFile, project, target);
     } else if (typeLiteral && Node.isIndexSignatureDeclaration(signature)) {
       const nameNode = signature.getKeyNameNode();
-      const simplifiedType = this.checkTypeLiteral(typeLiteral, nameNode, project, target);
-      TypeHandler.setReturnTypeFiltered(signature, simplifiedType);
+      this.checkTypeLiteral(typeLiteral, nameNode, project, target);
+      signature.setReturnType(signature.getReturnType().getText());
       this.createInterfacesFromSourceFile(sourceFile, project, target);
     }
   }
@@ -78,11 +78,11 @@ class InterfaceHandler {
     const parent = typeLiteral.getParent();
     if (Node.isUnionTypeNode(parent)) {
       const simplifiedType = this.checkUnionTypeNode(parent, nameNode, project, target);
-      return parent.replaceWithText(simplifiedType).getText();
+      parent.replaceWithText(simplifiedType);
     } else {
       const interfaceName = getInterfaceName(nameNode);
       const interfaceDeclaration = createInterface(interfaceName, project, target, typeLiteral.getMembers());
-      return typeLiteral.replaceWithText(TypeHandler.getType(interfaceDeclaration).getText()).getText();
+      typeLiteral.replaceWithText(TypeHandler.getType(interfaceDeclaration).getText());
     }
   };
 
