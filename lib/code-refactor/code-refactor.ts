@@ -9,7 +9,7 @@ import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.mo
 import Logger from '../logger/logger';
 import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
 import TypesRefactor from './types-refactor/types-refactor';
-import {generateProgressBar} from "./helpers/generate-progress-bar/generate-progress-bar";
+import { generateProgressBar } from './helpers/generate-progress-bar/generate-progress-bar';
 
 class CodeRefactor {
   static convertToTypescript = (project: Project, target: string) => {
@@ -17,15 +17,16 @@ class CodeRefactor {
     this.refactorImports(project);
     this.refactorClasses(project);
     this.generateInterfaces(project, target);
-    this.inferParameterTypes(project);
-    this.inferParameterTypes(project);
+    this.inferParameterTypes(project, target);
+    this.inferParameterTypes(project, target);
     this.setInitialTypes(project);
     this.inferWriteAccessType(project, target);
+    this.inferContextualType(project, target);
     this.checkInterfaceUsage(project, target);
     this.checkInterfaceWriteAccess(project, target);
-    this.inferContextualType(project);
     this.replaceAnyAndUnknown(project);
     this.mergingInterfaces(project, target);
+    this.cleanupTypes(project);
     this.refactorImportTypesAndGlobalVariables(project);
   };
 
@@ -99,20 +100,22 @@ class CodeRefactor {
   private static generateInterfaces = (project: Project, target: string) => {
     Logger.info('Generating interfaces from object literal types');
     const sourceFiles = project.getSourceFiles();
-    const bar = generateProgressBar(sourceFiles.length);
-    project.getSourceFiles().forEach((s) => {
+    const bar = generateProgressBar(sourceFiles.length + 1);
+    sourceFiles.forEach((s) => {
       TypesRefactor.createInterfacesFromObjectTypes(s, project, target);
       bar.tick();
     });
+    TypesRefactor.createInterfacesFromTypeLiterals(project, target);
+    bar.tick();
     Logger.success('Generated interfaces from object literal types where possible');
   }
 
-  private static inferParameterTypes = (project: Project) => {
+  private static inferParameterTypes = (project: Project, target: string) => {
     Logger.info('Declaring parameter types by usage');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach(s => {
-      TypesRefactor.inferParameterTypes(s);
+      TypesRefactor.inferParameterTypes(s, project, target);
       bar.tick();
     });
     Logger.success('Parameter type declared where possible');
@@ -157,12 +160,12 @@ class CodeRefactor {
     Logger.success('Checked write access of properties of interfaces where possible');
   }
 
-  private static inferContextualType = (project: Project) => {
+  private static inferContextualType = (project: Project, target: string) => {
     Logger.info('Inferring type of untyped declarations by contextual type');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
-      TypesRefactor.inferContextualType(s);
+      TypesRefactor.inferContextualType(s, project, target);
       bar.tick();
     });
     Logger.success('Inferred type where possible');
@@ -194,6 +197,17 @@ class CodeRefactor {
       bar.tick();
     });
     Logger.success('Refactored import types to simple type references and imported global variables where possible');
+  }
+
+  private static cleanupTypes = (project: Project) => {
+    Logger.info('Filtering out duplicate types in union types');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.cleanupTypeNodes(s);
+      bar.tick();
+    });
+    Logger.success('Filtered union types');
   }
 }
 

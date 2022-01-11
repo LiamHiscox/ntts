@@ -64,6 +64,20 @@ test('should set type of number property according to write access', () => {
     .toEqual('class A {\n0: string | number | boolean = "asd";\nconstructor() { this[0] = true; }\n}\nconst a = new A();\na["0"] = 12;');
 });
 
+test('should create interface from write access', () => {
+  const sourceFile = project.createSourceFile(
+    'write-access.ts',
+    'let a = "fun";\na = { b: { c: true; d: "d" } }',
+    { overwrite: true },
+  );
+  TypesRefactor.inferWriteAccessType(sourceFile, project, '');
+  const declaration = getInterfaces(project, '').find(i => i.getName() === 'A');
+  expect(declaration).not.toBeUndefined();
+  if (declaration) {
+    expect(flatten(declaration)).toEqual('export interface A { b: { c: boolean; d: string; }; }');
+  }
+});
+
 test('should combine object literal types', () => {
   const sourceFile = project.createSourceFile(
     'write-access.ts',

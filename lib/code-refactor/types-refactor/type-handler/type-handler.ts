@@ -62,7 +62,7 @@ class TypeHandler {
   static getReturnTypeNode = (node: ReturnTypedNode & Node): TypeNode => {
     const typeNode = node.getReturnTypeNode();
     if (!typeNode) {
-      const type = this.getType(node).getBaseTypeOfLiteralType();
+      const type = node.getReturnType().getBaseTypeOfLiteralType();
       return this.getNonParenthesizedType(node.setReturnType(type.getText()).getReturnTypeNodeOrThrow());
     }
     return this.getNonParenthesizedType(typeNode);

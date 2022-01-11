@@ -3,6 +3,8 @@ import {
   SourceFile,
   TypeElementTypes,
   Node,
+  BindingName,
+  PropertyName
 } from 'ts-morph';
 import { existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
@@ -23,8 +25,7 @@ export const getSourceFile = (project: Project, target: string): SourceFile => {
 };
 
 export const getInterfaces = (project: Project, target: string) => {
-  const sourceFile = getSourceFile(project, target);
-  return sourceFile.getInterfaces();
+  return getSourceFile(project, target).getInterfaces();
 };
 
 const toInterfaceFormat = (str: string) => str
@@ -49,4 +50,23 @@ export const createInterface = (name: string, project: Project, target: string, 
     }
   });
   return declaration;
+};
+
+export const getInterfaceName = (nameNode: BindingName | PropertyName | undefined) => {
+  if (!nameNode) {
+    return 'Unnamed';
+  }
+  if (Node.isIdentifier(nameNode) || Node.isPrivateIdentifier(nameNode) || Node.isStringLiteral(nameNode)) {
+    return nameNode.getText();
+  }
+  if (Node.isObjectBindingPattern(nameNode)) {
+    return 'ObjectBinding';
+  }
+  if (Node.isArrayBindingPattern(nameNode)) {
+    return 'ArrayBinding';
+  }
+  if (Node.isComputedPropertyName(nameNode)) {
+    return 'Computed';
+  }
+  return `Numeric${nameNode.getLiteralText()}`;
 };

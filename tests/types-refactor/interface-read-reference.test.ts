@@ -3,7 +3,7 @@ import { getSourceFile } from '../../lib/code-refactor/types-refactor/interface-
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 import TypeHandler from '../../lib/code-refactor/types-refactor/type-handler/type-handler';
 import flatten from './helpers';
-import fs, {existsSync} from "fs";
+import fs, { existsSync } from "fs";
 
 let project: Project;
 
@@ -16,7 +16,8 @@ beforeEach(() => {
 
 afterEach(() => {
   if (existsSync('ntts-generated-models.ts')) {
-    fs.unlinkSync('ntts-generated-models.ts');  }
+    fs.unlinkSync('ntts-generated-models.ts');
+  }
 })
 
 test('should add properties to interface from property access', () => {
@@ -119,20 +120,4 @@ test('should add properties to two interfaces from property access in union type
   TypesRefactor.checkInterfaceProperties(project, '');
   expect(flatten(interfaceA)).toEqual('export interface A { b?: string | undefined; c?: number | undefined; }');
   expect(flatten(interfaceB)).toEqual('export interface B { b?: string | undefined; c?: number | undefined; }');
-});
-
-test('should add properties to interface and inner property from property access', () => {
-  const interfaceDeclaration = getSourceFile(project, '').addInterface({
-    name: 'Empty',
-    isExported: true,
-    properties: [{ name: 'b', type: '{}' }],
-  });
-  const sourceFile = project.createSourceFile(
-    'write-access.ts',
-    `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} = {b: {}};\na.b.c = "asd";`,
-    { overwrite: true },
-  );
-  TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
-  TypesRefactor.checkInterfaceProperties(project, '');
-  expect(flatten(interfaceDeclaration)).toEqual('export interface Empty { b: { c?: string | undefined; }; }');
 });

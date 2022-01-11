@@ -37,7 +37,9 @@ class TypeNodeRefactor {
     const moduleSpecifier = ImportTypeParser.parseImportPath(relativePath, fullModuleSpecifier);
     const qualifier = importType.getQualifier();
 
-    if (!qualifier) {
+    if (qualifier && fullModuleSpecifier === sourceFile.getFilePath().replace(/\.tsx?$/, '')) {
+      importType.replaceWithText(importType.getText().replace(/^import\(.*?\)\./, ''));
+    } else if (!qualifier) {
       const newImportName = this.addImport(qualifier, moduleSpecifier, usedNames, sourceFile);
       importType.replaceWithText(newImportName);
     } else {
