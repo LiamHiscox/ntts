@@ -1,4 +1,11 @@
-import { Node, ParameterDeclaration, SyntaxKind, TypedNode, TypeNode } from 'ts-morph';
+import {
+  Node,
+  ParameterDeclaration,
+  ReturnTypedNode,
+  SyntaxKind,
+  TypedNode,
+  TypeNode
+} from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
 
 class InvalidTypeReplacer {
@@ -21,6 +28,19 @@ class InvalidTypeReplacer {
       this.getNeverAndAnyNodes(typeNode).forEach(node => node.replaceWithText('unknown'));
     } else {
       typedNode.removeType();
+    }
+  }
+
+  static replaceAnyAndNeverReturnType = (typedNode: ReturnTypedNode & Node) => {
+    const initialTypeNode = typedNode.getReturnTypeNode();
+    if (initialTypeNode) {
+      return this.getNeverAndAnyNodes(initialTypeNode).forEach((node) => node.replaceWithText('unknown'));
+    }
+    const typeNode = TypeHandler.getReturnTypeNode(typedNode);
+    if (this.containsNeverNodes(typeNode)) {
+      this.getNeverAndAnyNodes(typeNode).forEach(node => node.replaceWithText('unknown'));
+    } else {
+      typedNode.removeReturnType();
     }
   }
 

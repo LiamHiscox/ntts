@@ -73,6 +73,9 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return;
       }
+      if (Node.isIndexSignatureDeclaration(descendant)) {
+        return InvalidTypeReplacer.replaceAnyAndNeverReturnType(descendant);
+      }
       if (Node.isParameterDeclaration(descendant)) {
         return InvalidTypeReplacer.replaceParameterType(descendant);
       }
