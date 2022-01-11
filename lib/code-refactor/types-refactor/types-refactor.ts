@@ -46,7 +46,12 @@ class TypesRefactor {
   static mergeDuplicateInterfaces = (project: Project, target: string) => {
     const interfaces = getInterfaces(project, target);
     const bar = generateProgressBar(interfaces.length);
+    const interfaceCount = interfaces.length;
     InterfaceMerger.mergeDuplicates(interfaces, bar);
+    const mergedInterfaceCount = getInterfaces(project, target).length;
+    if (mergedInterfaceCount < interfaceCount) {
+      this.mergeDuplicateInterfaces(project, target);
+    }
   };
 
   static addPropertiesFromUsageOfInterface = (sourceFile: SourceFile, project: Project, target: string) => {
@@ -162,10 +167,21 @@ class TypesRefactor {
     });
   };
 
-  static cleanupTypeNodes = (sourceFile: SourceFile) => {
+  static filterUnionType = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
-      if (!descendant.wasForgotten() && Node.isTyped(descendant)) {
-        Cleanup.filterDuplicateTypes(descendant);
+      if (!descendant.wasForgotten() && Node.isUnionTypeNode(descendant)) {
+        Cleanup.filterUnionType(descendant);
+      }
+    });
+  }
+
+  static removeUndefinedFromOptional = (sourceFile: SourceFile) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (Node.isPropertySignature(descendant) || Node.isParameterDeclaration(descendant)) {
+        Cleanup.removeUndefinedFromOptional(descendant);
       }
     });
   }

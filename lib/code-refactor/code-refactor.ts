@@ -25,9 +25,10 @@ class CodeRefactor {
     this.checkInterfaceUsage(project, target);
     this.checkInterfaceWriteAccess(project, target);
     this.replaceAnyAndUnknown(project);
+    this.filterUnionType(project);
     this.mergingInterfaces(project, target);
-    this.cleanupTypes(project);
     this.refactorImportTypesAndGlobalVariables(project);
+    this.simplifyOptionalNodes(project);
   };
 
   static addSourceFiles = (ignores: string[], path: string): Project => {
@@ -199,15 +200,26 @@ class CodeRefactor {
     Logger.success('Refactored import types to simple type references and imported global variables where possible');
   }
 
-  private static cleanupTypes = (project: Project) => {
+  private static filterUnionType = (project: Project) => {
     Logger.info('Filtering out duplicate types in union types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
-      TypesRefactor.cleanupTypeNodes(s);
+      TypesRefactor.filterUnionType(s);
       bar.tick();
     });
     Logger.success('Filtered union types');
+  }
+
+  private static simplifyOptionalNodes = (project: Project) => {
+    Logger.info('Removing undefined type from optional node');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.removeUndefinedFromOptional(s);
+      bar.tick();
+    });
+    Logger.success('Removed undefined types');
   }
 }
 

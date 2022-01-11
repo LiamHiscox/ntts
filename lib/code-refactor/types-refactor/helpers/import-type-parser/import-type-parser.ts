@@ -1,7 +1,6 @@
-import {
-  Identifier, ImportTypeNode, Node, QualifiedName, SyntaxKind,
-} from 'ts-morph';
-import { existsSync } from 'fs';
+import { Identifier, ImportTypeNode, Node, QualifiedName, SyntaxKind } from 'ts-morph';
+import path, { relative } from 'path';
+import PathParser from "../../../../helpers/path-parser/path-parser";
 
 class ImportTypeParser {
   static getFullModuleSpecifier = (importType: ImportTypeNode): string | undefined => importType
@@ -18,27 +17,26 @@ class ImportTypeParser {
     return typeName;
   };
 
-  static parseImportPath = (relativePath: string, fullPath: string): string => {
-    if (this.isNodeModulePackage(relativePath, fullPath)) {
-      return relativePath
+  static parseImportPath = (fullPath: string, filePath: string): string => {
+    debugger;
+    if (!path.isAbsolute(fullPath)) {
+      return fullPath;
+    }
+    if (this.isNodeModulePackage(fullPath)) {
+      return fullPath
         .replace(/^(.*?\/)?node_modules\/(@types\/)?/, '')
         .replace(/\/index((\.d)?\.ts)?$/, '');
     }
+    const relativePath = PathParser.win32ToPosixPath(relative(filePath, fullPath));
     return this.toRelativeModuleSpecifier(relativePath);
   };
 
-  static isNodeModulePackage = (moduleSpecifier: string, fullPath: string): boolean => {
-    if (moduleSpecifier.includes('/node_modules/') || moduleSpecifier.startsWith('node_modules/')) {
-      return true;
-    }
-    if (/.*(\.d)?\.ts$/.test(moduleSpecifier)) {
-      return !existsSync(fullPath);
-    }
-    return !existsSync(`${fullPath}.ts`) && !existsSync(`${fullPath}.d.ts`);
+  static isNodeModulePackage = (fullPath: string): boolean => {
+    return (/^(.*?\/)?node_modules\//).test(fullPath);
   };
 
   private static toRelativeModuleSpecifier = (moduleSpecifier: string): string => {
-    if (moduleSpecifier.match(/^..?\//)) {
+    if (moduleSpecifier.match(/^\.\.?\//)) {
       return moduleSpecifier;
     }
     return `./${moduleSpecifier}`;

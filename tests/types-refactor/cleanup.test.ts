@@ -28,7 +28,7 @@ test('should clean up union with identical interfaces', () => {
     `let a: ${interfaceDeclaration.getType().getText()} | ${interfaceDeclaration.getType().getText()} | ${interfaceDeclaration.getType().getText()};`,
     {overwrite: true},
   );
-  TypesRefactor.cleanupTypeNodes(sourceFile);
+  TypesRefactor.filterUnionType(sourceFile);
   expect(sourceFile.getText()).toEqual(`let a: ${interfaceDeclaration.getType().getText()};`);
 });
 
@@ -43,6 +43,16 @@ test('should clean up union with multiple types', () => {
     `let a: ${interfaceDeclaration.getType().getText()} | ${interfaceDeclaration.getType().getText()} | undefined;`,
     {overwrite: true},
   );
-  TypesRefactor.cleanupTypeNodes(sourceFile);
+  TypesRefactor.filterUnionType(sourceFile);
   expect(sourceFile.getText()).toEqual(`let a: ${interfaceDeclaration.getType().getText()} | undefined;`);
+});
+
+test('should remove undefined from optional parameter', () => {
+  const sourceFile = project.createSourceFile(
+    'write-access.ts',
+    'function f (p?: string | undefined) {};',
+    {overwrite: true},
+  );
+  TypesRefactor.removeUndefinedFromOptional(sourceFile);
+  expect(sourceFile.getText()).toEqual('function f (p?: string) {};');
 });
