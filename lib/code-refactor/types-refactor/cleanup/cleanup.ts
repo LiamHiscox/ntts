@@ -16,7 +16,6 @@ class Cleanup {
   }
 
   static removeUndefinedFromOptional = (declaration: PropertySignature | ParameterDeclaration) => {
-    debugger;
     const typeNode = declaration.getTypeNode();
     if (Node.isUnionTypeNode(typeNode) && declaration.hasQuestionToken()) {
       const filtered = typeNode

@@ -118,7 +118,8 @@ test('should combine object literal types with index signatures 2', () => {
   const declaration = getInterfaces(project, '').find(i => i.getName() === 'A');
   expect(declaration).not.toBeUndefined();
   if (declaration) {
-    expect(flatten(declaration))
-      .toEqual('export interface A { [key: string]: { a: string | number; b?: boolean | undefined; }; [key: number]: { a: string | number; b?: boolean | undefined; }; }');
+    expect(flatten(declaration)).toEqual(
+      'export interface A { [key: string]: { a: string | number; b?: boolean | undefined; }; ' +
+      '[key: number]: { a: string | number; b?: boolean | undefined; }; }');
   }
 });

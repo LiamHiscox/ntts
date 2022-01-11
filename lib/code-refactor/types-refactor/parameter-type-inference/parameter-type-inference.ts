@@ -32,7 +32,11 @@ class ParameterTypeInference {
     DeepTypeInference.propagateParameterTypes(parameters);
   };
 
-  static inferFunctionAssignmentParameterTypes = (assignment: PropertyAssignment | VariableDeclaration | PropertyDeclaration, project: Project, target: string) => {
+  static inferFunctionAssignmentParameterTypes = (
+    assignment: PropertyAssignment | VariableDeclaration | PropertyDeclaration,
+    project: Project,
+    target: string
+  ) => {
     const initializer = assignment.getInitializer();
     if (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer)) {
       const parameters = initializer.getParameters();
@@ -45,7 +49,11 @@ class ParameterTypeInference {
     }
   };
 
-  static inferFunctionDeclarationParameterTypes = (declaration: FunctionDeclaration | MethodDeclaration, project: Project, target: string) => {
+  static inferFunctionDeclarationParameterTypes = (
+    declaration: FunctionDeclaration | MethodDeclaration,
+    project: Project,
+    target: string
+  ) => {
     const initialTypes = declaration.getParameters().map((p) => TypeHandler.getType(p).getText());
     findReferencesAsNodes(declaration).forEach((ref) => {
       const parent = TypeInferenceValidator.validateCallExpressionParent(ref);
@@ -114,7 +122,11 @@ class ParameterTypeInference {
     }, []).map((t) => `(${t})`).join(' | ');
 
     const parameterText = parameterType.getText();
-    if (argumentsType && (TypeChecker.isAnyOrUnknown(parameterType) || TypeChecker.isAnyOrUnknownArray(parameterType) || parameterText === 'never[]')) {
+    if (argumentsType && (
+      TypeChecker.isAnyOrUnknown(parameterType)
+      || TypeChecker.isAnyOrUnknownArray(parameterType)
+      || parameterText === 'never[]')
+    ) {
       TypeHandler.setTypeFiltered(parameter, `(${argumentsType})[]`);
       InterfaceHandler.createInterfaceFromObjectLiterals(parameter, project, target);
     } else if (argumentsType) {

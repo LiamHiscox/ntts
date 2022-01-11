@@ -30,7 +30,8 @@ test('refactor importType with named identifier as qualifier', () => {
 
 test('refactor importType with named qualified name as qualifier', () => {
   const sourceFile = project.createSourceFile('simple-types.ts', '', {overwrite: true});
-  sourceFile.replaceWithText(`let a: import("${sourceFile.getDirectoryPath()}/node_modules/@types/express-serve-static-core/index").Request.Collator;`);
+  sourceFile.replaceWithText(
+    `let a: import("${sourceFile.getDirectoryPath()}/node_modules/@types/express-serve-static-core/index").Request.Collator;`);
   TypeNodeRefactor.refactor(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile);
   expect(sourceFile.getText()).toEqual('import { Request } from "express-serve-static-core";\n\nlet a: Request.Collator;');
 });

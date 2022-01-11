@@ -67,8 +67,9 @@ test('should not set function parameter as union type with duplicate type by usa
   expect(Param1).not.toBeUndefined();
   if (Param1) {
     expect(flatten(Param1)).toEqual('export interface Param1 { qwe: number; }')
-    expect(sourceFile.getText())
-      .toEqual(`function fun (param1: ${TypeHandler.getType(Param1).getText()}) { return param1; };\nfun({qwe: 12});\nfun(({qwe: 11});\nfun(({qwe: 10});`);
+    expect(sourceFile.getText()).toEqual(
+      `function fun (param1: ${TypeHandler.getType(Param1).getText()}) { return param1; };\n`
+      + `fun({qwe: 12});\nfun(({qwe: 11});\nfun(({qwe: 10});`);
   }
 });
 

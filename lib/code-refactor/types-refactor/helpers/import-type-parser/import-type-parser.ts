@@ -18,7 +18,6 @@ class ImportTypeParser {
   };
 
   static parseImportPath = (fullPath: string, filePath: string): string => {
-    debugger;
     if (!path.isAbsolute(fullPath)) {
       return fullPath;
     }
