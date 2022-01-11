@@ -1,5 +1,8 @@
 import { Project } from 'ts-morph';
-import { getSourceFile } from '../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator';
+import {
+  getInterfaces,
+  getSourceFile
+} from '../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator';
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 import TypeHandler from '../../lib/code-refactor/types-refactor/type-handler/type-handler';
 import flatten from './helpers';
@@ -134,5 +137,10 @@ test('should add properties to interface and inner property from property access
   );
   TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
   TypesRefactor.checkInterfaceProperties(project, '');
-  expect(flatten(interfaceDeclaration)).toEqual('export interface Empty { b: { c?: string | undefined; }; }');
+  const B = getInterfaces(project, '').find(i => i.getName() === 'B');
+  expect(B).not.toBeUndefined();
+  if (B) {
+    expect(flatten(interfaceDeclaration)).toEqual(`export interface Empty { b: ${TypeHandler.getType(B).getText()}; }`);
+    expect(flatten(B)).toEqual('export interface B { c?: string | undefined; }');
+  }
 });
