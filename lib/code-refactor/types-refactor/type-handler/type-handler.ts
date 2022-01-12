@@ -50,13 +50,6 @@ class TypeHandler {
     return node.getType().getBaseTypeOfLiteralType();
   };
 
-  static getNonParenthesizedTypeNode = (typeNode: TypeNode): TypeNode => {
-    if (Node.isParenthesizedTypeNode(typeNode)) {
-      return this.getNonParenthesizedTypeNode(typeNode.getTypeNode());
-    }
-    return typeNode;
-  }
-
   static getTypeNode = (node: TypedNode & Node): TypeNode => {
     const typeNode = node.getTypeNode();
     if (!typeNode) {
@@ -70,9 +63,9 @@ class TypeHandler {
     const typeNode = node.getReturnTypeNode();
     if (!typeNode) {
       const type = node.getReturnType().getBaseTypeOfLiteralType();
-      return this.getNonParenthesizedType(node.setReturnType(type.getText()).getReturnTypeNodeOrThrow());
+      return this.getNonParenthesizedTypeNode(node.setReturnType(type.getText()).getReturnTypeNodeOrThrow());
     }
-    return this.getNonParenthesizedType(typeNode);
+    return this.getNonParenthesizedTypeNode(typeNode);
   };
 
   static setReturnTypeFiltered = <T extends Node & ReturnTypedNode>(node: T, type: string): T => {
@@ -106,9 +99,9 @@ class TypeHandler {
     return unionTypes.filter((t) => !TypeChecker.isAny(t)).map((t) => t.getBaseTypeOfLiteralType());
   };
 
-  static getNonParenthesizedType = (typeNode: TypeNode): TypeNode => {
+  static getNonParenthesizedTypeNode = (typeNode: TypeNode): TypeNode => {
     if (Node.isParenthesizedTypeNode(typeNode)) {
-      return this.getNonParenthesizedType(typeNode.getTypeNode());
+      return this.getNonParenthesizedTypeNode(typeNode.getTypeNode());
     }
     return typeNode;
   };

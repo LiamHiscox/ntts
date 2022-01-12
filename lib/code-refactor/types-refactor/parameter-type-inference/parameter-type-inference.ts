@@ -99,7 +99,9 @@ class ParameterTypeInference {
     if (Node.isFunctionTypeNode(typeNode)) {
       return [typeNode];
     } else if (Node.isUnionTypeNode(typeNode)) {
-      return typeNode.getTypeNodes().filter(n => Node.isFunctionTypeNode(TypeHandler.getNonParenthesizedTypeNode(n))) as FunctionTypeNode[];
+      return typeNode.getTypeNodes()
+        .map(n => TypeHandler.getNonParenthesizedTypeNode(n))
+        .filter(n => Node.isFunctionTypeNode(n)) as FunctionTypeNode[];
     }
     return [];
   }
