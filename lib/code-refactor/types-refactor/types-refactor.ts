@@ -11,6 +11,7 @@ import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
 import { generateProgressBar } from '../helpers/generate-progress-bar/generate-progress-bar';
 import Cleanup from "./cleanup/cleanup";
+import {getParentFunction, isAnonymousFunction} from "./helpers/function-checker/function-checker";
 
 class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project, target: string) => {
@@ -46,7 +47,12 @@ class TypesRefactor {
   static mergeDuplicateInterfaces = (project: Project, target: string) => {
     const interfaces = getInterfaces(project, target);
     const bar = generateProgressBar(interfaces.length);
+    const interfaceCount = interfaces.length;
     InterfaceMerger.mergeDuplicates(interfaces, bar);
+    const mergedInterfaceCount = getInterfaces(project, target).length;
+    if (mergedInterfaceCount < interfaceCount) {
+      this.mergeDuplicateInterfaces(project, target);
+    }
   };
 
   static addPropertiesFromUsageOfInterface = (sourceFile: SourceFile, project: Project, target: string) => {
@@ -63,12 +69,29 @@ class TypesRefactor {
     }
   };
 
+  static replaceInvalidTypesAnonymousFunction = (sourceFile: SourceFile) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (Node.isParameterDeclaration(descendant)
+        && isAnonymousFunction(getParentFunction(descendant))) {
+        return InvalidTypeReplacer.replaceParameterType(descendant);
+      }
+      return;
+    });
+  };
+
   static replaceInvalidTypes = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
       }
-      if (Node.isParameterDeclaration(descendant)) {
+      if (Node.isIndexSignatureDeclaration(descendant)) {
+        return InvalidTypeReplacer.replaceAnyAndNeverReturnType(descendant);
+      }
+      if (Node.isParameterDeclaration(descendant)
+        && !isAnonymousFunction(getParentFunction(descendant))) {
         return InvalidTypeReplacer.replaceParameterType(descendant);
       }
       if (Node.isVariableDeclaration(descendant)
@@ -100,8 +123,22 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return undefined;
       }
-      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant)) {
+      if (Node.isVariableDeclaration(descendant)
+        || Node.isPropertyDeclaration(descendant)) {
         return WriteAccessTypeInference.inferTypeByWriteAccess(descendant, project, target);
+      }
+      return undefined;
+    });
+  };
+
+  static inferFunctionTypeParameterTypes = (sourceFile: SourceFile, project: Project, target: string) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return undefined;
+      }
+      if (Node.isPropertySignature(descendant)
+        || Node.isParameterDeclaration(descendant)) {
+        return ParameterTypeInference.inferFunctionTypeParameterTypes(descendant, project, target);
       }
       return undefined;
     });
@@ -156,16 +193,29 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return;
       }
-      if (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant)) {
+      if (Node.isVariableDeclaration(descendant)
+        || Node.isPropertyDeclaration(descendant)) {
         InitialTypeHandler.setInitialType(descendant);
       }
     });
   };
 
-  static cleanupTypeNodes = (sourceFile: SourceFile) => {
+  static filterUnionType = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
-      if (!descendant.wasForgotten() && Node.isTyped(descendant)) {
-        Cleanup.filterDuplicateTypes(descendant);
+      if (!descendant.wasForgotten() && Node.isUnionTypeNode(descendant)) {
+        Cleanup.filterUnionType(descendant);
+      }
+    });
+  }
+
+  static removeUndefinedFromOptional = (sourceFile: SourceFile) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (Node.isPropertySignature(descendant)
+        || Node.isParameterDeclaration(descendant)) {
+        Cleanup.removeUndefinedFromOptional(descendant);
       }
     });
   }

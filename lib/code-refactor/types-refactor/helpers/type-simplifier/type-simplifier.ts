@@ -13,7 +13,7 @@ import { TypeMemberKind } from '../../../helpers/combined-types/combined-types';
 
 class TypeSimplifier {
   static simplifyTypeNode = (typeNode: TypeNode): string => {
-    const innerTypeNode = TypeHandler.getNonParenthesizedType(typeNode);
+    const innerTypeNode = TypeHandler.getNonParenthesizedTypeNode(typeNode);
     if (Node.isUnionTypeNode(innerTypeNode)) {
       const typeNodes = innerTypeNode.getTypeNodes();
       return this.simplifyTypeNodeList(typeNodes);
@@ -28,7 +28,7 @@ class TypeSimplifier {
   };
 
   static simplifyTypeNodeList = (typeNodes: TypeNode[]): string => {
-    const innerTypeNodes = typeNodes.map((t) => TypeHandler.getNonParenthesizedType(t));
+    const innerTypeNodes = typeNodes.map((t) => TypeHandler.getNonParenthesizedTypeNode(t));
     const nonTypeLiterals = this.getNonTypeLiterals(innerTypeNodes);
     const typeLiterals = this.getTypeLiterals(innerTypeNodes);
     const functionTypes = this.getFunctionTypes(innerTypeNodes);

@@ -80,7 +80,8 @@ test('should create interface and replace object union type with interface with 
   expect(Key).not.toBeUndefined();
   if (A && _A && C && Key) {
     expect(sourceFile.getText()).toEqual(`let a: ${TypeHandler.getType(A).getText()};`);
-    expect(flatten(A)).toEqual(`export interface A { a: ${TypeHandler.getType(_A).getText()}; [key: string]: ${TypeHandler.getType(Key).getText()}; }`);
+    expect(flatten(A))
+      .toEqual(`export interface A { a: ${TypeHandler.getType(_A).getText()}; [key: string]: ${TypeHandler.getType(Key).getText()}; }`);
     expect(flatten(_A)).toEqual(`export interface _A { c: ${TypeHandler.getType(C).getText()}; }`);
     expect(flatten(C)).toEqual(`export interface C { d: string | number; }`);
     expect(flatten(Key)).toEqual(`export interface Key { o: number; }`);

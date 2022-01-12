@@ -19,15 +19,17 @@ class CodeRefactor {
     this.generateInterfaces(project, target);
     this.inferParameterTypes(project, target);
     this.inferParameterTypes(project, target);
+    this.inferFunctionTypeParameterTypes(project, target);
     this.setInitialTypes(project);
     this.inferWriteAccessType(project, target);
     this.inferContextualType(project, target);
     this.checkInterfaceUsage(project, target);
     this.checkInterfaceWriteAccess(project, target);
     this.replaceAnyAndUnknown(project);
-    this.mergingInterfaces(project, target);
-    this.cleanupTypes(project);
+    this.filterUnionType(project);
     this.refactorImportTypesAndGlobalVariables(project);
+    this.mergingInterfaces(project, target);
+    this.simplifyOptionalNodes(project);
   };
 
   static addSourceFiles = (ignores: string[], path: string): Project => {
@@ -121,6 +123,17 @@ class CodeRefactor {
     Logger.success('Parameter type declared where possible');
   }
 
+  private static inferFunctionTypeParameterTypes = (project: Project, target: string) => {
+    Logger.info('Declaring parameter types of function types by usage');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach(s => {
+      TypesRefactor.inferFunctionTypeParameterTypes(s, project, target);
+      bar.tick();
+    });
+    Logger.success('Parameter type declared where possible');
+  }
+
   private static setInitialTypes = (project: Project) => {
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
@@ -174,10 +187,15 @@ class CodeRefactor {
   private static replaceAnyAndUnknown = (project: Project) => {
     Logger.info('Replacing types any and never with unknown');
     const sourceFiles = project.getSourceFiles();
-    const bar = generateProgressBar(sourceFiles.length);
+    const bar1 = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
       TypesRefactor.replaceInvalidTypes(s);
-      bar.tick();
+      bar1.tick();
+    });
+    const bar2 = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.replaceInvalidTypesAnonymousFunction(s);
+      bar2.tick();
     });
     Logger.success('Replaced types any and never with unknown where possible');
   }
@@ -199,15 +217,26 @@ class CodeRefactor {
     Logger.success('Refactored import types to simple type references and imported global variables where possible');
   }
 
-  private static cleanupTypes = (project: Project) => {
+  private static filterUnionType = (project: Project) => {
     Logger.info('Filtering out duplicate types in union types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
-      TypesRefactor.cleanupTypeNodes(s);
+      TypesRefactor.filterUnionType(s);
       bar.tick();
     });
     Logger.success('Filtered union types');
+  }
+
+  private static simplifyOptionalNodes = (project: Project) => {
+    Logger.info('Removing undefined type from optional node');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.removeUndefinedFromOptional(s);
+      bar.tick();
+    });
+    Logger.success('Removed undefined types');
   }
 }
 

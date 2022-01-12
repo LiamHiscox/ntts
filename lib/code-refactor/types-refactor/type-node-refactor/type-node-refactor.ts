@@ -1,8 +1,6 @@
 import {
   Identifier, ImportTypeNode, SourceFile, TypeReferenceNode,
 } from 'ts-morph';
-import { relative } from 'path';
-import PathParser from '../../../helpers/path-parser/path-parser';
 import UsedNames from '../../helpers/used-names/used-names';
 import ImportCreator from '../../helpers/import-creator/import-creator';
 import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator';
@@ -15,10 +13,8 @@ class TypeNodeRefactor {
     const identifier = ImportTypeParser.getFirstIdentifier(typeReference.getTypeName());
     const declaration = identifier.getSymbol()?.getDeclarations()[0];
     const declarationPath = declaration?.getSourceFile().getFilePath();
-
     if (declarationPath && !this.isTypescriptOrNodeVariable(declarationPath) && declarationPath !== sourceFile.getFilePath()) {
-      const relativePath = PathParser.win32ToPosixPath(relative(sourceFile.getDirectoryPath(), declarationPath));
-      const moduleSpecifier = ImportTypeParser.parseImportPath(relativePath, declarationPath);
+      const moduleSpecifier = ImportTypeParser.parseImportPath(declarationPath, sourceFile.getDirectoryPath());
       const newImportName = this.addGlobalImport(identifier, moduleSpecifier, usedNames, sourceFile);
       identifier.replaceWithText(newImportName);
     }
@@ -33,8 +29,7 @@ class TypeNodeRefactor {
     if (!fullModuleSpecifier) {
       return;
     }
-    const relativePath = PathParser.win32ToPosixPath(relative(sourceFile.getDirectoryPath(), fullModuleSpecifier));
-    const moduleSpecifier = ImportTypeParser.parseImportPath(relativePath, fullModuleSpecifier);
+    const moduleSpecifier = ImportTypeParser.parseImportPath(fullModuleSpecifier, sourceFile.getDirectoryPath());
     const qualifier = importType.getQualifier();
 
     if (qualifier && fullModuleSpecifier === sourceFile.getFilePath().replace(/\.tsx?$/, '')) {
