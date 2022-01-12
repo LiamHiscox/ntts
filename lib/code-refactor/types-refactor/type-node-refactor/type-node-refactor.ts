@@ -33,7 +33,7 @@ class TypeNodeRefactor {
     const qualifier = importType.getQualifier();
 
     if (qualifier && fullModuleSpecifier === sourceFile.getFilePath().replace(/\.tsx?$/, '')) {
-      importType.replaceWithText(importType.getText().replace(/^import\(.*?\)\./, ''));
+      importType.replaceWithText(importType.getText().replace(/import\(.*?\)\./, ''));
     } else if (!qualifier) {
       const newImportName = this.addImport(qualifier, moduleSpecifier, usedNames, sourceFile);
       importType.replaceWithText(newImportName);
@@ -41,7 +41,7 @@ class TypeNodeRefactor {
       const identifier = ImportTypeParser.getFirstIdentifier(qualifier);
       const newImportName = this.addImport(identifier, moduleSpecifier, usedNames, sourceFile);
       identifier.replaceWithText(newImportName);
-      importType.replaceWithText(importType.getText().replace(/^import\(.*?\)\./, ''));
+      importType.replaceWithText(importType.getText().replace(/import\(.*?\)\./, ''));
     }
   };
 
@@ -63,14 +63,12 @@ class TypeNodeRefactor {
         return ImportCreator.addNamespaceImport(usableName, moduleSpecifier, sourceFile);
       }
       return namespaceImport.getNamespaceImportOrThrow().getText();
-    } else {
-      if (identifier.getText() === 'default') {
-        const defaultImport = VariableNameGenerator.variableNameFromImportId(moduleSpecifier);
-        const usableName = VariableNameGenerator.getUsableVariableName(defaultImport, usedNames);
-        return ImportCreator.addSimpleImport(usableName, moduleSpecifier, sourceFile);
-      }
-      return ImportCreator.addNamedImport(identifier.getText(), moduleSpecifier, usedNames, sourceFile);
+    } else if (identifier.getText() === 'default') {
+      const defaultImport = VariableNameGenerator.variableNameFromImportId(moduleSpecifier);
+      const usableName = VariableNameGenerator.getUsableVariableName(defaultImport, usedNames);
+      return ImportCreator.addSimpleImport(usableName, moduleSpecifier, sourceFile);
     }
+    return ImportCreator.addNamedImport(identifier.getText(), moduleSpecifier, usedNames, sourceFile);
   };
 }
 

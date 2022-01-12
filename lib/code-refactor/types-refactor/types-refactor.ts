@@ -47,10 +47,9 @@ class TypesRefactor {
   static mergeDuplicateInterfaces = (project: Project, target: string) => {
     const interfaces = getInterfaces(project, target);
     const bar = generateProgressBar(interfaces.length);
-    const interfaceCount = interfaces.length;
     InterfaceMerger.mergeDuplicates(interfaces, bar);
     const mergedInterfaceCount = getInterfaces(project, target).length;
-    if (mergedInterfaceCount < interfaceCount) {
+    if (mergedInterfaceCount < interfaces.length) {
       this.mergeDuplicateInterfaces(project, target);
     }
   };
@@ -136,8 +135,7 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return undefined;
       }
-      if (Node.isPropertySignature(descendant)
-        || Node.isParameterDeclaration(descendant)) {
+      if (Node.isPropertySignature(descendant) || Node.isParameterDeclaration(descendant)) {
         return ParameterTypeInference.inferFunctionTypeParameterTypes(descendant, project, target);
       }
       return undefined;

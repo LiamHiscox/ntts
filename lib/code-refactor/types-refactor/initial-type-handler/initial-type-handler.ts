@@ -8,7 +8,7 @@ class InitialTypeHandler {
     const initializerType = initializer && TypeHandler.getType(initializer);
     const currentType = TypeHandler.getType(declaration);
     if (initializerType && !TypeChecker.isAnyOrUnknown(initializerType) && initializerType.getText() !== currentType.getText()) {
-      const combined = TypeHandler.combineTypes(declaration.getType(), initializerType);
+      const combined = TypeHandler.combineTypes(TypeHandler.getType(declaration), initializerType);
       TypeHandler.setTypeFiltered(declaration, combined);
     }
   };

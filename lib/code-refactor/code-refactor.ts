@@ -26,9 +26,10 @@ class CodeRefactor {
     this.checkInterfaceUsage(project, target);
     this.checkInterfaceWriteAccess(project, target);
     this.replaceAnyAndUnknown(project);
+    this.mergeInterfaces(project, target);
     this.filterUnionType(project);
+    this.mergeInterfaces(project, target);
     this.refactorImportTypesAndGlobalVariables(project);
-    this.mergingInterfaces(project, target);
     this.simplifyOptionalNodes(project);
   };
 
@@ -200,7 +201,7 @@ class CodeRefactor {
     Logger.success('Replaced types any and never with unknown where possible');
   }
 
-  private static mergingInterfaces = (project: Project, target: string) => {
+  private static mergeInterfaces = (project: Project, target: string) => {
     Logger.info('Merging duplicate interfaces');
     TypesRefactor.mergeDuplicateInterfaces(project, target);
     Logger.success('Merged duplicate interfaces where possible');

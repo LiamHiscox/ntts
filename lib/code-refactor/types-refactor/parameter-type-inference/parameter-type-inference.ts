@@ -81,6 +81,10 @@ class ParameterTypeInference {
   };
 
   static inferFunctionTypeParameterTypes(descendant: PropertySignature | ParameterDeclaration, project: Project, target: string) {
+    if (Node.isArrayBindingPattern(descendant.getNameNode())
+      || Node.isObjectBindingPattern(descendant.getNameNode())) {
+      return;
+    }
     const initialTypeNode = descendant.getTypeNode();
     const typeNode = TypeHandler.getTypeNode(descendant);
     const functionTypes = this.getFunctionTypes(typeNode);

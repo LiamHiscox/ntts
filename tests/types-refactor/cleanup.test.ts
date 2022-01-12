@@ -1,6 +1,7 @@
 import { Project } from 'ts-morph';
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 import fs, { existsSync } from "fs";
+import TypeHandler from "../../lib/code-refactor/types-refactor/type-handler/type-handler";
 
 let project: Project;
 
@@ -25,11 +26,11 @@ test('should clean up union with identical interfaces', () => {
   ).getInterfaceOrThrow('A');
   const sourceFile = project.createSourceFile(
     'write-access.ts',
-    `let a: ${interfaceDeclaration.getType().getText()} | ${interfaceDeclaration.getType().getText()} | ${interfaceDeclaration.getType().getText()};`,
+    `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} | ${TypeHandler.getType(interfaceDeclaration).getText()} | ${TypeHandler.getType(interfaceDeclaration).getText()};`,
     {overwrite: true},
   );
   TypesRefactor.filterUnionType(sourceFile);
-  expect(sourceFile.getText()).toEqual(`let a: ${interfaceDeclaration.getType().getText()};`);
+  expect(sourceFile.getText()).toEqual(`let a: ${TypeHandler.getType(interfaceDeclaration).getText()};`);
 });
 
 test('should clean up union with multiple types', () => {
@@ -40,11 +41,11 @@ test('should clean up union with multiple types', () => {
   ).getInterfaceOrThrow('A');
   const sourceFile = project.createSourceFile(
     'write-access.ts',
-    `let a: ${interfaceDeclaration.getType().getText()} | ${interfaceDeclaration.getType().getText()} | undefined;`,
+    `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} | ${TypeHandler.getType(interfaceDeclaration).getText()} | undefined;`,
     {overwrite: true},
   );
   TypesRefactor.filterUnionType(sourceFile);
-  expect(sourceFile.getText()).toEqual(`let a: ${interfaceDeclaration.getType().getText()} | undefined;`);
+  expect(sourceFile.getText()).toEqual(`let a: ${TypeHandler.getType(interfaceDeclaration).getText()} | undefined;`);
 });
 
 test('should remove undefined from optional parameter', () => {
