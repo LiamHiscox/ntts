@@ -92,7 +92,7 @@ test('should combine object literal types', () => {
   expect(B).not.toBeUndefined();
   if (A && B) {
     expect(flatten(A)).toEqual(`export interface A { a?: number | undefined; b?: ${TypeHandler.getType(B).getText()} | undefined; }`);
-    expect(flatten(B)).toEqual('export interface B { c: string | boolean; d?: string | undefined; }');
+    expect(flatten(B)).toEqual('export interface B { c: string | boolean; d?: string; }');
   }
 });
 
@@ -126,6 +126,6 @@ test('should combine object literal types with index signatures 2', () => {
     expect(flatten(Key)).toEqual(
       'export interface Key { a: string | number; b?: boolean | undefined; }');
     expect(flatten(A)).toEqual(
-      `export interface A { [key: string]: ${TypeHandler.getType(Key).getText()}; [key: number]: ${TypeHandler.getType(Key).getText()}`);
+      `export interface A { [key: string]: ${TypeHandler.getType(Key).getText()}; [key: number]: ${TypeHandler.getType(Key).getText()}; }`);
   }
 });

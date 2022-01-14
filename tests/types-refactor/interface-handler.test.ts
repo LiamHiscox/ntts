@@ -43,7 +43,7 @@ test('should create interface and set type of variable with object assignment', 
     expect(flatten(A)).toEqual(`export interface A { c?: ${TypeHandler.getType(C).getText()} | undefined; }`);
     expect(flatten(C)).toEqual('export interface C { a: string; b: number; }');
     expect(sourceFile.getText())
-      .toEqual(`let a: ${TypeHandler.getType(A).getText()} = true ? { auth: { a: "a", b: 1 } } : {};`);
+      .toEqual(`let a: ${TypeHandler.getType(A).getText()} = true ? { c: { a: "a", b: 1 } } : {};`);
   }
 });
 
