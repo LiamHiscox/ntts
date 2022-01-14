@@ -67,7 +67,7 @@ class InterfaceReadReferenceChecker {
       const combined = TypeHandler.combineTypes(indexSignature.getReturnType(), type);
       const newIndexSignature = TypeHandler.setReturnTypeFiltered(indexSignature, combined);
       const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getReturnTypeNode(newIndexSignature));
-      return stringSimplified ? TypeHandler.setReturnTypeFiltered(newIndexSignature, stringSimplified) : newIndexSignature;
+      return TypeHandler.setReturnTypeFiltered(newIndexSignature, stringSimplified);
     }
     return indexSignature;
   };

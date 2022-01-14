@@ -113,7 +113,7 @@ class ParameterTypeInference {
   private static simplifyParameterTypes = (parameters: ParameterDeclaration[], project: Project, target: string) => {
     parameters.forEach((parameter) => {
       const simplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(parameter));
-      simplified && TypeHandler.setTypeFiltered(parameter, simplified);
+      TypeHandler.setTypeFiltered(parameter, simplified);
       InterfaceHandler.createInterfaceFromObjectLiterals(parameter, project, target);
     });
   };
