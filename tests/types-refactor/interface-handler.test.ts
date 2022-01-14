@@ -27,7 +27,7 @@ afterEach(() => {
 test('should create interface and set type of variable with object assignment', () => {
   const sourceFile = project.createSourceFile(
     'write-access.ts',
-    'let a = true ? { auth: { a: "a", b: 1 } } : {};',
+    'let a = true ? { c: { a: "a", b: 1 } } : {};',
     { overwrite: true },
   );
   sourceFile
@@ -35,13 +35,15 @@ test('should create interface and set type of variable with object assignment', 
     .forEach((declaration) => InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, ''));
   expect(sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).length).toEqual(1);
   const generatedFile = getSourceFile(project, '');
-  const interfaceDeclaration = generatedFile.getInterface((i) => i.getName() === 'A');
-  expect(flatten(interfaceDeclaration))
-    .toEqual('export interface A { auth?: { a: string; b: number; } | undefined; }');
-  expect(interfaceDeclaration).not.toBeUndefined();
-  if (interfaceDeclaration) {
+  const A = generatedFile.getInterface((i) => i.getName() === 'A');
+  const C = generatedFile.getInterface((i) => i.getName() === 'C');
+  expect(A).not.toBeUndefined();
+  expect(C).not.toBeUndefined();
+  if (A && C) {
+    expect(flatten(A)).toEqual(`export interface A { c?: ${TypeHandler.getType(C).getText()} | undefined; }`);
+    expect(flatten(C)).toEqual('export interface C { a: string; b: number; }');
     expect(sourceFile.getText())
-      .toEqual(`let a: ${TypeHandler.getType(interfaceDeclaration).getText()} = true ? { auth: { a: "a", b: 1 } } : {};`);
+      .toEqual(`let a: ${TypeHandler.getType(A).getText()} = true ? { auth: { a: "a", b: 1 } } : {};`);
   }
 });
 
