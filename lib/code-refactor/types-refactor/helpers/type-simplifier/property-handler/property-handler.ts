@@ -23,7 +23,7 @@ class PropertyHandler {
         const combined = TypeHandler.combineTypes(TypeHandler.getType(currentProperty), TypeHandler.getType(property));
         const newProperty = TypeHandler.setTypeFiltered(currentProperty, combined);
         const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(newProperty));
-        stringSimplified && TypeHandler.setTypeFiltered(newProperty, stringSimplified);
+        TypeHandler.setTypeFiltered(newProperty, stringSimplified);
       }
     });
   };

@@ -11,6 +11,7 @@ import { join } from 'path';
 import VariableNameGenerator from '../../../helpers/variable-name-generator/variable-name-generator';
 import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier';
 import TypeHandler from '../../type-handler/type-handler';
+import InterfaceHandler from "../interface-handler";
 
 const createInterfaceFile = (project: Project, fullPath: string): SourceFile => {
   if (!existsSync(fullPath)) {
@@ -42,11 +43,13 @@ export const createInterface = (name: string, project: Project, target: string, 
     const newMember = declaration.addMember(member.getText());
     if (Node.isPropertySignature(newMember)) {
       const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(newMember));
-      stringSimplified && TypeHandler.setTypeFiltered(newMember, stringSimplified);
+      TypeHandler.setTypeFiltered(newMember, stringSimplified);
+      InterfaceHandler.createInterfaceFromObjectLiterals(newMember, project, target);
     }
     if (Node.isIndexSignatureDeclaration(newMember)) {
       const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getReturnTypeNode(newMember));
-      stringSimplified && TypeHandler.setReturnTypeFiltered(newMember, stringSimplified);
+      TypeHandler.setReturnTypeFiltered(newMember, stringSimplified);
+      InterfaceHandler.createInterfaceFromObjectLiteralsReturn(newMember, project, target);
     }
   });
   return declaration;

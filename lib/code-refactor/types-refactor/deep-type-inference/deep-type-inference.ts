@@ -11,7 +11,7 @@ import {
   CallExpression,
   NewExpression,
   Expression,
-  ReferenceFindableNode,
+  ReferenceFindableNode
 } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
 import DeclarationFinder from '../../helpers/declaration-finder/declaration-finder';
@@ -20,7 +20,7 @@ import {findReferencesAsNodes} from '../../helpers/reference-finder/reference-fi
 import {getExpressionParent, getInnerExpression} from '../../helpers/expression-handler/expression-handler';
 import TypeChecker from '../helpers/type-checker/type-checker';
 import BindingNameHandler from '../helpers/binding-name-handler/binding-name-handler';
-import TypeSimplifier from "../helpers/type-simplifier/type-simplifier";
+import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
 
 type LeftExpression =
   FunctionExpression

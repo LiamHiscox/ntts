@@ -5,7 +5,7 @@ import WriteAccessTypeInference from './write-access-type-inference/write-access
 import ContextualTypeInference from './contextual-type-inference/contextual-type-inference';
 import InterfaceHandler from './interface-handler/interface-handler';
 import InterfaceUsageInference from './interface-usage-inference/interface-usage-inference';
-import { getInterfaces, getSourceFile } from './interface-handler/interface-creator/interface-creator';
+import { getInterfaces } from './interface-handler/interface-creator/interface-creator';
 import InterfaceMerger from './interface-merger/interface-merger';
 import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
@@ -26,11 +26,6 @@ class TypesRefactor {
       }
       return undefined;
     });
-  };
-
-  static createInterfacesFromTypeLiterals = (project: Project, target: string) => {
-    const sourceFile = getSourceFile(project, target);
-    InterfaceHandler.createInterfacesFromSourceFile(sourceFile, project, target);
   };
 
   static checkInterfaceProperties = (project: Project, target: string) => {

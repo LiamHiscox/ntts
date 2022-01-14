@@ -43,12 +43,12 @@ class WriteAccessTypeInference {
     const typeNode = declaration.getTypeNode();
     if (typeNode) {
       const simplified = TypeSimplifier.simplifyTypeNode(typeNode);
-      simplified && TypeHandler.setTypeFiltered(declaration, simplified);
+      TypeHandler.setTypeFiltered(declaration, simplified);
     } else {
       const newTypeNode = TypeHandler.getTypeNode(declaration);
       const newTypeNodeText = newTypeNode.getText();
       const simplified = TypeSimplifier.simplifyTypeNode(newTypeNode);
-      if (simplified) {
+      if (simplified !== newTypeNode.getText()) {
         TypeHandler.setTypeFiltered(declaration, simplified);
         const simplifiedTypeNode = TypeHandler.getTypeNode(declaration);
         simplifiedTypeNode.getText() === newTypeNodeText && declaration.removeType();

@@ -1,11 +1,4 @@
-import {
-  FunctionTypeNode,
-  IndexSignatureDeclaration,
-  Node,
-  SyntaxKind,
-  TypeLiteralNode,
-  TypeNode,
-} from 'ts-morph';
+import { FunctionTypeNode, IndexSignatureDeclaration, Node, SyntaxKind, TypeLiteralNode, TypeNode } from 'ts-morph';
 import TypeHandler from '../../type-handler/type-handler';
 import PropertyHandler from './property-handler/property-handler';
 import IndexSignatureHandler from './index-signature-handler/index-signature-handler';
@@ -18,45 +11,37 @@ class TypeSimplifier {
       const typeNodes = innerTypeNode.getTypeNodes();
       return this.simplifyTypeNodeList(typeNodes);
     }
-    if (Node.isTypeLiteral(innerTypeNode)) {
-      innerTypeNode.getProperties().forEach((property) => {
-        const stringSimplified = this.simplifyTypeNode(TypeHandler.getTypeNode(property));
-        stringSimplified && TypeHandler.setTypeFiltered(property, stringSimplified);
-      });
-    }
+    this.simplifyUnionType(typeNode);
     return typeNode.getText();
   };
 
+  private static simplifyUnionType = (typeNode: TypeNode) => {
+    typeNode.getDescendantsOfKind(SyntaxKind.UnionType).forEach(union => {
+      if (!union.wasForgotten()) {
+        this.simplifyTypeNodeList(union.getTypeNodes());
+        this.simplifyUnionType(union);
+      }
+    })
+  }
+
   static simplifyTypeNodeList = (typeNodes: TypeNode[]): string => {
     const innerTypeNodes = typeNodes.map((t) => TypeHandler.getNonParenthesizedTypeNode(t));
-    const nonTypeLiterals = this.getNonTypeLiterals(innerTypeNodes);
-    const typeLiterals = this.getTypeLiterals(innerTypeNodes);
+    const nonFunctionTypes = this.getNonFunctionTypes(innerTypeNodes);
     const functionTypes = this.getFunctionTypes(innerTypeNodes);
-    return this.combineTypeLists(typeLiterals, nonTypeLiterals, functionTypes);
+    return this.combineTypeLists(nonFunctionTypes, functionTypes);
   };
 
-  private static getNonTypeLiterals = (innerTypeNodes: TypeNode[]) => innerTypeNodes
-    .filter((node) => !Node.isTypeLiteral(node) && !Node.isFunctionTypeNode(node));
-
-  private static getTypeLiterals = (innerTypeNodes: TypeNode[]) => innerTypeNodes
-    .reduce((acc: TypeLiteralNode[], cur) => (Node.isTypeLiteral(cur) ? acc.concat(cur) : acc), []);
+  private static getNonFunctionTypes = (innerTypeNodes: TypeNode[]) => innerTypeNodes
+    .filter((node) => !Node.isFunctionTypeNode(node));
 
   private static getFunctionTypes = (innerTypeNodes: TypeNode[]) => innerTypeNodes
     .reduce((acc: FunctionTypeNode[], cur) => (Node.isFunctionTypeNode(cur) ? acc.concat(cur) : acc), []);
 
-  private static combineTypeLists = (typeLiterals: TypeLiteralNode[], nonTypeLiterals: TypeNode[], functionTypes: FunctionTypeNode[]): string => {
-    const combined1 = this.getCombinedFunctionTypes(functionTypes, nonTypeLiterals);
-    const combined2 = this.getCombinedTypeLiteral(typeLiterals, combined1);
-    return combined2.map((c) => c.getText()).join(' | ');
-  };
-
-  private static getCombinedTypeLiteral = (typeLiterals: TypeLiteralNode[], nonTypeLiterals: TypeNode[]): TypeNode[] => {
-    const [first, ...literals] = typeLiterals;
-    if (first) {
-      const combined = literals.reduce((c, literal) => this.combineTypeLiterals(c, literal), first);
-      return nonTypeLiterals.concat(combined);
-    }
-    return nonTypeLiterals;
+  private static combineTypeLists = (nonFunctionTypes: TypeNode[], functionTypes: FunctionTypeNode[]): string => {
+    return this
+      .getCombinedFunctionTypes(functionTypes, nonFunctionTypes)
+      .map((c) => c.getText())
+      .join(' | ');
   };
 
   private static getCombinedFunctionTypes = (functionTypes: FunctionTypeNode[], nonTypeLiterals: TypeNode[]): TypeNode[] => {
@@ -94,7 +79,7 @@ class TypeSimplifier {
           leftParameter.setIsRestParameter(leftParameter.isRestParameter() || rightParameter.isRestParameter());
           const newParameter = TypeHandler.setTypeFiltered(leftParameter, combined);
           const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(newParameter));
-          stringSimplified && TypeHandler.setTypeFiltered(newParameter, stringSimplified);
+          TypeHandler.setTypeFiltered(newParameter, stringSimplified);
         }
       }
     });
@@ -114,7 +99,7 @@ class TypeSimplifier {
       const combined = TypeHandler.combineTypes(leftReturnType, rightReturnType);
       const newFunction = TypeHandler.setReturnTypeFiltered(left, combined);
       const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getReturnTypeNode(newFunction));
-      stringSimplified && TypeHandler.setReturnTypeFiltered(newFunction, stringSimplified);
+      TypeHandler.setReturnTypeFiltered(newFunction, stringSimplified);
     }
 
     return left;
