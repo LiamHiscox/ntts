@@ -1,5 +1,6 @@
 import {
   BindingName,
+  IndexSignatureDeclaration,
   InterfaceDeclaration,
   Node,
   ParameterDeclaration,
@@ -7,8 +8,6 @@ import {
   PropertyDeclaration,
   PropertyName,
   PropertySignature,
-  SourceFile,
-  SyntaxKind,
   TypeLiteralNode,
   UnionTypeNode,
   VariableDeclaration
@@ -40,29 +39,16 @@ class InterfaceHandler {
     }
   };
 
-  private static getFirstSignatureAncestor = (node: Node | undefined) => {
-    const signature = node?.getAncestors().find(a => Node.isPropertySignature(a) || Node.isIndexSignatureDeclaration(a));
-    if (Node.isPropertySignature(signature) || Node.isIndexSignatureDeclaration(signature)) {
-      return signature;
-    }
-    return undefined;
-  }
-
-  static createInterfacesFromSourceFile = (sourceFile: SourceFile, project: Project, target: string) => {
-    const typeLiteral = sourceFile.getFirstDescendantByKind(SyntaxKind.TypeLiteral);
-    const signature = this.getFirstSignatureAncestor(typeLiteral);
-    if (typeLiteral && Node.isPropertySignature(signature)) {
-      const nameNode = signature.getNameNode();
+  static createInterfaceFromObjectLiteralsReturn = (declaration: IndexSignatureDeclaration, project: Project, target: string) => {
+    const typeNode = TypeHandler.getReturnTypeNode(declaration);
+    const nameNode = declaration.getKeyNameNode();
+    const typeLiteral = InterfaceFinder.getFirstTypeLiteral(typeNode);
+    if (typeLiteral) {
       this.checkTypeLiteral(typeLiteral, nameNode, project, target);
-      TypeHandler.setType(signature, TypeHandler.getType(signature));
-      this.createInterfacesFromSourceFile(sourceFile, project, target);
-    } else if (typeLiteral && Node.isIndexSignatureDeclaration(signature)) {
-      const nameNode = signature.getKeyNameNode();
-      this.checkTypeLiteral(typeLiteral, nameNode, project, target);
-      signature.setReturnType(signature.getReturnType().getText());
-      this.createInterfacesFromSourceFile(sourceFile, project, target);
+      TypeHandler.setReturnTypeFiltered(declaration, declaration.getReturnType().getText());
+      this.createInterfaceFromObjectLiteralsReturn(declaration, project, target);
     }
-  }
+  };
 
   static validateDeclaration = (declaration: DeclarationKind) => {
     const initializer = declaration.getInitializer();
@@ -101,13 +87,13 @@ class InterfaceHandler {
       const interfaceName = getInterfaceName(nameNode);
       const [first, ...literals] = typeLiteralNodes;
       const interfaceDeclaration = createInterface(interfaceName, project, target, first.getMembers());
-      this.addPropertiesToInterface(interfaceDeclaration, literals);
+      this.addPropertiesToInterface(interfaceDeclaration, literals, project, target);
       return nonTypeLiterals
         .map((c) => c.getText())
         .concat(TypeHandler.getType(interfaceDeclaration).getText())
         .join(' | ');
     } else {
-      interfaceDeclarations.forEach((i) => this.addPropertiesToInterface(i, typeLiteralNodes));
+      interfaceDeclarations.forEach((i) => this.addPropertiesToInterface(i, typeLiteralNodes, project, target));
       return nonTypeLiterals
         .map((c) => c.getText())
         .concat(interfaceDeclarations.map(i => TypeHandler.getType(i).getText()))
@@ -117,9 +103,19 @@ class InterfaceHandler {
 
   private static addPropertiesToInterface = (
     interfaceDeclaration: InterfaceDeclaration,
-    typeLiterals: TypeLiteralNode[]
+    typeLiterals: TypeLiteralNode[],
+    project: Project,
+    target: string
   ) => {
-    typeLiterals.reduce((c: InterfaceDeclaration, literal) => TypeSimplifier.combineTypeLiterals(c, literal), interfaceDeclaration);
+    const newInterface = typeLiterals.reduce((c: InterfaceDeclaration, literal) => TypeSimplifier.combineTypeLiterals(c, literal), interfaceDeclaration);
+    newInterface.getMembers().forEach(member => {
+      if (Node.isPropertySignature(member)) {
+        this.createInterfaceFromObjectLiterals(member, project, target);
+      }
+      if (Node.isIndexSignatureDeclaration(member)) {
+        this.createInterfaceFromObjectLiteralsReturn(member, project, target);
+      }
+    });
   };
 }
 

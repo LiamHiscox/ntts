@@ -103,13 +103,11 @@ class CodeRefactor {
   private static generateInterfaces = (project: Project, target: string) => {
     Logger.info('Generating interfaces from object literal types');
     const sourceFiles = project.getSourceFiles();
-    const bar = generateProgressBar(sourceFiles.length + 1);
+    const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
       TypesRefactor.createInterfacesFromObjectTypes(s, project, target);
       bar.tick();
     });
-    TypesRefactor.createInterfacesFromTypeLiterals(project, target);
-    bar.tick();
     Logger.success('Generated interfaces from object literal types where possible');
   }
 

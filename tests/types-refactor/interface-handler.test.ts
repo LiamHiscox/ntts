@@ -68,7 +68,6 @@ test('should create interface and replace object union type with interface with 
     {overwrite: true},
   );
   TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project, '');
-  TypesRefactor.createInterfacesFromTypeLiterals(project, '');
   const interfaces = getInterfaces(project, '');
   const A = interfaces.find((i) => i.getName() === 'A');
   const _A = interfaces.find((i) => i.getName() === '_A');
