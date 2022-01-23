@@ -24,6 +24,9 @@ class EslintRunner {
       errorOnUnmatchedPattern: false,
       baseConfig: {
         ignorePatterns,
+        parserOptions: {
+          ecmaVersion: "latest"
+        },
         env: {
           commonjs: true,
           node: true,
