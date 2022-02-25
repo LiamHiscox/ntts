@@ -6,36 +6,18 @@ import Logger from '../logger/logger';
 class FileRename {
   private static javaScriptEnding = /\.[mc]?js$/g;
 
-  /**
-   * @param target the path to search for javascript files in
-   * @param ignores the files and directories to ignore while renaming the javascript files
-   */
   static rename = (target: string, ignores: string[]): void => {
     Logger.info('Renaming all JavaScript files');
-    FileRename.findFiles(ignores, target || '.');
+    FileRename.findAndRename(ignores, target || '.');
     Logger.success('All JavaScript files renamed to TypeScript files');
   };
 
-  /**
-   * @param file the filename of the javascript file to change
-   * @returns string returns the formatted filename
-   */
-  static renameFileName = (file: string): string => file.replace(this.javaScriptEnding, '.ts');
+  static renameFileEnding = (file: string, newEnding: string): string => file.replace(this.javaScriptEnding, newEnding);
 
-  /**
-   * @param file the filename of the javascript file to change
-   * @returns string returns the formatted filename
-   */
-  static replaceEnding = (file: string): string => file.replace(this.javaScriptEnding, '');
-
-  /**
-   * @param file the filename to check if it is JavaScript
-   * @returns boolean returns if the file is JavaScript or not
-   */
   static isJavaScriptFile = (file: string): boolean => this.javaScriptEnding.test(file);
 
   private static renameFile = (file: string): void => {
-    renameSync(file, this.renameFileName(file));
+    renameSync(file, this.renameFileEnding(file, '.ts'));
   };
 
   private static checkDirectoryEntry = (item: Dirent, path: string, ig: Ignore, ignoreList: string[]) => {
@@ -44,11 +26,11 @@ class FileRename {
       this.renameFile(fullPath);
     }
     if (item.isDirectory() && !ig.ignores(fullPath)) {
-      this.findFiles(ignoreList, fullPath);
+      this.findAndRename(ignoreList, fullPath);
     }
   };
 
-  private static findFiles = (ignoreList: string[], path: string): void => {
+  private static findAndRename = (ignoreList: string[], path: string): void => {
     const ig = ignore().add(ignoreList);
     readdirSync(path, { withFileTypes: true })
       .forEach((item) => this.checkDirectoryEntry(item, path, ig, ignoreList));

@@ -16,7 +16,7 @@ class ImportsReformat {
     const isJavaScriptFile = FileRename.isJavaScriptFile(moduleSpecifier);
     if (!importStatement.getModuleSpecifierSourceFile()) {
       if (isJavaScriptFile) {
-        const renamedSpecifier = FileRename.replaceEnding(moduleSpecifier);
+        const renamedSpecifier = FileRename.renameFileEnding(moduleSpecifier, '');
         importStatement.setModuleSpecifier(renamedSpecifier);
       }
       const absolutePath = join(sourceFile.getDirectoryPath(), moduleSpecifier);
