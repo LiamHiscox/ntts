@@ -12,6 +12,7 @@ import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
 import { generateProgressBar } from '../helpers/generate-progress-bar/generate-progress-bar';
 import Cleanup from "./cleanup/cleanup";
 import {getParentFunction, isAnonymousFunction} from "./helpers/function-checker/function-checker";
+import {getInnerExpression} from "../helpers/expression-handler/expression-handler";
 
 class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project, target: string) => {
@@ -125,18 +126,6 @@ class TypesRefactor {
     });
   };
 
-  static inferFunctionTypeParameterTypes = (sourceFile: SourceFile, project: Project, target: string) => {
-    sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten()) {
-        return undefined;
-      }
-      if (Node.isPropertySignature(descendant) || Node.isParameterDeclaration(descendant)) {
-        return ParameterTypeInference.inferFunctionTypeParameterTypes(descendant, project, target);
-      }
-      return undefined;
-    });
-  };
-
   static inferParameterTypes = (sourceFile: SourceFile, project: Project, target: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
@@ -156,6 +145,25 @@ class TypesRefactor {
       }
       if (Node.isConstructorDeclaration(descendant)) {
         return ParameterTypeInference.inferConstructorParameterTypes(descendant, project, target);
+      }
+      return undefined;
+    });
+  };
+
+  static inferFunctionTypeParameterTypes = (sourceFile: SourceFile, project: Project, target: string) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return undefined;
+      }
+      if (
+        (Node.isVariableDeclaration(descendant) || Node.isPropertyDeclaration(descendant))
+        && !Node.isArrowFunction(getInnerExpression(descendant.getInitializer()))
+        && !Node.isFunctionExpression(getInnerExpression(descendant.getInitializer()))
+      ) {
+        return ParameterTypeInference.inferFunctionTypeParameterTypes(descendant, project, target);
+      }
+      if (Node.isPropertySignature(descendant)) {
+        return ParameterTypeInference.inferFunctionTypeParameterTypes(descendant, project, target);
       }
       return undefined;
     });

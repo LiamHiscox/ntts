@@ -21,7 +21,6 @@ import { AccessExpressionKind } from '../helpers/combined-types/combined-types';
 class ExportsRefactor {
   static moduleExportsToExport = (sourceFile: SourceFile) => {
     const usedNames = UsedNames.getDeclaredNames(sourceFile);
-
     const exportedVariables = sourceFile
       .getDescendantsOfKind(SyntaxKind.BinaryExpression)
       .reduce((variables: ExportedVariableModel[], node) => {
@@ -30,7 +29,6 @@ class ExportsRefactor {
         }
         return variables;
       }, []);
-
     this.insertExports(exportedVariables, sourceFile);
     ExportRename.refactorExportReadAccess(exportedVariables, sourceFile);
   };
@@ -167,7 +165,7 @@ class ExportsRefactor {
     const exportName = this.variableFromFileName(sourceFile);
     const usableName = VariableNameGenerator.getUsableVariableName(exportName, usedNames.concat(exportedNames));
     const index = ExportParser.getSourceFileIndex(binary);
-    VariableCreator.createVariable(usableName, index, '{}', VariableDeclarationKind.Let, sourceFile);
+    VariableCreator.createVariable(usableName, index, '{}', VariableDeclarationKind.Const, sourceFile);
     const newDefaultExport = { name: usableName, defaultExport: true };
     const expression = elementAccess.getExpression();
     if (Node.isIdentifier(expression)

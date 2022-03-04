@@ -18,6 +18,7 @@ class CodeRefactor {
     this.refactorClasses(project);
     this.generateInterfaces(project, target);
     this.inferParameterTypes(project, target);
+    this.inferFunctionTypeParameterTypes(project, target);
     this.inferParameterTypes(project, target);
     this.inferFunctionTypeParameterTypes(project, target);
     this.setInitialTypes(project);

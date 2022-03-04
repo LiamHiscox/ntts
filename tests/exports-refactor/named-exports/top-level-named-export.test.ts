@@ -110,7 +110,7 @@ test('should refactor name collision exports', () => {
 test('should refactor named class expression export', () => {
   const sourceFile = project.createSourceFile(
     'standard-require.ts',
-    'exports.Car = class Car {};',
+    'exports.Car = class {};',
     { overwrite: true },
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
@@ -120,11 +120,11 @@ test('should refactor named class expression export', () => {
 test('should refactor named class expression export with different class name', () => {
   const sourceFile = project.createSourceFile(
     'standard-require.ts',
-    'exports.Car = class {};',
+    'exports.Car = class _Car {};',
     { overwrite: true },
   );
   ExportsRefactor.moduleExportsToExport(sourceFile);
-  expect(sourceFile.getText()).toEqual('class Car {}\n\nexport { Car };\n');
+  expect(sourceFile.getText()).toEqual('class _Car {}\n\nexport { _Car as Car };\n');
 });
 
 test('should refactor named class expression export with usage', () => {

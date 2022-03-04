@@ -49,7 +49,7 @@ class TsconfigHandler {
     const compilerOptions = {
       ...tsconfig.compilerOptions,
       resolveJsonModule: moduleSpecifierModel.allowJson || false,
-      allowJs: moduleSpecifierModel.allowJson || false,
+      allowJs: moduleSpecifierModel.allowJs || false,
     };
     this.writeToConfig(configName, tsconfig, { compilerOptions });
   };
