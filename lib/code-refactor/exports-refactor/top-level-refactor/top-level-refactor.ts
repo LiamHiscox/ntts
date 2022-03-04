@@ -14,7 +14,6 @@ import VariableCreator from '../helpers/variable-creator';
 import ExportParser from '../helpers/export-parser';
 import WriteAccessChecker from '../../helpers/write-access-checker/write-access-checker';
 import {AccessExpressionKind} from '../../helpers/combined-types/combined-types';
-import {isWriteAccess} from "../../helpers/expression-handler/expression-handler";
 
 class TopLevelRefactor {
   static refactorTopLevelExport = (
@@ -73,10 +72,7 @@ class TopLevelRefactor {
     accessExpression: AccessExpressionKind,
     sourceFile: SourceFile,
   ) => {
-    const statement = sourceFile.getVariableStatementOrThrow(exported.name);
-    if (statement.getDeclarationKind() === VariableDeclarationKind.Const && isWriteAccess(accessExpression)) {
-      statement.setDeclarationKind(VariableDeclarationKind.Let);
-    }
+    sourceFile.getVariableStatementOrThrow(exported.name).setDeclarationKind(VariableDeclarationKind.Let);
     accessExpression.replaceWithText(exported.name);
   };
 
