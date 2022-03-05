@@ -1,5 +1,4 @@
 import { Project, SyntaxKind } from 'ts-morph';
-import InterfaceHandler from '../../lib/code-refactor/types-refactor/interface-handler/interface-handler';
 import {
   getInterfaces,
   getSourceFile
@@ -30,9 +29,7 @@ test('should create interface and set type of variable with object assignment', 
     'let a = true ? { c: { a: "a", b: 1 } } : {};',
     { overwrite: true },
   );
-  sourceFile
-    .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .forEach((declaration) => InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, ''));
+  TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project, '');
   expect(sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).length).toEqual(1);
   const generatedFile = getSourceFile(project, '');
   const A = generatedFile.getInterface((i) => i.getName() === 'A');
@@ -42,6 +39,7 @@ test('should create interface and set type of variable with object assignment', 
   if (A && C) {
     expect(flatten(A)).toEqual(`export interface A { c?: ${TypeHandler.getType(C).getText()} | undefined; }`);
     expect(flatten(C)).toEqual('export interface C { a: string; b: number; }');
+    console.log(sourceFile.getText())
     expect(sourceFile.getText())
       .toEqual(`let a: ${TypeHandler.getType(A).getText()} = true ? { c: { a: "a", b: 1 } } : {};`);
   }
@@ -49,9 +47,7 @@ test('should create interface and set type of variable with object assignment', 
 
 test('should create interface and replace object type with interface', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'let a: { a: number; b: string; };', { overwrite: true });
-  sourceFile
-    .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .forEach((declaration) => InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, ''));
+  TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project, '');
   expect(sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).length).toEqual(1);
   const generatedFile = getSourceFile(project, '');
   const interfaceDeclaration = generatedFile.getInterface((i) => i.getName() === 'A');
@@ -93,7 +89,7 @@ test('should create interface and replace object union type with interface with 
 test('should create interface and replace object union type with interface', () => {
   const sourceFile = project.createSourceFile(
     'write-access.ts',
-    'let a: { a: number; b: string; } | { a?: string; c: number; };',
+    'let a: { a: number; b: string; } | { a: string; c: number; };',
     { overwrite: true },
   );
   TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project, '');
@@ -101,7 +97,7 @@ test('should create interface and replace object union type with interface', () 
   const generatedFile = getSourceFile(project, '');
   const interfaceDeclaration = generatedFile.getInterface((i) => i.getName() === 'A');
   expect(flatten(interfaceDeclaration))
-    .toEqual('export interface A { a?: string | number | undefined; b?: string; c?: number; }');
+    .toEqual('export interface A { a: string | number; b?: string; c?: number; }');
   expect(interfaceDeclaration).not.toBeUndefined();
   if (interfaceDeclaration) {
     expect(sourceFile.getText())
@@ -164,9 +160,7 @@ test('should create interface and replace object type with interface in function
     'let a: () => { a: number; b: string; };',
     { overwrite: true },
   );
-  sourceFile
-    .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .forEach((declaration) => InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, ''));
+  TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project, '');
   const generatedFile = getSourceFile(project, '');
   const interfaceDeclaration = generatedFile.getInterface((i) => i.getName() === 'A');
   expect(flatten(interfaceDeclaration)).toEqual('export interface A { a: number; b: string; }');

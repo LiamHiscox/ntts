@@ -15,7 +15,7 @@ import {
 } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
 import DeclarationFinder from '../../helpers/declaration-finder/declaration-finder';
-import {FieldDeclarationKind, FunctionKind, isFieldDeclaration} from '../../helpers/combined-types/combined-types';
+import {FunctionKind, isFieldDeclaration} from '../../helpers/combined-types/combined-types';
 import {findReferencesAsNodes} from '../../helpers/reference-finder/reference-finder';
 import {getExpressionParent, getInnerExpression} from '../../helpers/expression-handler/expression-handler';
 import TypeChecker from '../helpers/type-checker/type-checker';
@@ -32,13 +32,6 @@ type LeftExpression =
 type FunctionTypes = ConstructorDeclaration | FunctionKind;
 
 class DeepTypeInference {
-  static propagateClassOrInterfaceType = (declaration: FieldDeclarationKind) => {
-    const type = TypeHandler.getType(declaration);
-    if (isFieldDeclaration(declaration) && type.isClassOrInterface()) {
-      this.checkDeclarationUsage(declaration);
-    }
-  };
-
   static propagateParameterTypes = (parameters: ParameterDeclaration[]) => {
     parameters.forEach((parameter) => {
       const nameNode = parameter.getNameNode();

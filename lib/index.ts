@@ -5,7 +5,7 @@ import TsconfigHandler from './tsconfig-handler/tsconfig-handler';
 import PackageJsonHandler from './package-json-handler/package-json-handler';
 import InputValidator from './input-validator/input-validator';
 import { PackageManager } from './models/package-manager';
-import IgnoreConfigParser from './helpers/ignore-config-parser/ignore-config-parser';
+import IgnoreConfigParser from './ignore-config-parser/ignore-config-parser';
 import CodeRefactor from './code-refactor/code-refactor';
 import EslintRunner from './eslint-runner/eslint-runner';
 
@@ -48,8 +48,8 @@ const main = async (target: string) => {
   const validTarget = InputValidator.validate(target);
   if (validTarget !== null) {
     const packageManager = DependencyInstaller.getPackageManager();
-    const ignores = IgnoreConfigParser.getIgnores();
     await basicSetup(packageManager);
+    const ignores = IgnoreConfigParser.getIgnores();
     if (await lintProject(validTarget, ignores)) {
       addTsconfig(validTarget, ignores);
       await installDependencies(packageManager);

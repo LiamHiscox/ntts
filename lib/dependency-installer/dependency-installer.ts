@@ -15,9 +15,6 @@ class DependencyInstaller {
     Logger.success('Installed existing dependencies');
   };
 
-  /**
-   * @description installs type definitions of package if necessary and possible
-   */
   static installTypeDependencies = async (packageManager: PackageManager) => {
     Logger.info('Installing additional type definitions');
     const installedPackages = await DependencyHandler.installedPackages();
@@ -25,9 +22,6 @@ class DependencyInstaller {
     ModuleDeclarator.handleUntypedPackages(untypedModules);
   };
 
-  /**
-   * @description installs all the base dependencies needed for a node typescript project
-   */
   static installBaseDependencies = async (packageManager: PackageManager) => {
     Logger.info('Installing base dependencies');
     const typePackage = await DependencyInstaller.getClosestNodeTypes();
@@ -39,9 +33,6 @@ class DependencyInstaller {
     );
   };
 
-  /**
-   * @description adds a basic package.json file if none exists
-   */
   static addPackageJson = (packageManager: PackageManager) => {
     if (!existsSync('package.json')) {
       ScriptRunner.runSync(packageManager.init);
@@ -49,9 +40,6 @@ class DependencyInstaller {
     }
   };
 
-  /**
-   * @description adds a basic package.json file if none exists
-   */
   static getPackageManager = (): PackageManager => {
     if (existsSync('yarn.lock') && this.yarnInstalled()) {
       Logger.info('Using yarn as your package manager');
@@ -77,17 +65,19 @@ class DependencyInstaller {
   };
 
   private static getTypesToInstall = async (packageList: PackageListModel): Promise<{ untyped: string[], typed: PackageModel[] }> => {
-    const filtered = Object
-      .entries(packageList)
+    const filteredPromises = Object.entries(packageList)
       .map(async (entry) => {
-        if (!DependencyHandler.isTypeDefinition(entry[0]) && !(await DependencyHandler.packageHasTypes(entry[0]))) {
-          return entry;
+        if (DependencyHandler.isTypeDefinition(entry[0])
+          || await DependencyHandler.packageHasTypes(entry[0])) {
+          return undefined;
         }
-        return undefined;
+        return entry;
       });
-
-    const promises = (await Promise.all(filtered))
+    const filtered = await Promise.all(filteredPromises);
+    const promises = filtered
+      // filter out the packages that are already typed
       .reduce((acc: [string, { version: string }][], cur) => (cur ? acc.concat([cur]) : acc), [])
+      // get the best suitable version for the untyped packages
       .map<Promise<PackageModel>>(async ([packageName, { version }]) => {
         const typesName = DependencyHandler.packageToTypesFormat(packageName);
         const typesVersions = await VersionHandler.packageVersions(typesName);
@@ -98,8 +88,8 @@ class DependencyInstaller {
         const closestTypesVersion = VersionCalculator.closestVersion(version, typesVersions);
         return { packageName: typesName, version: closestTypesVersion };
       });
-
     const packages = await Promise.all(promises);
+    // return the names of the packages without installable type declarations
     return {
       untyped: packages.reduce((acc: string[], p) => (!p.version ? acc.concat(p.packageName) : acc), []),
       typed: packages.filter((p) => p.version),

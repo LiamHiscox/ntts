@@ -80,12 +80,12 @@ class WriteAccessTypeInference {
     const writeAccess = this.getWriteAccessAncestor(node);
     if (Node.isBinaryExpression(writeAccess)) {
       const type = TypeHandler.getType(writeAccess.getRight());
-      return !type.isAny() ? type.getText() : undefined;
+      return !TypeChecker.isAnyOrUnknown(type) ? type.getText() : undefined;
     }
     if (Node.isPropertyAssignment(writeAccess)) {
       const initializer = writeAccess.getInitializer();
       const type = initializer && TypeHandler.getType(initializer);
-      return type && !type.isAny() ? type.getText() : undefined;
+      return type && !TypeChecker.isAnyOrUnknown(type) ? type.getText() : undefined;
     }
     return undefined;
   };

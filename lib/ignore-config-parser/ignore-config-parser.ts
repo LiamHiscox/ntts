@@ -1,14 +1,11 @@
 import { existsSync, readFileSync } from 'fs';
-import Logger from '../../logger/logger';
+import Logger from '../logger/logger';
 
 const gitignore = '.gitignore';
 const nttsignore = '.nttsignore';
 const defaultIgnore = ['node_modules/'];
 
 class IgnoreConfigParser {
-  /**
-   * @returns string[] returns all ignores of the root .nttsignore or .gitignore if provided
-   */
   static getIgnores = (): string[] => {
     if (existsSync(nttsignore)) {
       Logger.info('Reading .nttsignore file');

@@ -23,6 +23,9 @@ import InterfaceHandler from "../interface-handler/interface-handler";
 class ParameterTypeInference {
   static inferSetAccessorParameterTypes = (setter: SetAccessorDeclaration, project: Project, target: string) => {
     const initialTypes = setter.getParameters().map((p) => TypeHandler.getType(p).getText());
+    if (initialTypes.length <= 0) {
+      return;
+    }
     findReferencesAsNodes(setter).forEach((ref) => {
       const parent = TypeInferenceValidator.validateSetAccessorParent(ref);
       const binary = TypeInferenceValidator.getBinaryAssignmentExpression(parent);
@@ -42,12 +45,12 @@ class ParameterTypeInference {
     const initializer = assignment.getInitializer();
     if (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer)) {
       const parameters = initializer.getParameters();
+      if (parameters.length <= 0) {
+        return;
+      }
       const initialTypes = parameters.map((p) => TypeHandler.getType(p).getText());
       this.inferFunctionExpressionParameterTypes(assignment, parameters, project, target);
-      this.simplifyParameterTypes(parameters, project, target);
-      const filteredParameters = initializer.getParameters()
-        .filter((p, i) => initialTypes[i] !== TypeHandler.getType(p).getText());
-      DeepTypeInference.propagateParameterTypes(filteredParameters);
+      this.propagateParameterTypes(initializer.getParameters(), initialTypes, project, target);
     }
   };
 
@@ -57,30 +60,41 @@ class ParameterTypeInference {
     target: string
   ) => {
     const initialTypes = declaration.getParameters().map((p) => TypeHandler.getType(p).getText());
+    if (initialTypes.length <= 0) {
+      return;
+    }
     findReferencesAsNodes(declaration).forEach((ref) => {
       const parent = TypeInferenceValidator.validateCallExpressionParent(ref);
       const expression = TypeInferenceValidator.getCallExpression(parent);
       expression && this.inferParameterTypes(declaration.getParameters(), expression.getArguments(), project, target);
     });
-    this.simplifyParameterTypes(declaration.getParameters(), project, target);
-    const parameters = declaration.getParameters()
-      .filter((p, i) => initialTypes[i] !== TypeHandler.getType(p).getText());
-    DeepTypeInference.propagateParameterTypes(parameters);
+    this.propagateParameterTypes(declaration.getParameters(), initialTypes, project, target);
   };
 
   static inferConstructorParameterTypes = (declaration: ConstructorDeclaration, project: Project, target: string) => {
     const initialTypes = declaration.getParameters().map((p) => TypeHandler.getType(p).getText());
+    if (initialTypes.length <= 0) {
+      return;
+    }
     findReferencesAsNodes(declaration).forEach((ref) => {
       const parent = TypeInferenceValidator.getNewExpression(ref.getParent());
       parent && this.inferParameterTypes(declaration.getParameters(), parent.getArguments(), project, target);
     });
-    this.simplifyParameterTypes(declaration.getParameters(), project, target);
-    const parameters = declaration.getParameters()
-      .filter((p, i) => initialTypes[i] !== TypeHandler.getType(p).getText());
-    DeepTypeInference.propagateParameterTypes(parameters);
+    this.propagateParameterTypes(declaration.getParameters(), initialTypes, project, target);
   };
 
-  static inferFunctionTypeParameterTypes(descendant: PropertySignature | ParameterDeclaration, project: Project, target: string) {
+  private static propagateParameterTypes = (parameters: ParameterDeclaration[], initialTypes: string[], project: Project, target: string) => {
+    this.simplifyParameterTypes(parameters, project, target);
+    parameters.forEach((p) => this.inferFunctionTypeParameterTypes(p, project, target));
+    const filteredParameters = parameters.filter((p, i) => initialTypes[i] !== TypeHandler.getType(p).getText());
+    DeepTypeInference.propagateParameterTypes(filteredParameters);
+  }
+
+  static inferFunctionTypeParameterTypes(
+    descendant: PropertySignature | ParameterDeclaration | VariableDeclaration | PropertyDeclaration,
+    project: Project,
+    target: string
+  ) {
     if (Node.isArrayBindingPattern(descendant.getNameNode())
       || Node.isObjectBindingPattern(descendant.getNameNode())) {
       return;

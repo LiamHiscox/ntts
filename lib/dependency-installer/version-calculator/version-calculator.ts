@@ -1,9 +1,4 @@
 class VersionCalculator {
-  /**
-   * @param targetVersion the target version to get the closest version of
-   * @param versionList the list of versions to find the closest to the target version
-   * @returns string the best suited version out of the given versionList
-   */
   static closestVersion = (targetVersion: string, versionList: string[]): string => {
     const versions = versionList
       .filter((version) => VersionCalculator.validVersion(version))

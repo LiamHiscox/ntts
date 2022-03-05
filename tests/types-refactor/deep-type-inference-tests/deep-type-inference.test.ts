@@ -14,7 +14,8 @@ beforeEach(() => {
 
 afterEach(() => {
   if (existsSync('ntts-generated-models.ts')) {
-    fs.unlinkSync('ntts-generated-models.ts');  }
+    fs.unlinkSync('ntts-generated-models.ts');
+  }
 })
 
 const file1 = `
@@ -36,42 +37,54 @@ const file3 = `
 import Test, {Liam} from './file1';
 import _default, {fun2, fun4} from './file2';
 
-function fun1 (liam) {
-  const l = liam;
+function fun1 (_liam) {
+  const l = _liam;
   fun2(l);
   fun4(l);
   _default(l);
 };
-const liam = new Liam();
-fun1(liam);
-const test = new Test(liam);
+
+function a (liam) {
+  fun1(liam);
+  const test = new Test(liam);
+};
 `;
 
 test('should set types of parameters across files', () => {
   const sourceFile1 = project.createSourceFile('file1.ts', file1, { overwrite: true });
   const sourceFile2 = project.createSourceFile('file2.ts', file2, { overwrite: true });
   const sourceFile3 = project.createSourceFile('file3.ts', file3, { overwrite: true });
-  sourceFile3
-    .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .forEach((declaration) => DeepTypeInference.propagateClassOrInterfaceType(declaration));
-  expect(validate(sourceFile1, 'Liam')).toBeTruthy();
-  expect(validate(sourceFile2, 'Liam')).toBeTruthy();
-  expect(validate(sourceFile3, 'Liam')).toBeTruthy();
+  const liamClass = sourceFile1.getClassOrThrow('Liam');
+  const parameter = sourceFile3.getDescendantsOfKind(SyntaxKind.Parameter).find(p => p.getName() === "liam");
+  const newParameter = parameter?.setType(liamClass.getType().getText());
+  expect(newParameter).not.toBeUndefined();
+  if (newParameter) {
+    DeepTypeInference.propagateParameterTypes([newParameter]);
+    expect(validate(sourceFile1, 'Liam')).toBeTruthy();
+    expect(validate(sourceFile2, 'Liam')).toBeTruthy();
+    expect(validate(sourceFile3, 'Liam')).toBeTruthy();
+  }
 });
 
 const file4 = `
 import Test, {Liam} from './file1';
 
-const liam = new Liam();
-new Test(liam);
+function a (liam) {
+  fun1(liam);
+  const test = new Test(liam);
+};
 `;
 
 test('should set types of parameters across files with default export assignment', () => {
   const sourceFile1 = project.createSourceFile('file1.ts', file1, { overwrite: true });
-  const sourceFile3 = project.createSourceFile('file4.ts', file4, { overwrite: true });
-  sourceFile3
-    .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-    .forEach((declaration) => DeepTypeInference.propagateClassOrInterfaceType(declaration));
-  expect(validate(sourceFile1, 'Liam')).toBeTruthy();
-  expect(validate(sourceFile3, 'Liam')).toBeTruthy();
+  const sourceFile2 = project.createSourceFile('file4.ts', file4, { overwrite: true });
+  const liamClass = sourceFile1.getClassOrThrow('Liam');
+  const parameter = sourceFile2.getDescendantsOfKind(SyntaxKind.Parameter).find(p => p.getName() === "liam");
+  const newParameter = parameter?.setType(liamClass.getType().getText());
+  expect(newParameter).not.toBeUndefined();
+  if (newParameter) {
+    DeepTypeInference.propagateParameterTypes([newParameter]);
+    expect(validate(sourceFile1, 'Liam')).toBeTruthy();
+    expect(validate(sourceFile2, 'Liam')).toBeTruthy();
+  }
 });

@@ -30,7 +30,7 @@ class PackageJsonHandler {
         return { ...acc, options: [...acc.options, parameter] };
       }
       if (!acc.scriptFile) {
-        return { ...acc, scriptFile: FileRename.renameFileName(parameter) };
+        return { ...acc, scriptFile: FileRename.renameFileEnding(parameter, '.ts') };
       }
       return { ...acc, arguments: [...acc.arguments, parameter] };
     }, {
@@ -81,22 +81,13 @@ class PackageJsonHandler {
     return { ...scripts, [name]: script };
   };
 
-  /**
-   * @param packageJson the package.json content to change the main target in
-   * @param target the target path to do the refactoring in
-   */
   static changeMainFile = (packageJson: PackageJsonModel, target: string): PackageJsonModel => {
     if (packageJson.main && this.fileInTargetPath(target, packageJson.main)) {
-      return { ...packageJson, main: FileRename.renameFileName(packageJson.main) };
+      return { ...packageJson, main: FileRename.renameFileEnding(packageJson.main, '.ts') };
     }
     return packageJson;
   };
 
-  /**
-   * @param scripts the existing scripts in the package.json
-   * @param path the target path to do the refactoring in
-   * @returns Scripts the node scripts refactored to support ts-node
-   */
   static addTsScripts = (scripts: Scripts, path: string): Scripts => {
     const tsconfig = TsconfigHandler.tsconfigFileName();
     const watchScripts = this.addTscScriptName(scripts, 'tsc-watch', `tsc -w -p ${tsconfig}`);
@@ -111,9 +102,6 @@ class PackageJsonHandler {
       }, {});
   };
 
-  /**
-   * @returns PackageJsonHandler the parsed contents of the root package.json
-   */
   static readPackageJson = (): PackageJsonModel => {
     const packageJson = JSON.parse(readFileSync('package.json', { encoding: 'utf-8' }));
     if (!Object.prototype.hasOwnProperty.call(packageJson, 'scripts')) {
@@ -122,17 +110,10 @@ class PackageJsonHandler {
     return packageJson as PackageJsonModel;
   };
 
-  /**
-   * @param packageJson writes to the root package.json
-   */
   static writePackageJson = (packageJson: PackageJsonModel) => {
     writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
   };
 
-  /**
-   * @param target the target folder to refactor the files in
-   * @description refactors the all node scripts in the package.json that point to a file inside the target folder
-   */
   static refactorScripts = (target: string) => {
     Logger.info('Adding new scripts to package.json');
     const packageJson = this.changeMainFile(PackageJsonHandler.readPackageJson(), target);

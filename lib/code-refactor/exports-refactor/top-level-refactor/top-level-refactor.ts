@@ -13,7 +13,7 @@ import VariableNameGenerator from '../../helpers/variable-name-generator/variabl
 import VariableCreator from '../helpers/variable-creator';
 import ExportParser from '../helpers/export-parser';
 import WriteAccessChecker from '../../helpers/write-access-checker/write-access-checker';
-import { AccessExpressionKind } from '../../helpers/combined-types/combined-types';
+import {AccessExpressionKind} from '../../helpers/combined-types/combined-types';
 
 class TopLevelRefactor {
   static refactorTopLevelExport = (

@@ -5,7 +5,6 @@ const packageGlobals = [
   { npm: 'mocha', eslint: 'mocha' },
   { npm: 'jasmine', eslint: 'jasmine' },
   { npm: 'jest', eslint: 'jest' },
-  { npm: 'protractor', eslint: 'protractor' },
   { npm: 'qunit', eslint: 'qunit' },
   { npm: 'shelljs', eslint: 'shelljs' },
   { npm: 'mongodb', eslint: 'mongo' },
@@ -15,17 +14,20 @@ class EslintRunner {
   static getLinter = async (ignorePatterns: string[]) => {
     const packages = Object.keys(await DependencyHandler.installedPackages());
     const usedPackages = packageGlobals
-      .reduce((env: { [key: string]: boolean }, p) => (packages.includes(p.npm) ? {
-        ...env,
-        [p.eslint]: true,
-      } : env), {});
+      .reduce((env: { [key: string]: boolean }, p) => {
+        if (packages.includes(p.npm)) {
+          return { ...env, [p.eslint]: true };
+        }
+        return env;
+      }, {});
+
     return new ESLint({
       fix: true,
       errorOnUnmatchedPattern: false,
       baseConfig: {
         ignorePatterns,
         parserOptions: {
-          ecmaVersion: "latest"
+          ecmaVersion: "latest",
         },
         env: {
           commonjs: true,

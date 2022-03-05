@@ -1,6 +1,6 @@
 import * as fse from 'fs-extra';
 import fs, {existsSync, writeFileSync} from 'fs';
-import IgnoreConfigParser from '../lib/helpers/ignore-config-parser/ignore-config-parser';
+import IgnoreConfigParser from '../lib/ignore-config-parser/ignore-config-parser';
 
 const sampleCopy = 'tests/sample-copy';
 const sample = 'tests/sample';

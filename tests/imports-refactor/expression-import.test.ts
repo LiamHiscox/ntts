@@ -14,7 +14,8 @@ beforeEach(() => {
 
 afterEach(() => {
   if (existsSync('ntts-generated-models.ts')) {
-    fs.unlinkSync('ntts-generated-models.ts');  }
+    fs.unlinkSync('ntts-generated-models.ts');
+  }
 })
 
 test('should refactor expression statement require', () => {
@@ -24,7 +25,7 @@ test('should refactor expression statement require', () => {
 });
 
 test('should not add empty import if import already exists', () => {
-  const sourceFile = project.createSourceFile('standard-require.ts', 'require("ts-morph");', { overwrite: true });
+  const sourceFile = project.createSourceFile('standard-require.ts', 'const morph = require("ts-morph");\nrequire("ts-morph");', { overwrite: true });
   ImportsRefactor.requiresToImports(sourceFile);
-  expect(sourceFile.getText()).toEqual('import "ts-morph";');
+  expect(sourceFile.getText()).toEqual('import morph from "ts-morph";');
 });
