@@ -13,7 +13,8 @@ beforeEach(() => {
 
 afterEach(() => {
   if (existsSync('ntts-generated-models.ts')) {
-    fs.unlinkSync('ntts-generated-models.ts');  }
+    fs.unlinkSync('ntts-generated-models.ts');
+  }
 })
 
 test('should set type of variable if initializer type does not equal variable type', () => {
