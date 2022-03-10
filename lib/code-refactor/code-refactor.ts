@@ -26,7 +26,7 @@ class CodeRefactor {
     this.inferContextualType(project, target);
     this.checkInterfaceUsage(project, target);
     this.checkInterfaceWriteAccess(project, target);
-    this.replaceAnyAndUnknown(project);
+    this.replaceAnyAndNever(project);
     this.mergeInterfaces(project, target);
     this.filterUnionType(project);
     this.mergeInterfaces(project, target);
@@ -184,7 +184,7 @@ class CodeRefactor {
     Logger.success('Inferred type where possible');
   }
 
-  private static replaceAnyAndUnknown = (project: Project) => {
+  private static replaceAnyAndNever = (project: Project) => {
     Logger.info('Replacing types any and never with unknown');
     const sourceFiles = project.getSourceFiles();
     const bar1 = generateProgressBar(sourceFiles.length);
