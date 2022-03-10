@@ -17,7 +17,7 @@ import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier';
 import { TypeMemberKind } from '../../../helpers/combined-types/combined-types';
 
 class InterfaceReadReferenceChecker {
-  static getType = (node: Node, interfaceDeclarations: TypeMemberKind[]) => {
+  static addNewProperty = (node: Node, interfaceDeclarations: TypeMemberKind[]) => {
     const access = this.getPropertyOrElementAccess(node.getParent(), node.getPos());
     if (Node.isPropertyAccessExpression(access)) {
       interfaceDeclarations.forEach((interfaceDeclaration) => {

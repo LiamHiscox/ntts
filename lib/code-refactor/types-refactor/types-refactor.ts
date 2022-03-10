@@ -1,4 +1,4 @@
-import { Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
+import { InterfaceDeclaration, Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
 import InitialTypeHandler from './initial-type-handler/initial-type-handler';
 import ParameterTypeInference from './parameter-type-inference/parameter-type-inference';
 import WriteAccessTypeInference from './write-access-type-inference/write-access-type-inference';
@@ -29,14 +29,17 @@ class TypesRefactor {
     });
   };
 
-  static checkInterfaceProperties = (project: Project, target: string) => {
-    const interfaces = getInterfaces(project, target);
+  static checkInterfaceProperties = (project: Project, target: string, checkedInterfaces: InterfaceDeclaration[] = []) => {
+    const checked = checkedInterfaces.map(i => i.getName());
+    const currentInterfaces = getInterfaces(project, target);
+    const interfaces = currentInterfaces.filter(i => !checked.includes(i.getName()));
+    const bar = generateProgressBar(interfaces.length);
+    interfaces.forEach((interfaceDeclaration) => {
+      InterfaceUsageInference.checkProperties(interfaceDeclaration, project, target);
+      bar.tick();
+    });
     if (interfaces.length > 0) {
-      const bar = generateProgressBar(interfaces.length);
-      interfaces.forEach((interfaceDeclaration) => {
-        InterfaceUsageInference.checkProperties(interfaceDeclaration, interfaces, project, target);
-        bar.tick();
-      });
+      this.checkInterfaceProperties(project, target, currentInterfaces);
     }
   };
 

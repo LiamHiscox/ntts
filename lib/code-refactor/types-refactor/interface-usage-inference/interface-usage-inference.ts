@@ -17,15 +17,10 @@ import TypeHandler from '../type-handler/type-handler';
 import { TypeMemberKind } from '../../helpers/combined-types/combined-types';
 
 class InterfaceUsageInference {
-  static checkProperties = (interfaceDeclaration: TypeMemberKind, interfaces: InterfaceDeclaration[], project: Project, target: string) => {
+  static checkProperties = (interfaceDeclaration: TypeMemberKind, project: Project, target: string) => {
     interfaceDeclaration.getProperties().forEach((property) => {
       WriteAccessTypeInference.inferTypeByWriteAccess(property, project, target);
       this.checkTypeNode(TypeHandler.getTypeNode(property), property);
-      const typeNode = TypeHandler.getTypeNode(property);
-      const elementTypeNode = Node.isArrayTypeNode(typeNode) ? typeNode.getElementTypeNode() : typeNode;
-      this
-        .getValidTypeNodes(elementTypeNode)
-        .forEach((validTypeNode) => this.checkProperties(validTypeNode, interfaces, project, target));
     });
   };
 
@@ -45,7 +40,7 @@ class InterfaceUsageInference {
     return typeNode.getFirstDescendantByKind(SyntaxKind.TypeLiteral);
   };
 
-  private static getValidTypeNodes = (typeNode: TypeNode): TypeLiteralNode[] => {
+  private static  getValidImportTypes = (typeNode: TypeNode): TypeLiteralNode[] => {
     const typeLiteral = this.getFirstTypeLiteral(typeNode);
     if (typeLiteral) {
       const parent = typeLiteral.getParent();
@@ -58,7 +53,7 @@ class InterfaceUsageInference {
   };
 
   private static checkTypeNode = (typeNode: TypeNode, declaration: ReferenceFindableNode & Node) => {
-    const validTypeNodes = this.getValidTypeNodes(typeNode);
+    const validTypeNodes = this.getValidImportTypes(typeNode);
     if (validTypeNodes.length > 0) {
       this.checkDeclarationReferences(declaration, validTypeNodes);
     }
@@ -67,7 +62,7 @@ class InterfaceUsageInference {
   private static checkInterfaceType = (type: Type, node: Node, interfaces: InterfaceDeclaration[]) => {
     const interfaceDeclarations = interfaces.filter((i) => TypeHandler.getType(i).getText() === type.getText());
     if (interfaceDeclarations.length > 0) {
-      InterfaceReadReferenceChecker.getType(node, interfaceDeclarations);
+      InterfaceReadReferenceChecker.addNewProperty(node, interfaceDeclarations);
     }
   };
 
@@ -75,14 +70,14 @@ class InterfaceUsageInference {
     const interfaceTypes = type.getUnionTypes().filter((u) => u.isInterface());
     const interfaceDeclarations = interfaces.filter((i) => interfaceTypes.find((t) => t.getText() === TypeHandler.getType(i).getText()));
     if (interfaceDeclarations.length > 0) {
-      InterfaceReadReferenceChecker.getType(node, interfaceDeclarations);
+      InterfaceReadReferenceChecker.addNewProperty(node, interfaceDeclarations);
     }
   };
 
   private static checkDeclarationReferences = (declaration: ReferenceFindableNode & Node, interfaceDeclarations: TypeMemberKind[]) => {
     findReferences(declaration).forEach((symbol) => symbol.getReferences().forEach((entry) => {
       if (!entry.isWriteAccess() && !entry.isDefinition()) {
-        InterfaceReadReferenceChecker.getType(entry.getNode(), interfaceDeclarations);
+        InterfaceReadReferenceChecker.addNewProperty(entry.getNode(), interfaceDeclarations);
       }
     }));
   };
