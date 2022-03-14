@@ -32,6 +32,7 @@ class CodeRefactor {
     this.mergeInterfaces(project, target);
     this.refactorImportTypesAndGlobalVariables(project);
     this.simplifyOptionalNodes(project);
+    this.simplifyTypeNodes(project);
   };
 
   static addSourceFiles = (ignores: string[], path: string): Project => {
@@ -237,6 +238,17 @@ class CodeRefactor {
       bar.tick();
     });
     Logger.success('Removed undefined types');
+  }
+
+  private static simplifyTypeNodes = (project: Project) => {
+    Logger.info('Removing null or undefined types');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.removeNullOrUndefinedTypes(s);
+      bar.tick();
+    });
+    Logger.success('Removed null or undefined types');
   }
 }
 

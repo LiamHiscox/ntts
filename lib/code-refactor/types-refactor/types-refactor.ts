@@ -223,6 +223,19 @@ class TypesRefactor {
       }
     });
   }
+
+  static removeNullOrUndefinedTypes = (sourceFile: SourceFile) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (Node.isTyped(descendant)) {
+        Cleanup.removeNullOrUndefinedType(descendant.getTypeNode());
+      } else if (Node.isReturnTyped(descendant)) {
+        Cleanup.removeNullOrUndefinedType(descendant.getReturnTypeNode());
+      }
+    });
+  }
 }
 
 export default TypesRefactor;
