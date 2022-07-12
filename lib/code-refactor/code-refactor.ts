@@ -188,15 +188,10 @@ class CodeRefactor {
   private static replaceAnyAndNever = (project: Project) => {
     Logger.info('Replacing types any and never with unknown');
     const sourceFiles = project.getSourceFiles();
-    const bar1 = generateProgressBar(sourceFiles.length);
+    const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
       TypesRefactor.replaceInvalidTypes(s);
-      bar1.tick();
-    });
-    const bar2 = generateProgressBar(sourceFiles.length);
-    sourceFiles.forEach((s) => {
-      TypesRefactor.replaceInvalidTypesAnonymousFunction(s);
-      bar2.tick();
+      bar.tick();
     });
     Logger.success('Replaced types any and never with unknown where possible');
   }

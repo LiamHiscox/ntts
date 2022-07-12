@@ -9,9 +9,8 @@ import { getInterfaces } from './interface-handler/interface-creator/interface-c
 import InterfaceMerger from './interface-merger/interface-merger';
 import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
-import { generateProgressBar } from '../helpers/generate-progress-bar/generate-progress-bar';
+import {generateProgressBar} from '../helpers/generate-progress-bar/generate-progress-bar';
 import Cleanup from "./cleanup/cleanup";
-import {getParentFunction, isAnonymousFunction} from "./helpers/function-checker/function-checker";
 import {getInnerExpression} from "../helpers/expression-handler/expression-handler";
 
 class TypesRefactor {
@@ -67,19 +66,6 @@ class TypesRefactor {
     }
   };
 
-  static replaceInvalidTypesAnonymousFunction = (sourceFile: SourceFile) => {
-    sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten()) {
-        return;
-      }
-      if (Node.isParameterDeclaration(descendant)
-        && isAnonymousFunction(getParentFunction(descendant))) {
-        return InvalidTypeReplacer.replaceParameterType(descendant);
-      }
-      return;
-    });
-  };
-
   static replaceInvalidTypes = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
@@ -88,8 +74,7 @@ class TypesRefactor {
       if (Node.isIndexSignatureDeclaration(descendant)) {
         return InvalidTypeReplacer.replaceAnyAndNeverReturnType(descendant);
       }
-      if (Node.isParameterDeclaration(descendant)
-        && !isAnonymousFunction(getParentFunction(descendant))) {
+      if (Node.isParameterDeclaration(descendant)) {
         return InvalidTypeReplacer.replaceParameterType(descendant);
       }
       if (Node.isVariableDeclaration(descendant)
