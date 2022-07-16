@@ -1,4 +1,4 @@
-import { ReferencedSymbol, ReferenceEntry, VariableDeclaration } from 'ts-morph';
+import {ReferencedSymbol, ReferencedSymbolEntry, VariableDeclaration} from 'ts-morph';
 import VariableParser from '../variable-parser/variable-parser';
 import { findReferences } from '../reference-finder/reference-finder';
 
@@ -10,7 +10,7 @@ class WriteAccessChecker {
   private static symbolsHaveWriteAccess = (referencedSymbols: ReferencedSymbol[]): boolean => referencedSymbols
     .reduce((acc: boolean, symbol) => acc || this.referencesHaveWriteAccess(symbol.getReferences()), false);
 
-  private static referencesHaveWriteAccess = (referenceEntries: ReferenceEntry[]): boolean => referenceEntries
+  private static referencesHaveWriteAccess = (referenceEntries: ReferencedSymbolEntry[]): boolean => referenceEntries
     .reduce((acc: boolean, entry) => acc || (!entry.isDefinition() && entry.isWriteAccess()), false);
 }
 
