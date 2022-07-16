@@ -1,5 +1,6 @@
 import {
   BinaryExpression,
+  Identifier,
   Node,
   Project,
   PropertyAssignment,
@@ -38,6 +39,13 @@ class WriteAccessTypeInference {
       InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, target);
     }
   };
+
+  static checkNameNodeWriteAccess = (nameNode: Identifier): string | undefined => {
+    if (isWriteAccess(nameNode)) {
+      return this.checkWriteAccess(nameNode);
+    }
+    return undefined;
+  }
 
   private static simplifyTypeNode = (declaration: TypedNode & Node) => {
     const typeNode = declaration.getTypeNode();

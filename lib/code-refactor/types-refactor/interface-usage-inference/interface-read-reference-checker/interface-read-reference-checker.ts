@@ -3,7 +3,7 @@ import {
   IndexSignatureDeclaration,
   Node,
   NoSubstitutionTemplateLiteral,
-  NumericLiteral,
+  NumericLiteral, Project,
   PropertyAccessExpression,
   PropertyName,
   PropertySignature,
@@ -15,18 +15,20 @@ import TypeHandler from '../../type-handler/type-handler';
 import { isWriteAccess } from '../../../helpers/expression-handler/expression-handler';
 import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier';
 import { TypeMemberKind } from '../../../helpers/combined-types/combined-types';
+import WriteAccessTypeInference from "../../write-access-type-inference/write-access-type-inference";
+import InterfaceHandler from "../../interface-handler/interface-handler";
 
 class InterfaceReadReferenceChecker {
-  static addNewProperty = (node: Node, interfaceDeclarations: TypeMemberKind[]) => {
+  static addNewProperty = (node: Node, interfaceDeclarations: TypeMemberKind[], project: Project, target: string) => {
     const access = this.getPropertyOrElementAccess(node.getParent(), node.getPos());
     if (Node.isPropertyAccessExpression(access)) {
       interfaceDeclarations.forEach((interfaceDeclaration) => {
-        this.checkPropertyAccess(access, interfaceDeclaration);
+        this.checkPropertyAccess(access, interfaceDeclaration, project, target);
       });
     }
     if (Node.isElementAccessExpression(access)) {
       interfaceDeclarations.forEach((interfaceDeclaration) => {
-        this.checkElementAccess(access, interfaceDeclaration);
+        this.checkElementAccess(access, interfaceDeclaration, project, target);
       });
     }
   };
@@ -45,29 +47,49 @@ class InterfaceReadReferenceChecker {
     return undefined;
   };
 
-  private static checkPropertyAccess = (propertyAccess: PropertyAccessExpression, interfaceDeclaration: TypeMemberKind) => {
-    if (!interfaceDeclaration.getProperty(propertyAccess.getName()) && !propertyAccess.getNameNode().getSymbol()) {
+  private static getInterfaceProperty = (propertyAccess: PropertyAccessExpression, interfaceDeclaration: TypeMemberKind): PropertySignature => {
+    const property = interfaceDeclaration.getProperty(propertyAccess.getName());
+    if (!property) {
       return interfaceDeclaration.addProperty({ hasQuestionToken: true, name: propertyAccess.getName(), type: 'any' });
     }
-    return undefined;
+    return property;
+  }
+
+  private static checkPropertyAccess = (propertyAccess: PropertyAccessExpression, interfaceDeclaration: TypeMemberKind, project: Project, target: string) => {
+    if (propertyAccess.getNameNode().getSymbol()) {
+      return;
+    }
+    const property = this.getInterfaceProperty(propertyAccess, interfaceDeclaration);
+    const nameNode = propertyAccess.getNameNode();
+    const type = WriteAccessTypeInference.checkNameNodeWriteAccess(nameNode);
+    if (type) {
+      const combined = TypeHandler.combineTypeWithList(TypeHandler.getType(nameNode), type);
+      const newProperty = TypeHandler.setTypeFiltered(property, combined);
+      InterfaceHandler.createInterfaceFromObjectLiterals(newProperty, project, target);
+      return newProperty;
+
+    }
+    return property;
   };
 
-  private static checkElementAccess = (elementAccess: ElementAccessExpression, interfaceDeclaration: TypeMemberKind) => {
+  private static checkElementAccess = (elementAccess: ElementAccessExpression, interfaceDeclaration: TypeMemberKind, project: Project, target: string) => {
     const node = elementAccess.getArgumentExpression();
     const member = this.parseElementAccess(elementAccess, interfaceDeclaration);
     if (Node.isIndexSignatureDeclaration(member) && node) {
-      return this.updateReturnType(member, node);
+      return this.updateReturnType(member, node, project, target);
     }
     return member;
   };
 
-  private static updateReturnType = (indexSignature: IndexSignatureDeclaration, node: Node): IndexSignatureDeclaration => {
+  private static updateReturnType = (indexSignature: IndexSignatureDeclaration, node: Node, project: Project, target: string): IndexSignatureDeclaration => {
     const type = this.getWriteAccessType(node);
     if (type) {
       const combined = TypeHandler.combineTypes(indexSignature.getReturnType(), type);
       const newIndexSignature = TypeHandler.setReturnTypeFiltered(indexSignature, combined);
       const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getReturnTypeNode(newIndexSignature));
-      return TypeHandler.setReturnTypeFiltered(newIndexSignature, stringSimplified);
+      const newProperty = TypeHandler.setReturnTypeFiltered(newIndexSignature, stringSimplified);
+      InterfaceHandler.createInterfaceFromObjectLiteralsReturn(newProperty, project, target);
+      return newProperty;
     }
     return indexSignature;
   };

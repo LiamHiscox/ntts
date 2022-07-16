@@ -21,11 +21,9 @@ class CodeRefactor {
     this.inferFunctionTypeParameterTypes(project, target);
     this.inferParameterTypes(project, target);
     this.inferFunctionTypeParameterTypes(project, target);
-    this.setInitialTypes(project);
     this.inferWriteAccessType(project, target);
     this.inferContextualType(project, target);
-    this.checkInterfaceUsage(project, target);
-    this.checkInterfaceWriteAccess(project, target);
+    this.inferInterfaceProperties(project, target);
     this.replaceAnyAndNever(project);
     this.mergeInterfaces(project, target);
     this.filterUnionType(project);
@@ -135,17 +133,6 @@ class CodeRefactor {
     Logger.success('Parameter type declared where possible');
   }
 
-  private static setInitialTypes = (project: Project) => {
-    const sourceFiles = project.getSourceFiles();
-    const bar = generateProgressBar(sourceFiles.length);
-    Logger.info('Declaring variable and property types by initialization');
-    sourceFiles.forEach((s) => {
-      TypesRefactor.setInitialTypes(s);
-      bar.tick();
-    });
-    Logger.success('Declared variable and property types by initialization');
-  }
-
   private static inferWriteAccessType = (project: Project, target: string) => {
     Logger.info('Declaring variable and property types by write access');
     const sourceFiles = project.getSourceFiles();
@@ -157,21 +144,15 @@ class CodeRefactor {
     Logger.success('Variable and Property type declared where possible');
   };
 
-  private static checkInterfaceUsage(project: Project, target: string) {
-    Logger.info('Checking usage of generated interfaces for additional Properties and types');
+  private static inferInterfaceProperties = (project: Project, target: string) => {
+    Logger.info('Checking usage of generated interfaces for additional properties and types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
-      TypesRefactor.addPropertiesFromUsageOfInterface(s, project, target);
+      TypesRefactor.inferInterfaceProperties(s, project, target);
       bar.tick();
     });
     Logger.success('Defined type and added properties to interfaces where possible');
-  }
-
-  private static checkInterfaceWriteAccess = (project: Project, target: string) => {
-    Logger.info('Checking usage of properties of generated interfaces for write access');
-    TypesRefactor.checkInterfaceProperties(project, target);
-    Logger.success('Checked write access of properties of interfaces where possible');
   }
 
   private static inferContextualType = (project: Project, target: string) => {

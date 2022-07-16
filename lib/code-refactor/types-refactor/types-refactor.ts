@@ -1,4 +1,4 @@
-import { InterfaceDeclaration, Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
+import { Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
 import InitialTypeHandler from './initial-type-handler/initial-type-handler';
 import ParameterTypeInference from './parameter-type-inference/parameter-type-inference';
 import WriteAccessTypeInference from './write-access-type-inference/write-access-type-inference';
@@ -28,19 +28,20 @@ class TypesRefactor {
     });
   };
 
-  static checkInterfaceProperties = (project: Project, target: string, checkedInterfaces: InterfaceDeclaration[] = []) => {
-    const checked = checkedInterfaces.map(i => i.getName());
-    const currentInterfaces = getInterfaces(project, target);
-    const interfaces = currentInterfaces.filter(i => !checked.includes(i.getName()));
-    const bar = generateProgressBar(interfaces.length);
-    interfaces.forEach((interfaceDeclaration) => {
-      InterfaceUsageInference.checkProperties(interfaceDeclaration, project, target);
-      bar.tick();
-    });
+  static inferInterfaceProperties = (sourceFile: SourceFile, project: Project, target: string) => {
+    const interfaces = getInterfaces(project, target);
     if (interfaces.length > 0) {
-      this.checkInterfaceProperties(project, target, currentInterfaces);
+      sourceFile.getDescendants().reduce((newInterfaces, descendant) => {
+        if (descendant.wasForgotten()) {
+          return newInterfaces;
+        }
+        if (Node.isElementAccessExpression(descendant) || Node.isIdentifier(descendant)) {
+          return InterfaceUsageInference.addPropertiesByUsage(descendant, newInterfaces, project, target);
+        }
+        return newInterfaces;
+      }, interfaces);
     }
-  };
+  }
 
   static mergeDuplicateInterfaces = (project: Project, target: string) => {
     const interfaces = getInterfaces(project, target);
@@ -49,20 +50,6 @@ class TypesRefactor {
     const mergedInterfaceCount = getInterfaces(project, target).length;
     if (mergedInterfaceCount < interfaces.length) {
       this.mergeDuplicateInterfaces(project, target);
-    }
-  };
-
-  static addPropertiesFromUsageOfInterface = (sourceFile: SourceFile, project: Project, target: string) => {
-    const interfaces = getInterfaces(project, target);
-    if (interfaces.length > 0) {
-      sourceFile.getDescendants().forEach((descendant) => {
-        if (descendant.wasForgotten()) {
-          return;
-        }
-        if (Node.isElementAccessExpression(descendant) || Node.isIdentifier(descendant)) {
-          InterfaceUsageInference.addPropertiesByUsage(descendant, interfaces);
-        }
-      });
     }
   };
 
@@ -108,6 +95,7 @@ class TypesRefactor {
       }
       if (Node.isVariableDeclaration(descendant)
         || Node.isPropertyDeclaration(descendant)) {
+        InitialTypeHandler.setInitialType(descendant);
         return WriteAccessTypeInference.inferTypeByWriteAccess(descendant, project, target);
       }
       return undefined;
@@ -173,18 +161,6 @@ class TypesRefactor {
     sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).forEach((importType) => {
       if (!importType.wasForgotten()) {
         TypeNodeRefactor.refactor(importType, sourceFile);
-      }
-    });
-  };
-
-  static setInitialTypes = (sourceFile: SourceFile) => {
-    sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten()) {
-        return;
-      }
-      if (Node.isVariableDeclaration(descendant)
-        || Node.isPropertyDeclaration(descendant)) {
-        InitialTypeHandler.setInitialType(descendant);
       }
     });
   };
