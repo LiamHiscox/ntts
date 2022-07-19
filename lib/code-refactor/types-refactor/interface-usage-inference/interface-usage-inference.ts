@@ -23,7 +23,7 @@ class InterfaceUsageInference {
   private static checkInterfaceType = (type: Type, node: Node, interfaces: InterfaceDeclaration[], project: Project, target: string) => {
     const interfaceDeclarations = interfaces.filter((i) => TypeHandler.getType(i).getText() === type.getText());
     if (interfaceDeclarations.length > 0) {
-      InterfaceReadReferenceChecker.addNewProperty(node, interfaceDeclarations, project, target);
+      InterfaceReadReferenceChecker.addPropertyOrType(node, interfaceDeclarations, project, target);
       return getInterfaces(project, target);
     }
     return interfaces;
@@ -33,7 +33,7 @@ class InterfaceUsageInference {
     const interfaceTypes = type.getUnionTypes().filter((u) => u.isInterface());
     const interfaceDeclarations = interfaces.filter((i) => interfaceTypes.find((t) => t.getText() === TypeHandler.getType(i).getText()));
     if (interfaceDeclarations.length > 0) {
-      InterfaceReadReferenceChecker.addNewProperty(node, interfaceDeclarations, project, target);
+      InterfaceReadReferenceChecker.addPropertyOrType(node, interfaceDeclarations, project, target);
       return getInterfaces(project, target);
     }
     return interfaces;

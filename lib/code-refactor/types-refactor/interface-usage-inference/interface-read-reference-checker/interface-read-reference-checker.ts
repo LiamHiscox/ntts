@@ -3,23 +3,22 @@ import {
   IndexSignatureDeclaration,
   Node,
   NoSubstitutionTemplateLiteral,
-  NumericLiteral, Project,
+  NumericLiteral,
+  Project,
   PropertyAccessExpression,
   PropertyName,
   PropertySignature,
-  StringLiteral,
-  SyntaxKind, Type,
+  StringLiteral
 } from 'ts-morph';
 import VariableValidator from '../../../helpers/variable-validator/variable-validator';
 import TypeHandler from '../../type-handler/type-handler';
-import { isWriteAccess } from '../../../helpers/expression-handler/expression-handler';
 import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier';
 import { TypeMemberKind } from '../../../helpers/combined-types/combined-types';
 import WriteAccessTypeInference from "../../write-access-type-inference/write-access-type-inference";
 import InterfaceHandler from "../../interface-handler/interface-handler";
 
 class InterfaceReadReferenceChecker {
-  static addNewProperty = (node: Node, interfaceDeclarations: TypeMemberKind[], project: Project, target: string) => {
+  static addPropertyOrType = (node: Node, interfaceDeclarations: TypeMemberKind[], project: Project, target: string) => {
     const access = this.getPropertyOrElementAccess(node.getParent(), node.getPos());
     if (Node.isPropertyAccessExpression(access)) {
       interfaceDeclarations.forEach((interfaceDeclaration) => {
@@ -56,20 +55,12 @@ class InterfaceReadReferenceChecker {
   }
 
   private static checkPropertyAccess = (propertyAccess: PropertyAccessExpression, interfaceDeclaration: TypeMemberKind, project: Project, target: string) => {
-    if (propertyAccess.getNameNode().getSymbol()) {
+    if (!interfaceDeclaration.getProperty(propertyAccess.getName()) && propertyAccess.getNameNode().getSymbol()) {
       return;
     }
     const property = this.getInterfaceProperty(propertyAccess, interfaceDeclaration);
     const nameNode = propertyAccess.getNameNode();
-    const type = WriteAccessTypeInference.checkNameNodeWriteAccess(nameNode);
-    if (type) {
-      const combined = TypeHandler.combineTypeWithList(TypeHandler.getType(nameNode), type);
-      const newProperty = TypeHandler.setTypeFiltered(property, combined);
-      InterfaceHandler.createInterfaceFromObjectLiterals(newProperty, project, target);
-      return newProperty;
-
-    }
-    return property;
+    return this.updateType(property, nameNode, project, target);
   };
 
   private static checkElementAccess = (elementAccess: ElementAccessExpression, interfaceDeclaration: TypeMemberKind, project: Project, target: string) => {
@@ -78,13 +69,16 @@ class InterfaceReadReferenceChecker {
     if (Node.isIndexSignatureDeclaration(member) && node) {
       return this.updateReturnType(member, node, project, target);
     }
+    if (Node.isPropertySignature(member) && node) {
+      return this.updateType(member, node, project, target);
+    }
     return member;
   };
 
   private static updateReturnType = (indexSignature: IndexSignatureDeclaration, node: Node, project: Project, target: string): IndexSignatureDeclaration => {
-    const type = this.getWriteAccessType(node);
+    const type = WriteAccessTypeInference.checkNodeWriteAccess(node);
     if (type) {
-      const combined = TypeHandler.combineTypes(indexSignature.getReturnType(), type);
+      const combined = TypeHandler.combineTypeWithList(indexSignature.getReturnType(), type);
       const newIndexSignature = TypeHandler.setReturnTypeFiltered(indexSignature, combined);
       const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getReturnTypeNode(newIndexSignature));
       const newProperty = TypeHandler.setReturnTypeFiltered(newIndexSignature, stringSimplified);
@@ -92,6 +86,19 @@ class InterfaceReadReferenceChecker {
       return newProperty;
     }
     return indexSignature;
+  };
+
+  private static updateType = (propertySignature: PropertySignature, node: Node, project: Project, target: string): PropertySignature => {
+    const type = WriteAccessTypeInference.checkNodeWriteAccess(node);
+    if (type) {
+      const combined = TypeHandler.combineTypeWithList(TypeHandler.getType(propertySignature), type);
+      const newPropertySignature = TypeHandler.setTypeFiltered(propertySignature, combined);
+      const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(newPropertySignature));
+      const newProperty = TypeHandler.setTypeFiltered(newPropertySignature, stringSimplified);
+      InterfaceHandler.createInterfaceFromObjectLiterals(newProperty, project, target);
+      return newProperty;
+    }
+    return propertySignature;
   };
 
   private static parseElementAccess = (
@@ -126,7 +133,7 @@ class InterfaceReadReferenceChecker {
     const value = literal.getLiteralValue();
     const property = this.findProperty(value, interfaceDeclaration);
     if (property) {
-      return undefined;
+      return property;
     }
     if (VariableValidator.validVariableName(value)) {
       return interfaceDeclaration.addProperty({ hasQuestionToken: true, name: value, type: 'any' });
@@ -138,7 +145,7 @@ class InterfaceReadReferenceChecker {
     const value = `${literal.getLiteralValue()}`;
     const property = this.findProperty(value, interfaceDeclaration);
     if (property) {
-      return undefined;
+      return property;
     }
     return interfaceDeclaration.addProperty({ hasQuestionToken: true, name: value, type: 'any' });
   };
@@ -184,16 +191,9 @@ class InterfaceReadReferenceChecker {
       return indexType.getText() === keyType;
     });
 
-  private static getWriteAccessType = (node: Node): Type | undefined => {
-    if (isWriteAccess(node)) {
-      const right = node.getFirstAncestorByKind(SyntaxKind.BinaryExpression)?.getRight();
-      return right ? TypeHandler.getType(right) : undefined;
-    }
-    return undefined;
-  };
-
-  private static findProperty = (literalValue: string,
-                                 interfaceDeclaration: TypeMemberKind
+  private static findProperty = (
+      literalValue: string,
+      interfaceDeclaration: TypeMemberKind
   ): PropertySignature | undefined => interfaceDeclaration
     .getProperty((property) => literalValue === this.getLiteralValueOfProperty(property.getNameNode()));
 

@@ -1,6 +1,5 @@
 import {
   BinaryExpression,
-  Identifier,
   Node,
   Project,
   PropertyAssignment,
@@ -40,9 +39,9 @@ class WriteAccessTypeInference {
     }
   };
 
-  static checkNameNodeWriteAccess = (nameNode: Identifier): string | undefined => {
-    if (isWriteAccess(nameNode)) {
-      return this.checkWriteAccess(nameNode);
+  static checkNodeWriteAccess = (node: Node): string | undefined => {
+    if (isWriteAccess(node)) {
+      return this.checkWriteAccess(node);
     }
     return undefined;
   }

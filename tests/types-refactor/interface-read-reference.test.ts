@@ -124,9 +124,6 @@ test('should add properties to interface from property access with nested object
   );
   TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
   const newInterface = interfaceSourceFile.getInterfaceOrThrow('B');
-  console.log(getSourceFile(project, '').getText());
-  console.log('----------------------------------------');
-  console.log(sourceFile.getText());
   expect(flatten(interfaceDeclaration)).toEqual(`export interface Empty { b?: ${TypeHandler.getType(newInterface).getText()} | undefined; }`);
   expect(flatten(newInterface)).toEqual('export interface B { c?: number | undefined; }');
 });
