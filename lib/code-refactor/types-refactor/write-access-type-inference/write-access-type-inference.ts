@@ -39,6 +39,13 @@ class WriteAccessTypeInference {
     }
   };
 
+  static checkNodeWriteAccess = (node: Node): string | undefined => {
+    if (isWriteAccess(node)) {
+      return this.checkWriteAccess(node);
+    }
+    return undefined;
+  }
+
   private static simplifyTypeNode = (declaration: TypedNode & Node) => {
     const typeNode = declaration.getTypeNode();
     if (typeNode) {

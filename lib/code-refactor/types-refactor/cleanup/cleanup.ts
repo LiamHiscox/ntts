@@ -3,6 +3,7 @@ import {
   ParameterDeclaration,
   PropertySignature,
   SyntaxKind,
+  TypeNode,
   UnionTypeNode
 } from "ts-morph";
 import TypeHandler from "../type-handler/type-handler";
@@ -30,6 +31,23 @@ class Cleanup {
         .filter(n => n !== 'undefined')
         .join(' | ');
       TypeHandler.setSimpleType(declaration, filtered || 'unknown');
+    }
+  }
+
+  static removeNullOrUndefinedType = (typeNode: TypeNode | undefined) => {
+    if (!typeNode) {
+      return;
+    }
+    if (Node.isUnionTypeNode(typeNode)) {
+      const types = typeNode
+        .getTypeNodes()
+        .map((t) => t.getText())
+        .filter(t => t !== 'null' && t !== 'undefined');
+      if (types.length <= 0) {
+        typeNode.replaceWithText('unknown')
+      }
+    } else if (typeNode.getText() === 'null' || typeNode.getText() === 'undefined') {
+      typeNode.replaceWithText('unknown');
     }
   }
 }

@@ -20,7 +20,7 @@ beforeAll(() => {
   fse.copySync(sample, sampleCopy);
   fse.copySync('tsconfig.json', 'tests/sample-copy/tsconfig.json');
   process.chdir(sampleCopy);
-  ScriptRunner.runSync('npm i @types/express express @types/node');
+  ScriptRunner.runSync('npm i @types/express express @types/node jest');
   project = new Project({
     tsConfigFilePath: 'tsconfig.json',
     skipAddingFilesFromTsConfig: true,
@@ -61,3 +61,14 @@ test('should not import promise', () => {
   TypeNodeRefactor.importGlobalTypes(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.TypeReference), sourceFile);
   expect(sourceFile.getText()).toEqual('let a: Promise<string>;');
 });
+
+test('should not import jest variable', () => {
+  const sourceFile = project.createSourceFile(
+    'global-types.ts',
+    'let emit: jest.Mock;',
+    { overwrite: true },
+  );
+  TypeNodeRefactor.importGlobalTypes(sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.TypeReference), sourceFile);
+  expect(sourceFile.getText()).toEqual('let emit: jest.Mock;');
+});
+

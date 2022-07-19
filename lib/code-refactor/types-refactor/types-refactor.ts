@@ -1,4 +1,4 @@
-import { InterfaceDeclaration, Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
+import { Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
 import InitialTypeHandler from './initial-type-handler/initial-type-handler';
 import ParameterTypeInference from './parameter-type-inference/parameter-type-inference';
 import WriteAccessTypeInference from './write-access-type-inference/write-access-type-inference';
@@ -9,9 +9,8 @@ import { getInterfaces } from './interface-handler/interface-creator/interface-c
 import InterfaceMerger from './interface-merger/interface-merger';
 import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
-import { generateProgressBar } from '../helpers/generate-progress-bar/generate-progress-bar';
+import {generateProgressBar} from '../helpers/generate-progress-bar/generate-progress-bar';
 import Cleanup from "./cleanup/cleanup";
-import {getParentFunction, isAnonymousFunction} from "./helpers/function-checker/function-checker";
 import {getInnerExpression} from "../helpers/expression-handler/expression-handler";
 
 class TypesRefactor {
@@ -29,19 +28,20 @@ class TypesRefactor {
     });
   };
 
-  static checkInterfaceProperties = (project: Project, target: string, checkedInterfaces: InterfaceDeclaration[] = []) => {
-    const checked = checkedInterfaces.map(i => i.getName());
-    const currentInterfaces = getInterfaces(project, target);
-    const interfaces = currentInterfaces.filter(i => !checked.includes(i.getName()));
-    const bar = generateProgressBar(interfaces.length);
-    interfaces.forEach((interfaceDeclaration) => {
-      InterfaceUsageInference.checkProperties(interfaceDeclaration, project, target);
-      bar.tick();
-    });
+  static inferInterfaceProperties = (sourceFile: SourceFile, project: Project, target: string) => {
+    const interfaces = getInterfaces(project, target);
     if (interfaces.length > 0) {
-      this.checkInterfaceProperties(project, target, currentInterfaces);
+      sourceFile.getDescendants().reduce((newInterfaces, descendant) => {
+        if (descendant.wasForgotten()) {
+          return newInterfaces;
+        }
+        if (Node.isElementAccessExpression(descendant) || Node.isIdentifier(descendant)) {
+          return InterfaceUsageInference.addPropertiesByUsage(descendant, newInterfaces, project, target);
+        }
+        return newInterfaces;
+      }, interfaces);
     }
-  };
+  }
 
   static mergeDuplicateInterfaces = (project: Project, target: string) => {
     const interfaces = getInterfaces(project, target);
@@ -53,33 +53,6 @@ class TypesRefactor {
     }
   };
 
-  static addPropertiesFromUsageOfInterface = (sourceFile: SourceFile, project: Project, target: string) => {
-    const interfaces = getInterfaces(project, target);
-    if (interfaces.length > 0) {
-      sourceFile.getDescendants().forEach((descendant) => {
-        if (descendant.wasForgotten()) {
-          return;
-        }
-        if (Node.isElementAccessExpression(descendant) || Node.isIdentifier(descendant)) {
-          InterfaceUsageInference.addPropertiesByUsage(descendant, interfaces);
-        }
-      });
-    }
-  };
-
-  static replaceInvalidTypesAnonymousFunction = (sourceFile: SourceFile) => {
-    sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten()) {
-        return;
-      }
-      if (Node.isParameterDeclaration(descendant)
-        && isAnonymousFunction(getParentFunction(descendant))) {
-        return InvalidTypeReplacer.replaceParameterType(descendant);
-      }
-      return;
-    });
-  };
-
   static replaceInvalidTypes = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
@@ -88,8 +61,7 @@ class TypesRefactor {
       if (Node.isIndexSignatureDeclaration(descendant)) {
         return InvalidTypeReplacer.replaceAnyAndNeverReturnType(descendant);
       }
-      if (Node.isParameterDeclaration(descendant)
-        && !isAnonymousFunction(getParentFunction(descendant))) {
+      if (Node.isParameterDeclaration(descendant)) {
         return InvalidTypeReplacer.replaceParameterType(descendant);
       }
       if (Node.isVariableDeclaration(descendant)
@@ -123,6 +95,7 @@ class TypesRefactor {
       }
       if (Node.isVariableDeclaration(descendant)
         || Node.isPropertyDeclaration(descendant)) {
+        InitialTypeHandler.setInitialType(descendant);
         return WriteAccessTypeInference.inferTypeByWriteAccess(descendant, project, target);
       }
       return undefined;
@@ -192,18 +165,6 @@ class TypesRefactor {
     });
   };
 
-  static setInitialTypes = (sourceFile: SourceFile) => {
-    sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten()) {
-        return;
-      }
-      if (Node.isVariableDeclaration(descendant)
-        || Node.isPropertyDeclaration(descendant)) {
-        InitialTypeHandler.setInitialType(descendant);
-      }
-    });
-  };
-
   static filterUnionType = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (!descendant.wasForgotten() && Node.isUnionTypeNode(descendant)) {
@@ -220,6 +181,19 @@ class TypesRefactor {
       if (Node.isPropertySignature(descendant)
         || Node.isParameterDeclaration(descendant)) {
         Cleanup.removeUndefinedFromOptional(descendant);
+      }
+    });
+  }
+
+  static removeNullOrUndefinedTypes = (sourceFile: SourceFile) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (Node.isTyped(descendant)) {
+        Cleanup.removeNullOrUndefinedType(descendant.getTypeNode());
+      } else if (Node.isReturnTyped(descendant)) {
+        Cleanup.removeNullOrUndefinedType(descendant.getReturnTypeNode());
       }
     });
   }

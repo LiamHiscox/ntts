@@ -27,8 +27,7 @@ test('should add properties to interface from property access', () => {
     `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} = {};\na.b = "asd";\na.c = 12;`,
     { overwrite: true },
   );
-  TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
-  TypesRefactor.checkInterfaceProperties(project, '');
+  TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
   expect(flatten(interfaceDeclaration)).toEqual('export interface Empty { b?: string | undefined; c?: number | undefined; }');
 });
 
@@ -39,8 +38,7 @@ test('should add properties to interface from property access with object bindin
     `let { a }: { a: ${TypeHandler.getType(interfaceDeclaration).getText()}; } = {a: {}};\na.b = "asd";\na.c = 12;`,
     { overwrite: true },
   );
-  TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
-  TypesRefactor.checkInterfaceProperties(project, '');
+  TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
   expect(flatten(interfaceDeclaration)).toEqual('export interface Empty { b?: string | undefined; c?: number | undefined; }');
 });
 
@@ -55,8 +53,7 @@ test('should not add properties to interface when they already exist', () => {
     `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} = {};\na.a = false;\na['b'] = false;`,
     { overwrite: true },
   );
-  TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
-  TypesRefactor.checkInterfaceProperties(project, '');
+  TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
   expect(flatten(interfaceDeclaration)).toEqual('export interface Empty { a: string | boolean; b: number | boolean; }');
 });
 
@@ -67,8 +64,7 @@ test('should add properties to interface from element access', () => {
     `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} = {};\na['b'] = "asd";\na[0] = 12\na[2+2] = true;`,
     { overwrite: true },
   );
-  TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
-  TypesRefactor.checkInterfaceProperties(project, '');
+  TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
   expect(flatten(interfaceDeclaration)).toEqual('export interface Empty { b?: string | undefined; 0?: number | undefined; [key: number]: boolean; }');
 });
 
@@ -79,8 +75,7 @@ test('should not add property of prototype method', () => {
     `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} = {};\na.hasOwnProperty("a");`,
     { overwrite: true },
   );
-  TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
-  TypesRefactor.checkInterfaceProperties(project, '');
+  TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
   expect(flatten(interfaceDeclaration)).toEqual('export interface Empty { }');
 });
 
@@ -91,8 +86,7 @@ test('should add index signature', () => {
     `const a: ${TypeHandler.getType(interfaceDeclaration).getText()} = {};\nconst b = "asd";\na[b] = 12;`,
     { overwrite: true },
   );
-  TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
-  TypesRefactor.checkInterfaceProperties(project, '');
+  TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
   expect(flatten(interfaceDeclaration)).toEqual('export interface Empty { [key: string]: number; }');
 });
 
@@ -103,8 +97,7 @@ test('should add properties to interface from property access in union type', ()
     `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} | undefined = {};\na.b = "asd";\na.c = 12;`,
     { overwrite: true },
   );
-  TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
-  TypesRefactor.checkInterfaceProperties(project, '');
+  TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
   expect(flatten(interfaceDeclaration)).toEqual('export interface Empty { b?: string | undefined; c?: number | undefined; }');
 });
 
@@ -116,8 +109,21 @@ test('should add properties to two interfaces from property access in union type
     `let a: ${TypeHandler.getType(interfaceA).getText()} | ${TypeHandler.getType(interfaceB).getText()} = {};\na.b = "asd";\na.c = 12;`,
     { overwrite: true },
   );
-  TypesRefactor.addPropertiesFromUsageOfInterface(sourceFile, project, '');
-  TypesRefactor.checkInterfaceProperties(project, '');
+  TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
   expect(flatten(interfaceA)).toEqual('export interface A { b?: string | undefined; c?: number | undefined; }');
   expect(flatten(interfaceB)).toEqual('export interface B { b?: string | undefined; c?: number | undefined; }');
+});
+
+test('should add properties to interface from property access with nested object', () => {
+  const interfaceSourceFile = getSourceFile(project, '');
+  const interfaceDeclaration = interfaceSourceFile.addInterface({ name: 'Empty', isExported: true });
+  const sourceFile = project.createSourceFile(
+      'write-access.ts',
+      `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} = {};\na.b = {};\na.b.c = 12;`,
+      { overwrite: true },
+  );
+  TypesRefactor.inferInterfaceProperties(sourceFile, project, '');
+  const newInterface = interfaceSourceFile.getInterfaceOrThrow('B');
+  expect(flatten(interfaceDeclaration)).toEqual(`export interface Empty { b?: ${TypeHandler.getType(newInterface).getText()} | undefined; }`);
+  expect(flatten(newInterface)).toEqual('export interface B { c?: number | undefined; }');
 });

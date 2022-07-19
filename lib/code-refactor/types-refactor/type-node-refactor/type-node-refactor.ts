@@ -1,5 +1,9 @@
 import {
-  Identifier, ImportTypeNode, SourceFile, TypeReferenceNode,
+  Identifier,
+  ImportTypeNode,
+  SourceFile,
+  SyntaxKind,
+  TypeReferenceNode
 } from 'ts-morph';
 import UsedNames from '../../helpers/used-names/used-names';
 import ImportCreator from '../../helpers/import-creator/import-creator';
@@ -12,13 +16,23 @@ class TypeNodeRefactor {
     const usedNames = UsedNames.getDeclaredNames(sourceFile);
     const identifier = ImportTypeParser.getFirstIdentifier(typeReference.getTypeName());
     const declaration = identifier.getSymbol()?.getDeclarations()[0];
-    const declarationPath = declaration?.getSourceFile().getFilePath();
-    if (declarationPath && !this.isTypescriptOrNodeVariable(declarationPath) && declarationPath !== sourceFile.getFilePath()) {
+    const declarationSourceFile = declaration?.getSourceFile();
+    const declarationPath = declarationSourceFile?.getFilePath();
+    if (declarationPath
+      && !this.isTypescriptOrNodeVariable(declarationPath)
+      && declarationPath !== sourceFile.getFilePath()
+      && this.hasExportKeyword(declarationSourceFile)
+    ) {
       const moduleSpecifier = ImportTypeParser.parseImportPath(declarationPath, sourceFile.getDirectoryPath());
       const newImportName = this.addGlobalImport(identifier, moduleSpecifier, usedNames, sourceFile);
       identifier.replaceWithText(newImportName);
     }
   };
+
+  private static hasExportKeyword = (sourceFile?: SourceFile) => sourceFile
+    ?.getChildSyntaxList()
+    ?.getDescendants()
+    .find(c => !!c.asKind(SyntaxKind.ExportKeyword));
 
   private static isTypescriptOrNodeVariable = (importPath: string): boolean => importPath.includes('/node_modules/typescript/')
     || importPath.includes('/node_modules/@types/node/');

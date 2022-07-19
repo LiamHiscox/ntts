@@ -39,7 +39,6 @@ test('should create interface and set type of variable with object assignment', 
   if (A && C) {
     expect(flatten(A)).toEqual(`export interface A { c?: ${TypeHandler.getType(C).getText()} | undefined; }`);
     expect(flatten(C)).toEqual('export interface C { a: string; b: number; }');
-    console.log(sourceFile.getText())
     expect(sourceFile.getText())
       .toEqual(`let a: ${TypeHandler.getType(A).getText()} = true ? { c: { a: "a", b: 1 } } : {};`);
   }
