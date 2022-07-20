@@ -1,4 +1,3 @@
-import yargs, { Arguments } from 'yargs';
 import FileRename from './file-rename/file-rename';
 import DependencyInstaller from './dependency-installer/dependency-installer';
 import TsconfigHandler from './tsconfig-handler/tsconfig-handler';
@@ -8,6 +7,7 @@ import { PackageManager } from './models/package-manager';
 import IgnoreConfigParser from './ignore-config-parser/ignore-config-parser';
 import CodeRefactor from './code-refactor/code-refactor';
 import EslintRunner from './eslint-runner/eslint-runner';
+import { OptionsModel } from "./models/options.model";
 
 const basicSetup = async (packageManager: PackageManager) => {
   DependencyInstaller.addPackageJson(packageManager);
@@ -44,35 +44,20 @@ const refactorJSCode = (target: string, ignores: string[]) => {
   project.saveSync();
 };
 
-const main = async (target: string) => {
-  const validTarget = InputValidator.validate(target);
+const main = async (options: OptionsModel) => {
+  const validTarget = InputValidator.validate(options.target);
   if (validTarget !== null) {
     const packageManager = DependencyInstaller.getPackageManager();
-    await basicSetup(packageManager);
+    options.installation && await basicSetup(packageManager);
     const ignores = IgnoreConfigParser.getIgnores();
-    if (await lintProject(validTarget, ignores)) {
-      addTsconfig(validTarget, ignores);
-      await installDependencies(packageManager);
-      renameFiles(validTarget, ignores);
-      renameScripts(validTarget);
+    if (!options.lint || await lintProject(validTarget, ignores)) {
+      options.config && addTsconfig(validTarget, ignores);
+      options.dependencies && await installDependencies(packageManager);
+      options.rename && renameFiles(validTarget, ignores);
+      options.scripts && renameScripts(validTarget);
       refactorJSCode(validTarget, ignores);
     }
   }
 };
 
-yargs
-  .scriptName('ntts')
-  .command(
-    'refactor',
-    'refactor an existing Node.js application to support TypeScript',
-    {
-      't': {
-        alias: 'target',
-        type: 'string',
-        describe: 'Provide the target folder to refactor the files in',
-        default: '.',
-      }
-    },
-    async ({ t }: Arguments<{ t: string }>) => main(t),
-  )
-  .argv;
+export default main;
