@@ -17,6 +17,7 @@ import { isAccessExpression } from '../../helpers/combined-types/combined-types'
 import TypeHandler from '../type-handler/type-handler';
 import TypeChecker from '../helpers/type-checker/type-checker';
 import InterfaceHandler from "../interface-handler/interface-handler";
+import TypeSimplifier from "../helpers/type-simplifier/type-simplifier";
 
 class ContextualTypeInference {
   static inferTypeByContextualType = (
@@ -31,8 +32,10 @@ class ContextualTypeInference {
         .reduce((types: string[], ref) => types.concat(...this.checkReferences(ref)), []);
       const combined = TypeHandler.combineTypeWithList(TypeHandler.getType(declaration), ...newTypes);
       if (newTypes.length > 0) {
-        TypeHandler.setTypeFiltered(declaration, combined);
-        InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, target);
+        const newDeclaration = TypeHandler.setTypeFiltered(declaration, combined);
+        const stringSimplified = TypeSimplifier.simplifyTypeNode(TypeHandler.getTypeNode(newDeclaration));
+        const simplifiedDeclaration = TypeHandler.setTypeFiltered(newDeclaration, stringSimplified);
+        InterfaceHandler.createInterfaceFromObjectLiterals(simplifiedDeclaration, project, target);
       }
     }
   };
@@ -55,6 +58,13 @@ class ContextualTypeInference {
       const type = innerExpression.getContextualType();
       if (type && !TypeChecker.isAnyOrUnknown(type)) {
         return type.getText();
+      }
+      const parent = innerExpression.getParent();
+      if (Node.isCallExpression(parent)) {
+        const parameters = parent.getArguments()
+            .map((argument, index) => `param${index+1}: ${TypeHandler.getType(argument).getText()}`)
+            .join(', ');
+        return `((${parameters}) => any)`;
       }
     }
     return undefined;

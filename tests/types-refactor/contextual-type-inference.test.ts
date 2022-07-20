@@ -48,13 +48,22 @@ test('should set type of variable by contextual type and generate interface', ()
   }
 });
 
-test('should set type of variable by contextual type with union type', () => {
+test('should set type of parameter by call expression', () => {
   const sourceFile = project.createSourceFile(
-    'write-access.ts',
-    'function b(b: number | string | boolean);\nconst a = "asd";\nb(a);',
-    { overwrite: true },
+      'write-access.ts',
+      'function b(a){\na(12, "asd");\n}',
+      { overwrite: true },
   );
-  sourceFile.getDescendantsOfKind(SyntaxKind.VariableDeclaration);
   TypesRefactor.inferContextualType(sourceFile, project, '');
-  expect(sourceFile.getText()).toEqual('function b(b: number | string | boolean);\nconst a = "asd";\nb(a);');
+  expect(sourceFile.getText()).toEqual('function b(a: (param1: number, param2: string) => any){\na(12, "asd");\n}');
+});
+
+test('should combine function types of parameter by call expression', () => {
+  const sourceFile = project.createSourceFile(
+      'write-access.ts',
+      'function b(a){\na(12);\na("asd");\na(true);\n}',
+      { overwrite: true },
+  );
+  TypesRefactor.inferContextualType(sourceFile, project, '');
+  expect(sourceFile.getText()).toEqual('function b(a: (param1: string | number | boolean) => any){\na(12);\na("asd");\na(true);\n}');
 });
