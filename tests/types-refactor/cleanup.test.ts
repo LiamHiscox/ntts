@@ -26,7 +26,9 @@ test('should clean up union with identical interfaces', () => {
   ).getInterfaceOrThrow('A');
   const sourceFile = project.createSourceFile(
     'write-access.ts',
-    `let a: ${TypeHandler.getType(interfaceDeclaration).getText()} | ${TypeHandler.getType(interfaceDeclaration).getText()} | ${TypeHandler.getType(interfaceDeclaration).getText()};`,
+    `let a: ${TypeHandler.getType(interfaceDeclaration).getText()}
+    | ${TypeHandler.getType(interfaceDeclaration).getText()}
+    | ${TypeHandler.getType(interfaceDeclaration).getText()};`,
     {overwrite: true},
   );
   TypesRefactor.filterUnionType(sourceFile);
@@ -54,6 +56,6 @@ test('should remove undefined from optional parameter', () => {
     'function f (p?: string | undefined) {};',
     {overwrite: true},
   );
-  TypesRefactor.removeUndefinedFromOptional(sourceFile);
+  TypesRefactor.removeUndefinedFromOptional(sourceFile, project, '');
   expect(sourceFile.getText()).toEqual('function f (p?: string) {};');
 });

@@ -1,6 +1,7 @@
 import { Project } from 'ts-morph';
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 import fs, {existsSync} from "fs";
+import {addTypeAlias, getTypeAliasType} from "../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator";
 
 let project: Project;
 
@@ -9,6 +10,7 @@ beforeEach(() => {
     tsConfigFilePath: 'tsconfig.json',
     skipAddingFilesFromTsConfig: true,
   });
+  addTypeAlias(project, '', false);
 })
 
 afterEach(() => {
@@ -20,24 +22,35 @@ afterEach(() => {
 test('should replace simple any and never types', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: any, b: never);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile, project, '');
-  expect(sourceFile.getText()).toEqual('function fun (a: unknown, b: unknown);');
+  const typeAlias = getTypeAliasType(project, '');
+  expect(sourceFile.getText()).toEqual(`function fun (a: ${typeAlias}, b: ${typeAlias});`);
 });
 
 test('should replace simple any and never types 2', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: never | undefined);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile, project, '');
-  expect(sourceFile.getText()).toEqual('function fun (a: unknown | undefined);');
+  const typeAlias = getTypeAliasType(project, '');
+  expect(sourceFile.getText()).toEqual(`function fun (a: ${typeAlias} | undefined);`);
 });
 
 test('should replace simple any and never types 3', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: never[]);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile, project, '');
-  expect(sourceFile.getText()).toEqual('function fun (a: unknown[]);');
+  const typeAlias = getTypeAliasType(project, '');
+  expect(sourceFile.getText()).toEqual(`function fun (a: ${typeAlias}[]);`);
 });
 
 test('should replace implicit any', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a);', { overwrite: true });
   TypesRefactor.replaceInvalidTypes(sourceFile, project, '');
-  expect(sourceFile.getText()).toEqual('function fun (a: unknown);');
+  const typeAlias = getTypeAliasType(project, '');
+  expect(sourceFile.getText()).toEqual(`function fun (a: ${typeAlias});`);
+});
+
+test('should replace unknown', () => {
+  const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: unknown);', { overwrite: true });
+  TypesRefactor.replaceInvalidTypes(sourceFile, project, '');
+  const typeAlias = getTypeAliasType(project, '');
+  expect(sourceFile.getText()).toEqual(`function fun (a: ${typeAlias});`);
 });
 

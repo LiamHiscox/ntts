@@ -12,8 +12,8 @@ import {getTypeAliasType} from '../interface-handler/interface-creator/interface
 class InvalidTypeReplacer {
   static replaceParameterType = (parameter: ParameterDeclaration, project: Project, target: string) => {
     const type = TypeHandler.getType(parameter);
-    if (type.isAny() || type.getText() === 'never') {
-      TypeHandler.setSimpleType(parameter, 'unknown');
+    if (type.isAny() || type.getText() === 'never' || type.getText() === 'unknown') {
+      TypeHandler.setSimpleType(parameter, getTypeAliasType(project, target));
     } else {
       this.replaceType(parameter, project, target);
     }
@@ -22,11 +22,13 @@ class InvalidTypeReplacer {
   static replaceType = (typedNode: TypedNode & Node, project: Project, target: string) => {
     const initialTypeNode = typedNode.getTypeNode();
     if (initialTypeNode) {
-      return this.getNeverAndAnyNodes(initialTypeNode).forEach((node) => node.replaceWithText('unknown'));
+      return this.getInvalidTypeNodes(initialTypeNode)
+        .forEach((node) => node.replaceWithText(getTypeAliasType(project, target)));
     }
     const typeNode = TypeHandler.getTypeNode(typedNode);
     if (this.containsNeverNodes(typeNode)) {
-      this.getNeverAndAnyNodes(typeNode).forEach(node => node.replaceWithText(getTypeAliasType(project, target)));
+      this.getInvalidTypeNodes(typeNode)
+        .forEach(node => node.replaceWithText(getTypeAliasType(project, target)));
     } else {
       typedNode.removeType();
     }
@@ -35,11 +37,13 @@ class InvalidTypeReplacer {
   static replaceReturnType = (typedNode: ReturnTypedNode & Node, project: Project, target: string) => {
     const initialTypeNode = typedNode.getReturnTypeNode();
     if (initialTypeNode) {
-      return this.getNeverAndAnyNodes(initialTypeNode).forEach((node) => node.replaceWithText(getTypeAliasType(project, target)));
+      return this.getInvalidTypeNodes(initialTypeNode)
+        .forEach((node) => node.replaceWithText(getTypeAliasType(project, target)));
     }
     const typeNode = TypeHandler.getReturnTypeNode(typedNode);
     if (this.containsNeverNodes(typeNode)) {
-      this.getNeverAndAnyNodes(typeNode).forEach(node => node.replaceWithText(getTypeAliasType(project, target)));
+      this.getInvalidTypeNodes(typeNode)
+        .forEach(node => node.replaceWithText(getTypeAliasType(project, target)));
     } else {
       typedNode.removeReturnType();
     }
@@ -49,11 +53,11 @@ class InvalidTypeReplacer {
     return Node.isNeverKeyword(typeNode) || !!typeNode.getFirstDescendantByKind(SyntaxKind.NeverKeyword);
   };
 
-  private static getNeverAndAnyNodes = (typeNode: TypeNode): Node[] => {
+  private static getInvalidTypeNodes = (typeNode: TypeNode): Node[] => {
     if (Node.isNeverKeyword(typeNode) || Node.isAnyKeyword(typeNode)) {
       return [typeNode];
     }
-    return typeNode.getDescendants().filter((d) => Node.isNeverKeyword(d) || Node.isAnyKeyword(d));
+    return typeNode.getDescendants().filter((d) => Node.isNeverKeyword(d) || Node.isAnyKeyword(d) || d.getText() === 'unknown');
   };
 }
 
