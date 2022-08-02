@@ -10,12 +10,14 @@ import Logger from '../logger/logger';
 import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
 import TypesRefactor from './types-refactor/types-refactor';
 import { generateProgressBar } from './helpers/generate-progress-bar/generate-progress-bar';
+import {addTypeAlias} from './types-refactor/interface-handler/interface-creator/interface-creator';
 
 class CodeRefactor {
-  static convertToTypescript = (project: Project, target: string) => {
+  static convertToTypescript = (project: Project, target: string, unknown: boolean) => {
     this.refactorExports(project);
     this.refactorImports(project);
     this.refactorClasses(project);
+    this.addNamedType(project, target, unknown);
     this.generateInterfaces(project, target);
     this.inferParameterTypes(project, target);
     this.inferFunctionTypeParameterTypes(project, target);
@@ -24,7 +26,7 @@ class CodeRefactor {
     this.inferWriteAccessType(project, target);
     this.inferContextualType(project, target);
     this.inferInterfaceProperties(project, target);
-    this.replaceAnyAndNever(project);
+    this.replaceTypes(project);
     this.mergeInterfaces(project, target);
     this.filterUnionType(project);
     this.mergeInterfaces(project, target);
@@ -166,15 +168,15 @@ class CodeRefactor {
     Logger.success('Inferred type where possible');
   }
 
-  private static replaceAnyAndNever = (project: Project) => {
-    Logger.info('Replacing types any and never with unknown');
+  private static replaceTypes = (project: Project) => {
+    Logger.info('Replacing undesirable types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
       TypesRefactor.replaceInvalidTypes(s);
       bar.tick();
     });
-    Logger.success('Replaced types any and never with unknown where possible');
+    Logger.success('Replaced undesirable types');
   }
 
   private static mergeInterfaces = (project: Project, target: string) => {
@@ -225,6 +227,10 @@ class CodeRefactor {
       bar.tick();
     });
     Logger.success('Removed null or undefined types');
+  }
+
+  private static addNamedType = (project: Project, target: string, unknown: boolean) => {
+    addTypeAlias(project, target, unknown);
   }
 }
 

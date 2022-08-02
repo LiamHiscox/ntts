@@ -1,3 +1,73 @@
 # ntts
+A CLI tool for refactoring an existing Node.js application to a fully functional TypeScript application.
 
-A CLI tool for refactoring an existing NodeJs application to a fully functional TypeScript application.
+# Functionality
+This tool refactors an existing Node.js application to support TypeScript. This process is split up into several different steps:
+- Linting the project before refactoring
+- Configuring TypeScript according to the installed Node.js version
+- Installing additional dependencies such as TypeScript, TS-Node and type declarations for Node.js
+- Installing type declarations for untyped dependencies
+- Renaming files from JavaScript to TypeScript
+- Refactoring scripts inside the package.json to target TypeScript files and use TS-Node instead
+- Refactoring JavaScript code to valid TypeScript code
+  - Refactoring CommonJS imports and exports to use the ES module syntax
+  - Refactoring classes to declare properties inside the body before being accessed
+- Inferring types of variables, parameters and properties by analyzing their usage
+
+# Installation
+It is recommended to install the package globally as follows:
+`npm i -g ntts`
+
+# Setup
+In order to correctly refactor a Node.js application, first navigate to the root folder the project, which contains the package.json file.
+If specific JavaScript files or whole directories are supposed to be ignored during the refactoring process, an ignore file of the name `.nttsignore`.
+This uses the same syntax as a `.gitignore` file. If no `.nttsignore` file is provided, the tool falls back on the `.gitignore` file, if one exists.
+
+# Refactoring a project
+Many of the refactoring steps listed above can be skipped by using the appropriate flag.
+Additionally, a target folder can be provided to define the directory to refactor the JavaScript code in.
+Values which are of type `any`, `unknown` or `never` implicitly have their explicitly set as `any` by default, using the following type alias: `type $FixMe = any`.
+If preferred, the type alias can also be of type `unknown` by using the appropriate flag.
+To refactor a project run the following command:
+
+`ntts refactor`
+
+To get an overview of all the available options run:
+
+`ntts refactor --help`
+
+The output returned is the following:
+
+```
+ntts refactor                                                                   
+                                                                                
+refactor an existing Node.js application to support TypeScript                  
+                                                                                
+Options:                                                                        
+      --help          Show help                                        [boolean]
+      --version       Show version number                              [boolean]
+  -t, --target        Provide the target folder to refactor the files in
+                                                         [string] [default: "."]
+  -u, --unknown       Use the type unknown instead of any to explicitly type
+                      untyped values                  [boolean] [default: false]
+  -i, --installation  Skip the creation of a package.json (if none is present)
+                      and installation of dependencies (npm install)
+                                                      [boolean] [default: false]
+  -l, --lint          Skip the linting process performed with ES-Lint
+                                                      [boolean] [default: false]
+  -c, --config        Skip the addition of a tsconfig.json file and the
+                      configuration of TypeScript     [boolean] [default: false]
+  -d, --dependencies  Skip the installation of additional dependencies such as
+                      TypeScript, TS-Node and type declarations
+                                                      [boolean] [default: false]
+  -r, --rename        Skip the renaming of JavaScript files to TypeScript files
+                      inside the target path          [boolean] [default: false]
+  -s, --scripts       Skip the refactoring of scripts inside the package.json
+                      file to use TS-Node and target TypeScript files
+                                                      [boolean] [default: false]
+```
+
+# Additional Information
+Please be aware that the tool is still being improved on and is not in its final state.
+Additionally, the performance may vary depending on the size of the project and the complexity of its code.
+Since it was only tested on Node.js applications, it is not guaranteed to return the desired results on frontend applications.
