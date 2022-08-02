@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A CLI tool for refactoring an existing NodeJs application to a fully functional TypeScript application.",
   "main": "bin/cli.ts",
+  "keywords": ["Node.js", "NodeJS", "Node", "JavaScript", "TypeScript", "Refactoring", "Refactor", "TS-Morph", "TS", "JS", "TSC"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
