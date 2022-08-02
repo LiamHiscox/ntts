@@ -1,6 +1,9 @@
 import {Project} from 'ts-morph';
 import fs, {existsSync} from 'fs';
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
+import {
+  typeAliasName
+} from "../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator";
 
 let project: Project;
 
@@ -20,13 +23,13 @@ afterEach(() => {
 test('should replace simple null and undefined types', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: null, b: undefined);', { overwrite: true });
   TypesRefactor.removeNullOrUndefinedTypes(sourceFile);
-  expect(sourceFile.getText()).toEqual('function fun (a: unknown, b: unknown);');
+  expect(sourceFile.getText()).toEqual(`function fun (a: ${typeAliasName}, b: ${typeAliasName});`);
 });
 
 test('should replace union types', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: null | undefined, b: undefined | null);', { overwrite: true });
   TypesRefactor.removeNullOrUndefinedTypes(sourceFile);
-  expect(sourceFile.getText()).toEqual('function fun (a: unknown, b: unknown);');
+  expect(sourceFile.getText()).toEqual(`function fun (a: ${typeAliasName}, b: ${typeAliasName});`);
 });
 
 test('should not replace union types', () => {

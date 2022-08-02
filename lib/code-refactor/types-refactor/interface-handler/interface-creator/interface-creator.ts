@@ -20,6 +20,17 @@ const createInterfaceFile = (project: Project, fullPath: string): SourceFile => 
   return project.addSourceFileAtPath(fullPath);
 };
 
+export const typeAliasName = '$FixMe';
+
+export const addTypeAlias = (project: Project, target: string, unknown: boolean) => {
+  const sourceFile = getSourceFile(project, target);
+  sourceFile.addTypeAlias({
+    isExported: true,
+    name: typeAliasName,
+    type: unknown ? 'unknown' : 'any',
+  });
+}
+
 export const getSourceFile = (project: Project, target: string): SourceFile => {
   const fullPath = join(target, 'ntts-generated-models.ts');
   return project.getSourceFile(fullPath) || createInterfaceFile(project, fullPath);

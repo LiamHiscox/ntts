@@ -59,7 +59,7 @@ class TypesRefactor {
         return;
       }
       if (Node.isIndexSignatureDeclaration(descendant)) {
-        return InvalidTypeReplacer.replaceAnyAndNeverReturnType(descendant);
+        return InvalidTypeReplacer.replaceReturnType(descendant);
       }
       if (Node.isParameterDeclaration(descendant)) {
         return InvalidTypeReplacer.replaceParameterType(descendant);
@@ -67,7 +67,7 @@ class TypesRefactor {
       if (Node.isVariableDeclaration(descendant)
         || Node.isPropertyDeclaration(descendant)
         || Node.isPropertySignature(descendant)) {
-        return InvalidTypeReplacer.replaceAnyAndNeverType(descendant);
+        return InvalidTypeReplacer.replaceType(descendant);
       }
       return;
     });

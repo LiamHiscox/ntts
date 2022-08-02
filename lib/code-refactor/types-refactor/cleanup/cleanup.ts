@@ -7,6 +7,7 @@ import {
   UnionTypeNode
 } from "ts-morph";
 import TypeHandler from "../type-handler/type-handler";
+import {typeAliasName} from "../interface-handler/interface-creator/interface-creator";
 
 class Cleanup {
   static filterUnionType = (unionType: UnionTypeNode) => {
@@ -30,7 +31,7 @@ class Cleanup {
         .map(n => n.getText())
         .filter(n => n !== 'undefined')
         .join(' | ');
-      TypeHandler.setSimpleType(declaration, filtered || 'unknown');
+      TypeHandler.setSimpleType(declaration, filtered || typeAliasName);
     }
   }
 
@@ -44,10 +45,10 @@ class Cleanup {
         .map((t) => t.getText())
         .filter(t => t !== 'null' && t !== 'undefined');
       if (types.length <= 0) {
-        typeNode.replaceWithText('unknown')
+        typeNode.replaceWithText(typeAliasName)
       }
     } else if (typeNode.getText() === 'null' || typeNode.getText() === 'undefined') {
-      typeNode.replaceWithText('unknown');
+      typeNode.replaceWithText(typeAliasName);
     }
   }
 }

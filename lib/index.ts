@@ -38,9 +38,9 @@ const renameScripts = (target: string) => {
   PackageJsonHandler.refactorScripts(target);
 };
 
-const refactorJSCode = (target: string, ignores: string[]) => {
+const refactorJSCode = (target: string, ignores: string[], unknown: boolean) => {
   const project = CodeRefactor.addSourceFiles(ignores, target);
-  CodeRefactor.convertToTypescript(project, target);
+  CodeRefactor.convertToTypescript(project, target, unknown);
   project.saveSync();
 };
 
@@ -55,7 +55,7 @@ const main = async (options: OptionsModel) => {
       options.dependencies && await installDependencies(packageManager);
       options.rename && renameFiles(validTarget, ignores);
       options.scripts && renameScripts(validTarget);
-      refactorJSCode(validTarget, ignores);
+      refactorJSCode(validTarget, ignores, options.unknown);
     }
   }
 };

@@ -7,6 +7,7 @@ import {
   TypeNode
 } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
+import {typeAliasName} from "../interface-handler/interface-creator/interface-creator";
 
 class InvalidTypeReplacer {
   static replaceParameterType = (parameter: ParameterDeclaration) => {
@@ -14,31 +15,31 @@ class InvalidTypeReplacer {
     if (type.isAny() || type.getText() === 'never') {
       TypeHandler.setSimpleType(parameter, 'unknown');
     } else {
-      this.replaceAnyAndNeverType(parameter);
+      this.replaceType(parameter);
     }
   }
 
-  static replaceAnyAndNeverType = (typedNode: TypedNode & Node) => {
+  static replaceType = (typedNode: TypedNode & Node) => {
     const initialTypeNode = typedNode.getTypeNode();
     if (initialTypeNode) {
       return this.getNeverAndAnyNodes(initialTypeNode).forEach((node) => node.replaceWithText('unknown'));
     }
     const typeNode = TypeHandler.getTypeNode(typedNode);
     if (this.containsNeverNodes(typeNode)) {
-      this.getNeverAndAnyNodes(typeNode).forEach(node => node.replaceWithText('unknown'));
+      this.getNeverAndAnyNodes(typeNode).forEach(node => node.replaceWithText(typeAliasName));
     } else {
       typedNode.removeType();
     }
   }
 
-  static replaceAnyAndNeverReturnType = (typedNode: ReturnTypedNode & Node) => {
+  static replaceReturnType = (typedNode: ReturnTypedNode & Node) => {
     const initialTypeNode = typedNode.getReturnTypeNode();
     if (initialTypeNode) {
-      return this.getNeverAndAnyNodes(initialTypeNode).forEach((node) => node.replaceWithText('unknown'));
+      return this.getNeverAndAnyNodes(initialTypeNode).forEach((node) => node.replaceWithText(typeAliasName));
     }
     const typeNode = TypeHandler.getReturnTypeNode(typedNode);
     if (this.containsNeverNodes(typeNode)) {
-      this.getNeverAndAnyNodes(typeNode).forEach(node => node.replaceWithText('unknown'));
+      this.getNeverAndAnyNodes(typeNode).forEach(node => node.replaceWithText(typeAliasName));
     } else {
       typedNode.removeReturnType();
     }
