@@ -26,13 +26,13 @@ class CodeRefactor {
     this.inferWriteAccessType(project, target);
     this.inferContextualType(project, target);
     this.inferInterfaceProperties(project, target);
-    this.replaceTypes(project);
+    this.replaceTypes(project, target);
     this.mergeInterfaces(project, target);
     this.filterUnionType(project);
     this.mergeInterfaces(project, target);
     this.refactorImportTypesAndGlobalVariables(project);
-    this.simplifyOptionalNodes(project);
-    this.simplifyTypeNodes(project);
+    this.simplifyOptionalNodes(project, target);
+    this.simplifyTypeNodes(project, target);
   };
 
   static addSourceFiles = (ignores: string[], path: string): Project => {
@@ -168,12 +168,12 @@ class CodeRefactor {
     Logger.success('Inferred type where possible');
   }
 
-  private static replaceTypes = (project: Project) => {
+  private static replaceTypes = (project: Project, target: string) => {
     Logger.info('Replacing undesirable types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
-      TypesRefactor.replaceInvalidTypes(s);
+      TypesRefactor.replaceInvalidTypes(s, project, target);
       bar.tick();
     });
     Logger.success('Replaced undesirable types');
@@ -207,23 +207,23 @@ class CodeRefactor {
     Logger.success('Filtered union types');
   }
 
-  private static simplifyOptionalNodes = (project: Project) => {
+  private static simplifyOptionalNodes = (project: Project, target: string) => {
     Logger.info('Removing undefined type from optional node');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
-      TypesRefactor.removeUndefinedFromOptional(s);
+      TypesRefactor.removeUndefinedFromOptional(s, project, target);
       bar.tick();
     });
     Logger.success('Removed undefined types');
   }
 
-  private static simplifyTypeNodes = (project: Project) => {
+  private static simplifyTypeNodes = (project: Project, target: string) => {
     Logger.info('Removing null or undefined types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
     sourceFiles.forEach((s) => {
-      TypesRefactor.removeNullOrUndefinedTypes(s);
+      TypesRefactor.removeNullOrUndefinedTypes(s, project, target);
       bar.tick();
     });
     Logger.success('Removed null or undefined types');

@@ -19,25 +19,25 @@ afterEach(() => {
 
 test('should replace simple any and never types', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: any, b: never);', { overwrite: true });
-  TypesRefactor.replaceInvalidTypes(sourceFile);
+  TypesRefactor.replaceInvalidTypes(sourceFile, project, '');
   expect(sourceFile.getText()).toEqual('function fun (a: unknown, b: unknown);');
 });
 
 test('should replace simple any and never types 2', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: never | undefined);', { overwrite: true });
-  TypesRefactor.replaceInvalidTypes(sourceFile);
+  TypesRefactor.replaceInvalidTypes(sourceFile, project, '');
   expect(sourceFile.getText()).toEqual('function fun (a: unknown | undefined);');
 });
 
 test('should replace simple any and never types 3', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: never[]);', { overwrite: true });
-  TypesRefactor.replaceInvalidTypes(sourceFile);
+  TypesRefactor.replaceInvalidTypes(sourceFile, project, '');
   expect(sourceFile.getText()).toEqual('function fun (a: unknown[]);');
 });
 
 test('should replace implicit any', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a);', { overwrite: true });
-  TypesRefactor.replaceInvalidTypes(sourceFile);
+  TypesRefactor.replaceInvalidTypes(sourceFile, project, '');
   expect(sourceFile.getText()).toEqual('function fun (a: unknown);');
 });
 

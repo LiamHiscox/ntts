@@ -1,13 +1,13 @@
 import {
   Node,
-  ParameterDeclaration,
+  ParameterDeclaration, Project,
   PropertySignature,
   SyntaxKind,
   TypeNode,
   UnionTypeNode
-} from "ts-morph";
-import TypeHandler from "../type-handler/type-handler";
-import {typeAliasName} from "../interface-handler/interface-creator/interface-creator";
+} from 'ts-morph';
+import TypeHandler from '../type-handler/type-handler';
+import { getTypeAliasType } from '../interface-handler/interface-creator/interface-creator';
 
 class Cleanup {
   static filterUnionType = (unionType: UnionTypeNode) => {
@@ -23,7 +23,7 @@ class Cleanup {
     }
   }
 
-  static removeUndefinedFromOptional = (declaration: PropertySignature | ParameterDeclaration) => {
+  static removeUndefinedFromOptional = (declaration: PropertySignature | ParameterDeclaration, project: Project, target: string) => {
     const typeNode = declaration.getTypeNode();
     if (Node.isUnionTypeNode(typeNode) && declaration.hasQuestionToken()) {
       const filtered = typeNode
@@ -31,11 +31,11 @@ class Cleanup {
         .map(n => n.getText())
         .filter(n => n !== 'undefined')
         .join(' | ');
-      TypeHandler.setSimpleType(declaration, filtered || typeAliasName);
+      TypeHandler.setSimpleType(declaration, filtered || getTypeAliasType(project, target));
     }
   }
 
-  static removeNullOrUndefinedType = (typeNode: TypeNode | undefined) => {
+  static removeNullOrUndefinedType = (typeNode: TypeNode | undefined, project: Project, target: string) => {
     if (!typeNode) {
       return;
     }
@@ -45,10 +45,10 @@ class Cleanup {
         .map((t) => t.getText())
         .filter(t => t !== 'null' && t !== 'undefined');
       if (types.length <= 0) {
-        typeNode.replaceWithText(typeAliasName)
+        typeNode.replaceWithText(getTypeAliasType(project, target))
       }
     } else if (typeNode.getText() === 'null' || typeNode.getText() === 'undefined') {
-      typeNode.replaceWithText(typeAliasName);
+      typeNode.replaceWithText(getTypeAliasType(project, target));
     }
   }
 }

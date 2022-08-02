@@ -20,7 +20,10 @@ const createInterfaceFile = (project: Project, fullPath: string): SourceFile => 
   return project.addSourceFileAtPath(fullPath);
 };
 
-export const typeAliasName = '$FixMe';
+const typeAliasName = '$FixMe';
+
+export const getTypeAliasType = (project: Project, target: string): string =>
+  getSourceFile(project, target).getTypeAliasOrThrow(typeAliasName).getType().getText();
 
 export const addTypeAlias = (project: Project, target: string, unknown: boolean) => {
   const sourceFile = getSourceFile(project, target);

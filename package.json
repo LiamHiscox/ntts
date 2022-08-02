@@ -1,6 +1,6 @@
 {
   "name": "ntts",
-  "version": "1.0.2",
+  "version": "1.0.22",
   "description": "A CLI tool for refactoring an existing NodeJs application to a fully functional TypeScript application.",
   "main": "bin/cli.js",
   "types": "bin/cli.d.ts",

@@ -53,21 +53,21 @@ class TypesRefactor {
     }
   };
 
-  static replaceInvalidTypes = (sourceFile: SourceFile) => {
+  static replaceInvalidTypes = (sourceFile: SourceFile, project: Project, target: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
       }
       if (Node.isIndexSignatureDeclaration(descendant)) {
-        return InvalidTypeReplacer.replaceReturnType(descendant);
+        return InvalidTypeReplacer.replaceReturnType(descendant, project, target);
       }
       if (Node.isParameterDeclaration(descendant)) {
-        return InvalidTypeReplacer.replaceParameterType(descendant);
+        return InvalidTypeReplacer.replaceParameterType(descendant, project, target);
       }
       if (Node.isVariableDeclaration(descendant)
         || Node.isPropertyDeclaration(descendant)
         || Node.isPropertySignature(descendant)) {
-        return InvalidTypeReplacer.replaceType(descendant);
+        return InvalidTypeReplacer.replaceType(descendant, project, target);
       }
       return;
     });
@@ -173,27 +173,27 @@ class TypesRefactor {
     });
   }
 
-  static removeUndefinedFromOptional = (sourceFile: SourceFile) => {
+  static removeUndefinedFromOptional = (sourceFile: SourceFile, project: Project, target: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
       }
       if (Node.isPropertySignature(descendant)
         || Node.isParameterDeclaration(descendant)) {
-        Cleanup.removeUndefinedFromOptional(descendant);
+        Cleanup.removeUndefinedFromOptional(descendant, project, target);
       }
     });
   }
 
-  static removeNullOrUndefinedTypes = (sourceFile: SourceFile) => {
+  static removeNullOrUndefinedTypes = (sourceFile: SourceFile, project: Project, target: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
       }
       if (Node.isTyped(descendant)) {
-        Cleanup.removeNullOrUndefinedType(descendant.getTypeNode());
+        Cleanup.removeNullOrUndefinedType(descendant.getTypeNode(), project, target);
       } else if (Node.isReturnTyped(descendant)) {
-        Cleanup.removeNullOrUndefinedType(descendant.getReturnTypeNode());
+        Cleanup.removeNullOrUndefinedType(descendant.getReturnTypeNode(), project, target);
       }
     });
   }
