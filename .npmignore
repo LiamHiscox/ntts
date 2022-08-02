@@ -1,0 +1,6 @@
+node_modules/
+.idea/
+tests/
+.github/
+.eslintrc.js
+jest.config.js

@@ -2,8 +2,21 @@
   "name": "ntts",
   "version": "1.0.0",
   "description": "A CLI tool for refactoring an existing NodeJs application to a fully functional TypeScript application.",
-  "main": "bin/cli.ts",
-  "keywords": ["Node.js", "NodeJS", "Node", "JavaScript", "TypeScript", "Refactoring", "Refactor", "TS-Morph", "TS", "JS", "TSC"],
+  "main": "bin/cli.js",
+  "types": "bin/cli.d.ts",
+  "keywords": [
+    "Node.js",
+    "NodeJS",
+    "Node",
+    "JavaScript",
+    "TypeScript",
+    "Refactoring",
+    "Refactor",
+    "TS-Morph",
+    "TS",
+    "JS",
+    "TSC"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -w -p tsconfig.json",
@@ -35,8 +48,8 @@
     "ignore": "^5.2.0",
     "progress": "^2.0.3",
     "ts-morph": "^15.1.0",
-    "yargs": "^17.5.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "yargs": "^17.5.1"
   },
   "devDependencies": {
     "@types/eslint": "^8.4.5",

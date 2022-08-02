@@ -48,13 +48,13 @@ const main = async (options: OptionsModel) => {
   const validTarget = InputValidator.validate(options.target);
   if (validTarget !== null) {
     const packageManager = DependencyInstaller.getPackageManager();
-    options.installation && await basicSetup(packageManager);
+    !options.installation && await basicSetup(packageManager);
     const ignores = IgnoreConfigParser.getIgnores();
     if (!options.lint || await lintProject(validTarget, ignores)) {
-      options.config && addTsconfig(validTarget, ignores);
-      options.dependencies && await installDependencies(packageManager);
-      options.rename && renameFiles(validTarget, ignores);
-      options.scripts && renameScripts(validTarget);
+      !options.config && addTsconfig(validTarget, ignores);
+      !options.dependencies && await installDependencies(packageManager);
+      !options.rename && renameFiles(validTarget, ignores);
+      !options.scripts && renameScripts(validTarget);
       refactorJSCode(validTarget, ignores, options.unknown);
     }
   }
