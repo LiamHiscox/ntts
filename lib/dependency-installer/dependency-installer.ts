@@ -52,9 +52,11 @@ class DependencyInstaller {
   private static yarnInstalled = (): boolean => /^\d+\.\d+\.\d+.*$/.test(ScriptRunner.runSync('yarn --version'));
 
   private static installPackages = async (packageManager: PackageManager, ...packages: PackageModel[]) => {
-    const fullPackages = packages.map((p) => (p.version ? `${p.packageName}@${p.version}` : p.packageName)).join(' ');
-    Logger.info(`Installing ${fullPackages}`);
-    await ScriptRunner.runIgnore(`${packageManager.add} ${fullPackages}`);
+    if (packages.length) {
+      const fullPackages = packages.map((p) => (p.version ? `${p.packageName}@${p.version}` : p.packageName)).join(' ');
+      Logger.info(`Installing ${fullPackages}`);
+      await ScriptRunner.runIgnore(`${packageManager.add} ${fullPackages}`);
+    }
     Logger.success('Packages installed!');
   };
 
