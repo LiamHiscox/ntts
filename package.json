@@ -1,6 +1,6 @@
 {
   "name": "ntts",
-  "version": "1.0.22",
+  "version": "1.0.3",
   "description": "A CLI tool for refactoring an existing NodeJs application to a fully functional TypeScript application.",
   "main": "bin/cli.js",
   "types": "bin/cli.d.ts",
@@ -26,16 +26,12 @@
   "bin": {
     "ntts": "bin/cli.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://gitlab.com/LiamHiscox/ntts.git"
-  },
   "author": "Liam Hiscox",
   "license": "ISC",
   "bugs": {
-    "url": "https://gitlab.com/LiamHiscox/ntts/issues"
+    "url": "https://github.com/LiamHiscox/ntts/issues"
   },
-  "homepage": "https://gitlab.com/LiamHiscox/ntts#readme",
+  "homepage": "https://github.com/LiamHiscox/ntts#readme",
   "dependencies": {
     "@tsconfig/node10": "^1.0.9",
     "@tsconfig/node12": "^1.0.11",
