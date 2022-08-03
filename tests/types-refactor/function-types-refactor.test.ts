@@ -1,7 +1,7 @@
 import { Project } from 'ts-morph';
 import TypeSimplifier from '../../lib/code-refactor/types-refactor/helpers/type-simplifier/type-simplifier';
 import TypeHandler from '../../lib/code-refactor/types-refactor/type-handler/type-handler';
-import fs, {existsSync} from "fs";
+import * as fs from 'fs';
 
 let project: Project;
 
@@ -13,7 +13,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  if (existsSync('ntts-generated-models.ts')) {
+  if (fs.existsSync('ntts-generated-models.ts')) {
     fs.unlinkSync('ntts-generated-models.ts');
   }
 })

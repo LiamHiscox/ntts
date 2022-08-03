@@ -10,8 +10,10 @@ import InterfaceMerger from './interface-merger/interface-merger';
 import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
 import {generateProgressBar} from '../helpers/generate-progress-bar/generate-progress-bar';
-import Cleanup from "./cleanup/cleanup";
-import {getInnerExpression} from "../helpers/expression-handler/expression-handler";
+import Cleanup from './cleanup/cleanup';
+import {getInnerExpression} from '../helpers/expression-handler/expression-handler';
+import FunctionReturnTypeInference from './function-return-type-inference/function-return-type-inference';
+import TypeDeclarationChecker from "./type-declaration-checker/type-declaration-checker";
 
 class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project, target: string) => {
@@ -196,6 +198,36 @@ class TypesRefactor {
         Cleanup.removeNullOrUndefinedType(descendant.getReturnTypeNode(), project, target);
       }
     });
+  }
+
+  static setFunctionReturnTypes = (sourceFile: SourceFile, project: Project, target: string) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (
+        Node.isFunctionDeclaration(descendant)
+        || Node.isArrowFunction(descendant)
+        || Node.isMethodDeclaration(descendant)
+        || Node.isFunctionExpression(descendant)
+      ) {
+        FunctionReturnTypeInference.checkReturnType(descendant, project, target);
+      }
+    });
+  }
+
+  static removeUnnecessaryTypeNodes = (sourceFile: SourceFile) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (Node.isTyped(descendant)) {
+        TypeDeclarationChecker.checkTypeNode(descendant);
+      }
+      if (Node.isReturnTyped(descendant)) {
+        TypeDeclarationChecker.checkReturnTypeNode(descendant);
+      }
+    })
   }
 }
 

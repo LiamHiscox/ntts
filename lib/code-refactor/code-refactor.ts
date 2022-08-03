@@ -17,7 +17,8 @@ class CodeRefactor {
     this.refactorExports(project);
     this.refactorImports(project);
     this.refactorClasses(project);
-    this.addNamedType(project, target, unknown);
+    this.addTypeAlias(project, target, unknown);
+    this.setFunctionReturnTypes(project, target);
     this.generateInterfaces(project, target);
     this.inferParameterTypes(project, target);
     this.inferFunctionTypeParameterTypes(project, target);
@@ -30,6 +31,7 @@ class CodeRefactor {
     this.mergeInterfaces(project, target);
     this.filterUnionType(project);
     this.mergeInterfaces(project, target);
+    this.removeUnnecessaryTypeNodes(project);
     this.refactorImportTypesAndGlobalVariables(project);
     this.simplifyOptionalNodes(project, target);
     this.simplifyTypeNodes(project, target);
@@ -229,8 +231,32 @@ class CodeRefactor {
     Logger.success('Removed null or undefined types');
   }
 
-  private static addNamedType = (project: Project, target: string, unknown: boolean) => {
+  private static addTypeAlias = (project: Project, target: string, unknown: boolean) => {
+    Logger.info(`Adding type alias of type ${unknown ? 'unknown' : 'any'}`);
     addTypeAlias(project, target, unknown);
+    Logger.success('Added type alias');
+  }
+
+  private static setFunctionReturnTypes = (project: Project, target: string) => {
+    Logger.info('Replacing object types of function returns with interfaces');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.setFunctionReturnTypes(s, project, target);
+      bar.tick();
+    });
+    Logger.success('Replaced object types of function returns with interfaces');
+  }
+
+  private static removeUnnecessaryTypeNodes = (project: Project) => {
+    Logger.info('Removing unnecessary type nodes');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.removeUnnecessaryTypeNodes(s);
+      bar.tick();
+    });
+    Logger.success('Removed unnecessary type nodes');
   }
 }
 

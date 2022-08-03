@@ -1,7 +1,11 @@
 import {
+  ArrowFunction,
   BindingName,
+  FunctionDeclaration,
+  FunctionExpression,
   IndexSignatureDeclaration,
   InterfaceDeclaration,
+  MethodDeclaration,
   Node,
   ParameterDeclaration,
   Project,
@@ -50,14 +54,48 @@ class InterfaceHandler {
     }
   };
 
+  static createInterfaceFromObjectLiteralsFunctionReturn = (
+    declaration: FunctionDeclaration | ArrowFunction | MethodDeclaration | FunctionExpression,
+    project: Project,
+    target: string
+  ) => {
+    const typeNode = TypeHandler.getReturnTypeNode(declaration);
+    const nameNode = this.getNameNode(declaration);
+    const typeLiteral = InterfaceFinder.getFirstTypeLiteral(typeNode);
+    if (typeLiteral) {
+      this.checkTypeLiteral(typeLiteral, nameNode, project, target);
+      TypeHandler.setReturnTypeFiltered(declaration, declaration.getReturnType().getText());
+      this.createInterfaceFromObjectLiteralsFunctionReturn(declaration, project, target);
+    }
+  };
+
   static validateDeclaration = (declaration: DeclarationKind) => {
     const initializer = declaration.getInitializer();
     return !initializer || (!Node.isArrowFunction(initializer) && !Node.isFunctionExpression(initializer));
   }
 
+  private static getNameNode = (declaration: FunctionDeclaration | ArrowFunction | MethodDeclaration | FunctionExpression) => {
+    if (
+      Node.isFunctionDeclaration(declaration)
+      || Node.isMethodDeclaration(declaration)
+    ) {
+      return declaration.getNameNode();
+    }
+    const parent = declaration.getParent();
+    if (
+      Node.isVariableDeclaration(parent)
+      || Node.isParameterDeclaration(parent)
+      || Node.isPropertyDeclaration(parent)
+      || Node.isPropertySignature(parent)
+    ) {
+      return parent.getNameNode();
+    }
+    return undefined;
+  }
+
   private static checkTypeLiteral = (
     typeLiteral: TypeLiteralNode,
-    nameNode: NameNodeKind,
+    nameNode: NameNodeKind | undefined,
     project: Project,
     target: string
   ) => {
@@ -74,7 +112,7 @@ class InterfaceHandler {
 
   private static checkUnionTypeNode = (
     unionTypeNode: UnionTypeNode,
-    nameNode: NameNodeKind,
+    nameNode: NameNodeKind | undefined,
     project: Project,
     target: string
   ) => {
@@ -107,7 +145,8 @@ class InterfaceHandler {
     project: Project,
     target: string
   ) => {
-    const newInterface = typeLiterals.reduce((c: InterfaceDeclaration, literal) => TypeSimplifier.combineTypeLiterals(c, literal), interfaceDeclaration);
+    const newInterface = typeLiterals
+      .reduce((c: InterfaceDeclaration, literal) => TypeSimplifier.combineTypeLiterals(c, literal), interfaceDeclaration);
     newInterface.getMembers().forEach(member => {
       if (Node.isPropertySignature(member)) {
         this.createInterfaceFromObjectLiterals(member, project, target);

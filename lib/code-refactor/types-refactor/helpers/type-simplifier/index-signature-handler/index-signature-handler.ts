@@ -28,8 +28,7 @@ class IndexSignatureHandler {
         returnType: combinedTypes || member.getReturnType().getText(),
       });
     } if (leftIndex.getReturnType().getText() !== member.getReturnType().getText()) {
-      const newReturn = leftIndex.setReturnType(combinedTypes || leftIndex.getReturnType().getText()).getReturnType();
-      return leftIndex.setReturnType(newReturn.getText());
+      return TypeHandler.setReturnTypeFiltered(leftIndex, combinedTypes || leftIndex.getReturnType().getText());
     }
     return leftIndex;
   };
