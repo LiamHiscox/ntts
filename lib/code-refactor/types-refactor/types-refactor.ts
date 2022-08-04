@@ -185,15 +185,24 @@ class TypesRefactor {
     });
   }
 
-  static removeNullOrUndefinedTypes = (sourceFile: SourceFile, typeAlias: string) => {
+  static removeNullOrUndefinedTypes = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten() || Node.isTypeAliasDeclaration(descendant)) {
+      if (descendant.wasForgotten()) {
         return;
       }
-      if (Node.isTyped(descendant)) {
-        Cleanup.removeNullOrUndefinedType(descendant.getTypeNode(), typeAlias);
-      } else if (Node.isReturnTyped(descendant)) {
-        Cleanup.removeNullOrUndefinedType(descendant.getReturnTypeNode(), typeAlias);
+      if (
+        Node.isPropertyDeclaration(descendant)
+        || Node.isVariableDeclaration(descendant)
+      ) {
+        Cleanup.removeNullOrUndefinedType(descendant);
+      } else if (
+        Node.isFunctionDeclaration(descendant)
+        || Node.isArrowFunction(descendant)
+        || Node.isMethodDeclaration(descendant)
+        || Node.isFunctionExpression(descendant)
+        || Node.isGetAccessorDeclaration(descendant)
+      ) {
+        Cleanup.removeNullOrUndefinedReturnType(descendant);
       }
     });
   }
@@ -208,6 +217,7 @@ class TypesRefactor {
         || Node.isArrowFunction(descendant)
         || Node.isMethodDeclaration(descendant)
         || Node.isFunctionExpression(descendant)
+        || Node.isGetAccessorDeclaration(descendant)
       ) {
         FunctionReturnTypeInference.checkReturnType(descendant, project, target);
       }
@@ -216,13 +226,21 @@ class TypesRefactor {
 
   static removeUnnecessaryTypeNodes = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten() || Node.isTypeAliasDeclaration(descendant)) {
+      if (descendant.wasForgotten()) {
         return;
       }
-      if (Node.isTyped(descendant)) {
+      if (
+        Node.isPropertyDeclaration(descendant)
+        || Node.isVariableDeclaration(descendant)
+      ) {
         TypeDeclarationChecker.checkTypeNode(descendant);
       }
-      if (Node.isReturnTyped(descendant)) {
+      if (Node.isFunctionDeclaration(descendant)
+        || Node.isArrowFunction(descendant)
+        || Node.isMethodDeclaration(descendant)
+        || Node.isFunctionExpression(descendant)
+        || Node.isGetAccessorDeclaration(descendant)
+      ) {
         TypeDeclarationChecker.checkReturnTypeNode(descendant);
       }
     })

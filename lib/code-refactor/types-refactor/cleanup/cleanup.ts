@@ -2,8 +2,9 @@ import {
   Node,
   ParameterDeclaration,
   PropertySignature,
+  ReturnTypedNode,
   SyntaxKind,
-  TypeNode,
+  TypedNode,
   UnionTypeNode
 } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
@@ -34,20 +35,33 @@ class Cleanup {
     }
   }
 
-  static removeNullOrUndefinedType = (typeNode: TypeNode | undefined, typeAlias: string) => {
-    if (!typeNode) {
-      return;
-    }
-    if (Node.isUnionTypeNode(typeNode)) {
+  static removeNullOrUndefinedReturnType = (node: Node & ReturnTypedNode) => {
+    const typeNode = node.getReturnTypeNode();
+    if (typeNode && ['null', 'undefined'].includes(typeNode.getText())) {
+      node.removeReturnType();
+    } else if (Node.isUnionTypeNode(typeNode)) {
       const types = typeNode
         .getTypeNodes()
         .map((t) => t.getText())
         .filter(t => t !== 'null' && t !== 'undefined');
       if (types.length <= 0) {
-        typeNode.replaceWithText(typeAlias)
+        node.removeReturnType();
       }
-    } else if (typeNode.getText() === 'null' || typeNode.getText() === 'undefined') {
-      typeNode.replaceWithText(typeAlias);
+    }
+  }
+
+  static removeNullOrUndefinedType = (node: Node & TypedNode) => {
+    const typeNode = node.getTypeNode();
+    if (typeNode && ['null', 'undefined'].includes(typeNode.getText())) {
+      node.removeType();
+    } else if (Node.isUnionTypeNode(typeNode)) {
+      const types = typeNode
+        .getTypeNodes()
+        .map((t) => t.getText())
+        .filter(t => t !== 'null' && t !== 'undefined');
+      if (types.length <= 0) {
+        node.removeType();
+      }
     }
   }
 }

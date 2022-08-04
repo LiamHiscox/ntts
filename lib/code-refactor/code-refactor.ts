@@ -1,7 +1,7 @@
-import { Project } from 'ts-morph';
-import { Dirent, readdirSync } from 'fs';
-import ignore, { Ignore } from 'ignore';
-import { join } from 'path';
+import {Project} from 'ts-morph';
+import {Dirent, readdirSync} from 'fs';
+import ignore, {Ignore} from 'ignore';
+import {join} from 'path';
 import ImportsRefactor from './imports-refactor/imports-refactor';
 import ClassRefactor from './class-refactor/class-refactor';
 import ExportsRefactor from './exports-refactor/exports-refactor';
@@ -9,7 +9,7 @@ import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.mo
 import Logger from '../logger/logger';
 import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
 import TypesRefactor from './types-refactor/types-refactor';
-import { generateProgressBar } from './helpers/generate-progress-bar/generate-progress-bar';
+import {generateProgressBar} from './helpers/generate-progress-bar/generate-progress-bar';
 import {addTypeAlias, getTypeAliasType} from './types-refactor/interface-handler/interface-creator/interface-creator';
 
 class CodeRefactor {
@@ -31,11 +31,10 @@ class CodeRefactor {
     this.mergeInterfaces(project, target);
     this.filterUnionType(project);
     this.mergeInterfaces(project, target);
-    project.saveSync();
     this.removeUnnecessaryTypeNodes(project);
     this.refactorImportTypesAndGlobalVariables(project);
     this.simplifyOptionalNodes(project, target);
-    this.simplifyTypeNodes(project, target);
+    this.simplifyTypeNodes(project);
   };
 
   static addSourceFiles = (ignores: string[], path: string): Project => {
@@ -50,7 +49,7 @@ class CodeRefactor {
   };
 
   private static readDirectory = (project: Project, path: string, ig: Ignore): Project => {
-    readdirSync(path, { withFileTypes: true })
+    readdirSync(path, {withFileTypes: true})
       .forEach((item) => this.checkDirectoryEntry(project, item, path, ig));
     return project;
   };
@@ -223,13 +222,12 @@ class CodeRefactor {
     Logger.success('Removed undefined types');
   }
 
-  private static simplifyTypeNodes = (project: Project, target: string) => {
+  private static simplifyTypeNodes = (project: Project) => {
     Logger.info('Removing null or undefined types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
-    const typeAlias = getTypeAliasType(project, target);
     sourceFiles.forEach((s) => {
-      TypesRefactor.removeNullOrUndefinedTypes(s, typeAlias);
+      TypesRefactor.removeNullOrUndefinedTypes(s);
       bar.tick();
     });
     Logger.success('Removed null or undefined types');

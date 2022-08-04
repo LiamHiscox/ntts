@@ -61,3 +61,23 @@ test('should remove undefined from optional parameter', () => {
   TypesRefactor.removeUndefinedFromOptional(sourceFile, typeAlias);
   expect(sourceFile.getText()).toEqual('function f (p?: string) {};');
 });
+
+test('should remove null type', () => {
+  const sourceFile = project.createSourceFile(
+    'write-access.ts',
+    'let a: null;',
+    {overwrite: true},
+  );
+  TypesRefactor.removeNullOrUndefinedTypes(sourceFile);
+  expect(sourceFile.getText()).toEqual('let a;');
+});
+
+test('should remove nested null type', () => {
+  const sourceFile = project.createSourceFile(
+    'write-access.ts',
+    'let a: null | undefined;',
+    {overwrite: true},
+  );
+  TypesRefactor.removeNullOrUndefinedTypes(sourceFile);
+  expect(sourceFile.getText()).toEqual('let a;');
+});

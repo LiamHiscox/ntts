@@ -3,6 +3,7 @@ import {
   BindingName,
   FunctionDeclaration,
   FunctionExpression,
+  GetAccessorDeclaration,
   IndexSignatureDeclaration,
   InterfaceDeclaration,
   MethodDeclaration,
@@ -55,7 +56,7 @@ class InterfaceHandler {
   };
 
   static createInterfaceFromObjectLiteralsFunctionReturn = (
-    declaration: FunctionDeclaration | ArrowFunction | MethodDeclaration | FunctionExpression,
+    declaration: FunctionDeclaration | ArrowFunction | MethodDeclaration | FunctionExpression | GetAccessorDeclaration,
     project: Project,
     target: string
   ) => {
@@ -74,10 +75,13 @@ class InterfaceHandler {
     return !initializer || (!Node.isArrowFunction(initializer) && !Node.isFunctionExpression(initializer));
   }
 
-  private static getNameNode = (declaration: FunctionDeclaration | ArrowFunction | MethodDeclaration | FunctionExpression) => {
+  private static getNameNode = (
+    declaration: FunctionDeclaration | ArrowFunction | MethodDeclaration | FunctionExpression | GetAccessorDeclaration
+  ) => {
     if (
       Node.isFunctionDeclaration(declaration)
       || Node.isMethodDeclaration(declaration)
+      || Node.isGetAccessorDeclaration(declaration)
     ) {
       return declaration.getNameNode();
     }
