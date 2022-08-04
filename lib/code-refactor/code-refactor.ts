@@ -10,7 +10,7 @@ import Logger from '../logger/logger';
 import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
 import TypesRefactor from './types-refactor/types-refactor';
 import { generateProgressBar } from './helpers/generate-progress-bar/generate-progress-bar';
-import {addTypeAlias} from './types-refactor/interface-handler/interface-creator/interface-creator';
+import {addTypeAlias, getTypeAliasType} from './types-refactor/interface-handler/interface-creator/interface-creator';
 
 class CodeRefactor {
   static convertToTypescript = (project: Project, target: string, unknown: boolean) => {
@@ -31,6 +31,7 @@ class CodeRefactor {
     this.mergeInterfaces(project, target);
     this.filterUnionType(project);
     this.mergeInterfaces(project, target);
+    project.saveSync();
     this.removeUnnecessaryTypeNodes(project);
     this.refactorImportTypesAndGlobalVariables(project);
     this.simplifyOptionalNodes(project, target);
@@ -174,8 +175,9 @@ class CodeRefactor {
     Logger.info('Replacing undesirable types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
+    const typeAlias = getTypeAliasType(project, target);
     sourceFiles.forEach((s) => {
-      TypesRefactor.replaceInvalidTypes(s, project, target);
+      TypesRefactor.replaceInvalidTypes(s, typeAlias);
       bar.tick();
     });
     Logger.success('Replaced undesirable types');

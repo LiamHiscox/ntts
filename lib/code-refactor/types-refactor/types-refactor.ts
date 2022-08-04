@@ -55,21 +55,19 @@ class TypesRefactor {
     }
   };
 
-  static replaceInvalidTypes = (sourceFile: SourceFile, project: Project, target: string) => {
+  static replaceInvalidTypes = (sourceFile: SourceFile, typeAlias: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten()) {
+      if (descendant.wasForgotten() || Node.isTypeAliasDeclaration(descendant)) {
         return;
       }
-      if (Node.isIndexSignatureDeclaration(descendant)) {
-        return InvalidTypeReplacer.replaceReturnType(descendant, project, target);
-      }
       if (Node.isParameterDeclaration(descendant)) {
-        return InvalidTypeReplacer.replaceParameterType(descendant, project, target);
+        return InvalidTypeReplacer.replaceParameterType(descendant, typeAlias);
       }
-      if (Node.isVariableDeclaration(descendant)
-        || Node.isPropertyDeclaration(descendant)
-        || Node.isPropertySignature(descendant)) {
-        return InvalidTypeReplacer.replaceType(descendant, project, target);
+      if (Node.isReturnTyped(descendant)) {
+        return InvalidTypeReplacer.replaceReturnType(descendant, typeAlias);
+      }
+      if (Node.isTyped(descendant)) {
+        return InvalidTypeReplacer.replaceType(descendant, typeAlias);
       }
       return;
     });
@@ -189,7 +187,7 @@ class TypesRefactor {
 
   static removeNullOrUndefinedTypes = (sourceFile: SourceFile, project: Project, target: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten()) {
+      if (descendant.wasForgotten() || Node.isTypeAliasDeclaration(descendant)) {
         return;
       }
       if (Node.isTyped(descendant)) {
@@ -218,7 +216,7 @@ class TypesRefactor {
 
   static removeUnnecessaryTypeNodes = (sourceFile: SourceFile) => {
     sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten()) {
+      if (descendant.wasForgotten() || Node.isTypeAliasDeclaration(descendant)) {
         return;
       }
       if (Node.isTyped(descendant)) {

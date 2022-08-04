@@ -38,3 +38,14 @@ test('should remove type node from function return', () => {
   expect(sourceFile.getText())
     .toEqual('function fun (a: number) { return a; };');
 });
+
+test('should not remove type from type alias', () => {
+  const sourceFile = project.createSourceFile(
+    'simple-types.ts',
+    'type $FixMe = any;',
+    { overwrite: true },
+  );
+  TypesRefactor.removeUnnecessaryTypeNodes(sourceFile);
+  expect(sourceFile.getText())
+    .toEqual('type $FixMe = any;');
+});
