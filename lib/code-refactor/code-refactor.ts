@@ -215,8 +215,9 @@ class CodeRefactor {
     Logger.info('Removing undefined type from optional node');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
+    const typeAlias = getTypeAliasType(project, target);
     sourceFiles.forEach((s) => {
-      TypesRefactor.removeUndefinedFromOptional(s, project, target);
+      TypesRefactor.removeUndefinedFromOptional(s, typeAlias);
       bar.tick();
     });
     Logger.success('Removed undefined types');
@@ -226,8 +227,9 @@ class CodeRefactor {
     Logger.info('Removing null or undefined types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
+    const typeAlias = getTypeAliasType(project, target);
     sourceFiles.forEach((s) => {
-      TypesRefactor.removeNullOrUndefinedTypes(s, project, target);
+      TypesRefactor.removeNullOrUndefinedTypes(s, typeAlias);
       bar.tick();
     });
     Logger.success('Removed null or undefined types');

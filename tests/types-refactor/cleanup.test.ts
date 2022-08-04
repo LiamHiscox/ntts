@@ -2,6 +2,7 @@ import { Project } from 'ts-morph';
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 import fs, { existsSync } from "fs";
 import TypeHandler from "../../lib/code-refactor/types-refactor/type-handler/type-handler";
+import {getTypeAliasType} from "../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator";
 
 let project: Project;
 
@@ -56,6 +57,7 @@ test('should remove undefined from optional parameter', () => {
     'function f (p?: string | undefined) {};',
     {overwrite: true},
   );
-  TypesRefactor.removeUndefinedFromOptional(sourceFile, project, '');
+  const typeAlias = getTypeAliasType(project, '');
+  TypesRefactor.removeUndefinedFromOptional(sourceFile, typeAlias);
   expect(sourceFile.getText()).toEqual('function f (p?: string) {};');
 });

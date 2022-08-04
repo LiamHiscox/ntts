@@ -5,7 +5,7 @@ import WriteAccessTypeInference from './write-access-type-inference/write-access
 import ContextualTypeInference from './contextual-type-inference/contextual-type-inference';
 import InterfaceHandler from './interface-handler/interface-handler';
 import InterfaceUsageInference from './interface-usage-inference/interface-usage-inference';
-import { getInterfaces } from './interface-handler/interface-creator/interface-creator';
+import {getInterfaces} from './interface-handler/interface-creator/interface-creator';
 import InterfaceMerger from './interface-merger/interface-merger';
 import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
@@ -173,27 +173,27 @@ class TypesRefactor {
     });
   }
 
-  static removeUndefinedFromOptional = (sourceFile: SourceFile, project: Project, target: string) => {
+  static removeUndefinedFromOptional = (sourceFile: SourceFile, typeAlias: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
       }
       if (Node.isPropertySignature(descendant)
         || Node.isParameterDeclaration(descendant)) {
-        Cleanup.removeUndefinedFromOptional(descendant, project, target);
+        Cleanup.removeUndefinedFromOptional(descendant, typeAlias);
       }
     });
   }
 
-  static removeNullOrUndefinedTypes = (sourceFile: SourceFile, project: Project, target: string) => {
+  static removeNullOrUndefinedTypes = (sourceFile: SourceFile, typeAlias: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten() || Node.isTypeAliasDeclaration(descendant)) {
         return;
       }
       if (Node.isTyped(descendant)) {
-        Cleanup.removeNullOrUndefinedType(descendant.getTypeNode(), project, target);
+        Cleanup.removeNullOrUndefinedType(descendant.getTypeNode(), typeAlias);
       } else if (Node.isReturnTyped(descendant)) {
-        Cleanup.removeNullOrUndefinedType(descendant.getReturnTypeNode(), project, target);
+        Cleanup.removeNullOrUndefinedType(descendant.getReturnTypeNode(), typeAlias);
       }
     });
   }
