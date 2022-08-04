@@ -67,3 +67,13 @@ test('should combine function types of parameter by call expression', () => {
   TypesRefactor.inferContextualType(sourceFile, project, '');
   expect(sourceFile.getText()).toEqual('function b(a: (param1: string | number | boolean) => any){\na(12);\na("asd");\na(true);\n}');
 });
+
+test('should not set type of variable declaration', () => {
+  const sourceFile = project.createSourceFile(
+    'write-access.ts',
+    'const server;\na(server);',
+    { overwrite: true },
+  );
+  TypesRefactor.inferContextualType(sourceFile, project, '');
+  expect(sourceFile.getText()).toEqual('const server;\na(server);');
+});

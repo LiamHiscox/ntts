@@ -1,4 +1,5 @@
 import {
+  CallExpression,
   ElementAccessExpression, Node, PropertyAccessExpression, PropertyName, SyntaxKind,
 } from 'ts-morph';
 import { isAccessExpression } from '../combined-types/combined-types';
@@ -28,6 +29,17 @@ export const isAccessExpressionTarget = (expression: PropertyAccessExpression | 
     return expression.getArgumentExpression()?.getPos() === target.getPos();
   }
   return expression.getPos() === target.getPos();
+};
+
+export const isCallExpressionTarget = (expression: CallExpression, target: Node): boolean => {
+  const leftExpression = expression.getExpression();
+  if (Node.isPropertyAccessExpression(leftExpression)) {
+    return leftExpression.getNameNode().getPos() === target.getPos();
+  }
+  if (Node.isElementAccessExpression(leftExpression)) {
+    return leftExpression.getArgumentExpression()?.getPos() === target.getPos();
+  }
+  return leftExpression.getPos() === target.getPos();
 };
 
 export const isWriteAccess = (node: Node): boolean => {
