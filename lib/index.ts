@@ -50,7 +50,7 @@ const main = async (options: OptionsModel) => {
     const packageManager = DependencyInstaller.getPackageManager();
     !options.installation && await basicSetup(packageManager);
     const ignores = IgnoreConfigParser.getIgnores();
-    if (!options.lint || await lintProject(validTarget, ignores)) {
+    if (options.lint || await lintProject(validTarget, ignores)) {
       !options.config && addTsconfig(validTarget, ignores);
       !options.dependencies && await installDependencies(packageManager);
       !options.rename && renameFiles(validTarget, ignores);

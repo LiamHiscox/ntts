@@ -5,13 +5,15 @@ import WriteAccessTypeInference from './write-access-type-inference/write-access
 import ContextualTypeInference from './contextual-type-inference/contextual-type-inference';
 import InterfaceHandler from './interface-handler/interface-handler';
 import InterfaceUsageInference from './interface-usage-inference/interface-usage-inference';
-import { getInterfaces } from './interface-handler/interface-creator/interface-creator';
+import {getInterfaces} from './interface-handler/interface-creator/interface-creator';
 import InterfaceMerger from './interface-merger/interface-merger';
 import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
 import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
 import {generateProgressBar} from '../helpers/generate-progress-bar/generate-progress-bar';
-import Cleanup from "./cleanup/cleanup";
-import {getInnerExpression} from "../helpers/expression-handler/expression-handler";
+import Cleanup from './cleanup/cleanup';
+import {getInnerExpression} from '../helpers/expression-handler/expression-handler';
+import FunctionReturnTypeInference from './function-return-type-inference/function-return-type-inference';
+import TypeDeclarationChecker from "./type-declaration-checker/type-declaration-checker";
 
 class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project, target: string) => {
@@ -53,21 +55,19 @@ class TypesRefactor {
     }
   };
 
-  static replaceInvalidTypes = (sourceFile: SourceFile, project: Project, target: string) => {
+  static replaceInvalidTypes = (sourceFile: SourceFile, typeAlias: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
-      if (descendant.wasForgotten()) {
+      if (descendant.wasForgotten() || Node.isTypeAliasDeclaration(descendant)) {
         return;
       }
-      if (Node.isIndexSignatureDeclaration(descendant)) {
-        return InvalidTypeReplacer.replaceReturnType(descendant, project, target);
-      }
       if (Node.isParameterDeclaration(descendant)) {
-        return InvalidTypeReplacer.replaceParameterType(descendant, project, target);
+        return InvalidTypeReplacer.replaceParameterType(descendant, typeAlias);
       }
-      if (Node.isVariableDeclaration(descendant)
-        || Node.isPropertyDeclaration(descendant)
-        || Node.isPropertySignature(descendant)) {
-        return InvalidTypeReplacer.replaceType(descendant, project, target);
+      if (Node.isReturnTyped(descendant)) {
+        return InvalidTypeReplacer.replaceReturnType(descendant, typeAlias);
+      }
+      if (Node.isTyped(descendant)) {
+        return InvalidTypeReplacer.replaceType(descendant, typeAlias);
       }
       return;
     });
@@ -173,29 +173,81 @@ class TypesRefactor {
     });
   }
 
-  static removeUndefinedFromOptional = (sourceFile: SourceFile, project: Project, target: string) => {
+  static removeUndefinedFromOptional = (sourceFile: SourceFile, typeAlias: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
       }
       if (Node.isPropertySignature(descendant)
         || Node.isParameterDeclaration(descendant)) {
-        Cleanup.removeUndefinedFromOptional(descendant, project, target);
+        Cleanup.removeUndefinedFromOptional(descendant, typeAlias);
       }
     });
   }
 
-  static removeNullOrUndefinedTypes = (sourceFile: SourceFile, project: Project, target: string) => {
+  static removeNullOrUndefinedTypes = (sourceFile: SourceFile, typeAlias: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
       }
+      if (Node.isVariableDeclaration(descendant)) {
+        return Cleanup.removeNullOrUndefinedType(descendant);
+      }
+      if (
+        Node.isFunctionDeclaration(descendant)
+        || Node.isArrowFunction(descendant)
+        || Node.isMethodDeclaration(descendant)
+        || Node.isFunctionExpression(descendant)
+        || Node.isGetAccessorDeclaration(descendant)
+      ) {
+        return Cleanup.removeNullOrUndefinedReturnType(descendant);
+      }
+      if (Node.isReturnTyped(descendant)) {
+        return Cleanup.replaceNullOrUndefinedReturnType(descendant, typeAlias);
+      }
       if (Node.isTyped(descendant)) {
-        Cleanup.removeNullOrUndefinedType(descendant.getTypeNode(), project, target);
-      } else if (Node.isReturnTyped(descendant)) {
-        Cleanup.removeNullOrUndefinedType(descendant.getReturnTypeNode(), project, target);
+        return Cleanup.replaceNullOrUndefinedType(descendant, typeAlias);
       }
     });
+  }
+
+  static setFunctionReturnTypes = (sourceFile: SourceFile, project: Project, target: string) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (
+        Node.isFunctionDeclaration(descendant)
+        || Node.isArrowFunction(descendant)
+        || Node.isMethodDeclaration(descendant)
+        || Node.isFunctionExpression(descendant)
+        || Node.isGetAccessorDeclaration(descendant)
+      ) {
+        FunctionReturnTypeInference.checkReturnType(descendant, project, target);
+      }
+    });
+  }
+
+  static removeUnnecessaryTypeNodes = (sourceFile: SourceFile) => {
+    sourceFile.getDescendants().forEach((descendant) => {
+      if (descendant.wasForgotten()) {
+        return;
+      }
+      if (
+        Node.isPropertyDeclaration(descendant)
+        || Node.isVariableDeclaration(descendant)
+      ) {
+        TypeDeclarationChecker.checkTypeNode(descendant);
+      }
+      if (Node.isFunctionDeclaration(descendant)
+        || Node.isArrowFunction(descendant)
+        || Node.isMethodDeclaration(descendant)
+        || Node.isFunctionExpression(descendant)
+        || Node.isGetAccessorDeclaration(descendant)
+      ) {
+        TypeDeclarationChecker.checkReturnTypeNode(descendant);
+      }
+    })
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "ntts",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "A CLI tool for refactoring an existing NodeJs application to a fully functional TypeScript application.",
   "main": "bin/cli.js",
   "types": "bin/cli.d.ts",
@@ -15,7 +15,9 @@
     "TS-Morph",
     "TS",
     "JS",
-    "TSC"
+    "TSC",
+    "Converter",
+    "Convert"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -53,7 +55,7 @@
     "@types/jest": "^28.1.6",
     "@types/node": "~16.11.47",
     "@types/progress": "^2.0.5",
-    "@types/yargs": "^17.0.10",
+    "@types/yargs": "^17.0.11",
     "fs-extra": "^10.1.0",
     "globby": "^11.1.0",
     "jest": "^28.1.3",

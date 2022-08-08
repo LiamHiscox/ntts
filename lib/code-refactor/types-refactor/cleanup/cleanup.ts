@@ -1,13 +1,14 @@
 import {
   Node,
-  ParameterDeclaration, Project,
+  ParameterDeclaration,
   PropertySignature,
+  ReturnTypedNode,
   SyntaxKind,
+  TypedNode,
   TypeNode,
   UnionTypeNode
 } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
-import { getTypeAliasType } from '../interface-handler/interface-creator/interface-creator';
 
 class Cleanup {
   static filterUnionType = (unionType: UnionTypeNode) => {
@@ -23,7 +24,7 @@ class Cleanup {
     }
   }
 
-  static removeUndefinedFromOptional = (declaration: PropertySignature | ParameterDeclaration, project: Project, target: string) => {
+  static removeUndefinedFromOptional = (declaration: PropertySignature | ParameterDeclaration, typeAlias: string) => {
     const typeNode = declaration.getTypeNode();
     if (Node.isUnionTypeNode(typeNode) && declaration.hasQuestionToken()) {
       const filtered = typeNode
@@ -31,25 +32,46 @@ class Cleanup {
         .map(n => n.getText())
         .filter(n => n !== 'undefined')
         .join(' | ');
-      TypeHandler.setSimpleType(declaration, filtered || getTypeAliasType(project, target));
+      TypeHandler.setSimpleType(declaration, filtered || typeAlias);
     }
   }
 
-  static removeNullOrUndefinedType = (typeNode: TypeNode | undefined, project: Project, target: string) => {
-    if (!typeNode) {
-      return;
+  static replaceNullOrUndefinedReturnType = (node: Node & ReturnTypedNode, typeAlias: string) => {
+    if (this.checkTypeNode(node.getReturnTypeNode())) {
+      TypeHandler.setReturnTypeFiltered(node, typeAlias);
+    }
+  }
+
+  static replaceNullOrUndefinedType = (node: Node & TypedNode, typeAlias: string) => {
+    if (this.checkTypeNode(node.getTypeNode())) {
+      TypeHandler.setSimpleType(node, typeAlias);
+    }
+  }
+
+  static removeNullOrUndefinedReturnType = (node: Node & ReturnTypedNode) => {
+    if (this.checkTypeNode(node.getReturnTypeNode())) {
+      node.removeReturnType();
+    }
+  }
+
+  static removeNullOrUndefinedType = (node: Node & TypedNode) => {
+    if (this.checkTypeNode(node.getTypeNode())) {
+      node.removeType();
+    }
+  }
+
+  private static checkTypeNode = (typeNode?: TypeNode) => {
+    if (typeNode && ['null', 'undefined'].includes(typeNode.getText())) {
+      return true;
     }
     if (Node.isUnionTypeNode(typeNode)) {
       const types = typeNode
         .getTypeNodes()
         .map((t) => t.getText())
         .filter(t => t !== 'null' && t !== 'undefined');
-      if (types.length <= 0) {
-        typeNode.replaceWithText(getTypeAliasType(project, target))
-      }
-    } else if (typeNode.getText() === 'null' || typeNode.getText() === 'undefined') {
-      typeNode.replaceWithText(getTypeAliasType(project, target));
+      return types.length <= 0;
     }
+    return false;
   }
 }
 

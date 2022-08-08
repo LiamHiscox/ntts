@@ -1,4 +1,5 @@
 import {
+  ArrowFunction,
   Node,
   ParameterDeclaration,
   PropertyDeclaration,
@@ -50,6 +51,13 @@ class TypeHandler {
     return node.getType().getBaseTypeOfLiteralType();
   };
 
+  static setReturnType = <T extends Node & ReturnTypedNode>(node: T, type: Type): T => {
+    if (Node.isArrowFunction(node)) {
+      this.addParentheses(node);
+    }
+    return node.setReturnType(type.getBaseTypeOfLiteralType().getText());
+  };
+
   static getTypeNode = (node: TypedNode & Node): TypeNode => {
     const typeNode = node.getTypeNode();
     if (!typeNode) {
@@ -63,12 +71,15 @@ class TypeHandler {
     const typeNode = node.getReturnTypeNode();
     if (!typeNode) {
       const type = node.getReturnType().getBaseTypeOfLiteralType();
-      return this.getNonParenthesizedTypeNode(node.setReturnType(type.getText()).getReturnTypeNodeOrThrow());
+      return this.getNonParenthesizedTypeNode(this.setReturnType(node, type).getReturnTypeNodeOrThrow());
     }
     return this.getNonParenthesizedTypeNode(typeNode);
   };
 
   static setReturnTypeFiltered = <T extends Node & ReturnTypedNode>(node: T, type: string): T => {
+    if (Node.isArrowFunction(node)) {
+      this.addParentheses(node);
+    }
     const returnType = node.setReturnType(type).getReturnType();
     return node.setReturnType(returnType.getText());
   };
@@ -105,6 +116,18 @@ class TypeHandler {
     }
     return typeNode;
   };
+
+  private static addParentheses = (arrowFunction: ArrowFunction) => {
+    if (arrowFunction.getParameters().length === 1) {
+      const [parameter] = arrowFunction.getParameters();
+      const typeNode = parameter.getTypeNode();
+      if (!typeNode) {
+        this.setType(parameter, this.getType(parameter));
+        parameter.removeType();
+      }
+    }
+
+  }
 
   private static setBindingNameType = <T extends (VariableDeclaration | ParameterDeclaration | PropertyDeclaration)>(
     declaration: T,

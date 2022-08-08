@@ -1,6 +1,6 @@
 import { Project, SyntaxKind } from 'ts-morph';
 import ParameterTypeInference from '../../lib/code-refactor/types-refactor/parameter-type-inference/parameter-type-inference';
-import fs, {existsSync} from "fs";
+import * as fs from "fs";
 import {getInterfaces} from "../../lib/code-refactor/types-refactor/interface-handler/interface-creator/interface-creator";
 import flatten from "./helpers";
 import TypeHandler from "../../lib/code-refactor/types-refactor/type-handler/type-handler";
@@ -15,10 +15,22 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  if (existsSync('ntts-generated-models.ts')) {
+  if (fs.existsSync('ntts-generated-models.ts')) {
     fs.unlinkSync('ntts-generated-models.ts');
   }
 })
+
+test('should set type of function parameter by usage without parentheses', () => {
+  const sourceFile = project.createSourceFile(
+    'simple-types.ts',
+    'const fun = param1 => param1;\nfun(12);',
+    { overwrite: true },
+  );
+  const functionDeclaration = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.VariableDeclaration);
+  ParameterTypeInference.inferFunctionAssignmentParameterTypes(functionDeclaration, project, '');
+  expect(sourceFile.getText())
+    .toEqual('const fun = (param1: number) => param1;\nfun(12);');
+});
 
 test('should set type of function parameters by usage', () => {
   const sourceFile = project.createSourceFile(

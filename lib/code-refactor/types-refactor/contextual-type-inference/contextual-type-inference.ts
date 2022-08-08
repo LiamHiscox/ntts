@@ -9,7 +9,7 @@ import {
 } from 'ts-morph';
 import {
   getExpressionParent,
-  isAccessExpressionTarget,
+  isAccessExpressionTarget, isCallExpressionTarget,
   isWriteAccess,
 } from '../../helpers/expression-handler/expression-handler';
 import { findReferences } from '../../helpers/reference-finder/reference-finder';
@@ -60,7 +60,10 @@ class ContextualTypeInference {
         return type.getText();
       }
       const parent = innerExpression.getParent();
-      if (Node.isCallExpression(parent)) {
+      if (Node.isCallExpression(parent)
+        && isAccessExpression(innerExpression)
+        && isCallExpressionTarget(parent, node)
+      ) {
         const parameters = parent.getArguments()
             .map((argument, index) => `param${index+1}: ${TypeHandler.getType(argument).getText()}`)
             .join(', ');

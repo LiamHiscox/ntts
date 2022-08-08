@@ -6,7 +6,7 @@ import {
 import TypesRefactor from '../../lib/code-refactor/types-refactor/types-refactor';
 import TypeHandler from '../../lib/code-refactor/types-refactor/type-handler/type-handler';
 import flatten from './helpers';
-import fs, {existsSync} from "fs";
+import * as fs from 'fs';
 
 let project: Project;
 
@@ -18,7 +18,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  if (existsSync('ntts-generated-models.ts')) {
+  if (fs.existsSync('ntts-generated-models.ts')) {
     fs.unlinkSync('ntts-generated-models.ts');
   }
 })

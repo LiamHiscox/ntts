@@ -1,7 +1,7 @@
-import { Project } from 'ts-morph';
-import { Dirent, readdirSync } from 'fs';
-import ignore, { Ignore } from 'ignore';
-import { join } from 'path';
+import {Project} from 'ts-morph';
+import {Dirent, readdirSync} from 'fs';
+import ignore, {Ignore} from 'ignore';
+import {join} from 'path';
 import ImportsRefactor from './imports-refactor/imports-refactor';
 import ClassRefactor from './class-refactor/class-refactor';
 import ExportsRefactor from './exports-refactor/exports-refactor';
@@ -9,15 +9,16 @@ import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.mo
 import Logger from '../logger/logger';
 import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
 import TypesRefactor from './types-refactor/types-refactor';
-import { generateProgressBar } from './helpers/generate-progress-bar/generate-progress-bar';
-import {addTypeAlias} from './types-refactor/interface-handler/interface-creator/interface-creator';
+import {generateProgressBar} from './helpers/generate-progress-bar/generate-progress-bar';
+import {addTypeAlias, getTypeAliasType} from './types-refactor/interface-handler/interface-creator/interface-creator';
 
 class CodeRefactor {
   static convertToTypescript = (project: Project, target: string, unknown: boolean) => {
     this.refactorExports(project);
     this.refactorImports(project);
     this.refactorClasses(project);
-    this.addNamedType(project, target, unknown);
+    this.addTypeAlias(project, target, unknown);
+    this.setFunctionReturnTypes(project, target);
     this.generateInterfaces(project, target);
     this.inferParameterTypes(project, target);
     this.inferFunctionTypeParameterTypes(project, target);
@@ -30,6 +31,7 @@ class CodeRefactor {
     this.mergeInterfaces(project, target);
     this.filterUnionType(project);
     this.mergeInterfaces(project, target);
+    this.removeUnnecessaryTypeNodes(project);
     this.refactorImportTypesAndGlobalVariables(project);
     this.simplifyOptionalNodes(project, target);
     this.simplifyTypeNodes(project, target);
@@ -47,7 +49,7 @@ class CodeRefactor {
   };
 
   private static readDirectory = (project: Project, path: string, ig: Ignore): Project => {
-    readdirSync(path, { withFileTypes: true })
+    readdirSync(path, {withFileTypes: true})
       .forEach((item) => this.checkDirectoryEntry(project, item, path, ig));
     return project;
   };
@@ -172,8 +174,9 @@ class CodeRefactor {
     Logger.info('Replacing undesirable types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
+    const typeAlias = getTypeAliasType(project, target);
     sourceFiles.forEach((s) => {
-      TypesRefactor.replaceInvalidTypes(s, project, target);
+      TypesRefactor.replaceInvalidTypes(s, typeAlias);
       bar.tick();
     });
     Logger.success('Replaced undesirable types');
@@ -211,8 +214,9 @@ class CodeRefactor {
     Logger.info('Removing undefined type from optional node');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
+    const typeAlias = getTypeAliasType(project, target);
     sourceFiles.forEach((s) => {
-      TypesRefactor.removeUndefinedFromOptional(s, project, target);
+      TypesRefactor.removeUndefinedFromOptional(s, typeAlias);
       bar.tick();
     });
     Logger.success('Removed undefined types');
@@ -222,15 +226,40 @@ class CodeRefactor {
     Logger.info('Removing null or undefined types');
     const sourceFiles = project.getSourceFiles();
     const bar = generateProgressBar(sourceFiles.length);
+    const typeAlias = getTypeAliasType(project, target);
     sourceFiles.forEach((s) => {
-      TypesRefactor.removeNullOrUndefinedTypes(s, project, target);
+      TypesRefactor.removeNullOrUndefinedTypes(s, typeAlias);
       bar.tick();
     });
     Logger.success('Removed null or undefined types');
   }
 
-  private static addNamedType = (project: Project, target: string, unknown: boolean) => {
+  private static addTypeAlias = (project: Project, target: string, unknown: boolean) => {
+    Logger.info(`Adding type alias of type ${unknown ? 'unknown' : 'any'}`);
     addTypeAlias(project, target, unknown);
+    Logger.success('Added type alias');
+  }
+
+  private static setFunctionReturnTypes = (project: Project, target: string) => {
+    Logger.info('Replacing object types of function returns with interfaces');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.setFunctionReturnTypes(s, project, target);
+      bar.tick();
+    });
+    Logger.success('Replaced object types of function returns with interfaces');
+  }
+
+  private static removeUnnecessaryTypeNodes = (project: Project) => {
+    Logger.info('Removing unnecessary type nodes');
+    const sourceFiles = project.getSourceFiles();
+    const bar = generateProgressBar(sourceFiles.length);
+    sourceFiles.forEach((s) => {
+      TypesRefactor.removeUnnecessaryTypeNodes(s);
+      bar.tick();
+    });
+    Logger.success('Removed unnecessary type nodes');
   }
 }
 

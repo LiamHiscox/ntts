@@ -24,18 +24,17 @@ class WriteAccessTypeInference {
     const nameNode = declaration.getNameNode();
     const isConstant = this.isConstantDeclaration(declaration);
     if (!isConstant && !Node.isObjectBindingPattern(nameNode) && !Node.isArrayBindingPattern(nameNode)) {
+      const initialType = TypeHandler.getType(declaration).getText();
       const newTypes = this.checkReferenceSymbols(declaration);
       const combined = TypeHandler.combineTypeWithList(TypeHandler.getType(declaration), ...newTypes);
       const newDeclaration = TypeHandler.setTypeFiltered(declaration, combined);
       this.simplifyTypeNode(newDeclaration);
-      if (TypeChecker.isNullOrUndefined(TypeHandler.getType(newDeclaration))) {
+      const newType = TypeHandler.getType(newDeclaration).getText();
+      if (TypeChecker.isNullOrUndefined(TypeHandler.getType(newDeclaration)) || initialType === newType) {
         newDeclaration.removeType();
       } else {
         InterfaceHandler.createInterfaceFromObjectLiterals(newDeclaration, project, target);
       }
-    } else {
-      this.simplifyTypeNode(declaration);
-      InterfaceHandler.createInterfaceFromObjectLiterals(declaration, project, target);
     }
   };
 
