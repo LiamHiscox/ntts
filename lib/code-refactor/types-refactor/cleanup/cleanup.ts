@@ -48,18 +48,6 @@ class Cleanup {
     }
   }
 
-  static removeNullOrUndefinedReturnType = (node: Node & ReturnTypedNode) => {
-    if (this.checkTypeNode(node.getReturnTypeNode())) {
-      node.removeReturnType();
-    }
-  }
-
-  static removeNullOrUndefinedType = (node: Node & TypedNode) => {
-    if (this.checkTypeNode(node.getTypeNode())) {
-      node.removeType();
-    }
-  }
-
   private static checkTypeNode = (typeNode?: TypeNode) => {
     if (typeNode && ['null', 'undefined'].includes(typeNode.getText())) {
       return true;

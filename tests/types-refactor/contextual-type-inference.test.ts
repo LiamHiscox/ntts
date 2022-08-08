@@ -77,3 +77,14 @@ test('should not set type of variable declaration', () => {
   TypesRefactor.inferContextualType(sourceFile, project, '');
   expect(sourceFile.getText()).toEqual('const server;\na(server);');
 });
+
+test('should set type of variable as optional from write access and contextual type', () => {
+  const sourceFile = project.createSourceFile(
+    'write-access.ts',
+    'import path from "path";\nlet c = null;\npath.join(c);',
+    { overwrite: true },
+  );
+  TypesRefactor.inferWriteAccessType(sourceFile, project, '');
+  TypesRefactor.inferContextualType(sourceFile, project, '');
+  expect(sourceFile.getText()).toEqual('import path from "path";\nlet c: string | null = null;\npath.join(c);');
+});

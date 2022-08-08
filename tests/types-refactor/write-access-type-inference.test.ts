@@ -19,6 +19,17 @@ afterEach(() => {
   }
 })
 
+test('should not set initial type if type is already set', () => {
+  const sourceFile = project.createSourceFile(
+    'write-access.ts',
+    'interface A {};\nconst a: A = {};',
+    { overwrite: true },
+  );
+  TypesRefactor.inferWriteAccessType(sourceFile, project, '');
+  expect(sourceFile.getText())
+      .toEqual(`interface A {};\nconst a: A = {};`);
+});
+
 test('should set type of mutable variable according to write access', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'let a = "asd";\na = 12;', { overwrite: true });
   TypesRefactor.inferWriteAccessType(sourceFile, project, '');
