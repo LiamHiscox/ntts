@@ -1,4 +1,4 @@
-import { Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
+import {Node, Project, SourceFile, SyntaxKind} from 'ts-morph';
 import InitialTypeHandler from './initial-type-handler/initial-type-handler';
 import ParameterTypeInference from './parameter-type-inference/parameter-type-inference';
 import WriteAccessTypeInference from './write-access-type-inference/write-access-type-inference';
@@ -21,10 +21,12 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return undefined;
       }
-      if (
-        Node.isVariableDeclaration(descendant)
-        || Node.isPropertyDeclaration(descendant)
-        || Node.isParameterDeclaration(descendant)
+      if ((
+          Node.isVariableDeclaration(descendant)
+          || Node.isPropertyDeclaration(descendant)
+          || Node.isParameterDeclaration(descendant)
+        )
+        && Node.isCallExpression(descendant.getInitializer())
       ) {
         return InterfaceHandler.createInterfaceFromObjectLiterals(descendant, project, target);
       }
