@@ -185,24 +185,28 @@ class TypesRefactor {
     });
   }
 
-  static removeNullOrUndefinedTypes = (sourceFile: SourceFile) => {
+  static removeNullOrUndefinedTypes = (sourceFile: SourceFile, typeAlias: string) => {
     sourceFile.getDescendants().forEach((descendant) => {
       if (descendant.wasForgotten()) {
         return;
       }
+      if (Node.isVariableDeclaration(descendant)) {
+        return Cleanup.removeNullOrUndefinedType(descendant);
+      }
       if (
-        Node.isPropertyDeclaration(descendant)
-        || Node.isVariableDeclaration(descendant)
-      ) {
-        Cleanup.removeNullOrUndefinedType(descendant);
-      } else if (
         Node.isFunctionDeclaration(descendant)
         || Node.isArrowFunction(descendant)
         || Node.isMethodDeclaration(descendant)
         || Node.isFunctionExpression(descendant)
         || Node.isGetAccessorDeclaration(descendant)
       ) {
-        Cleanup.removeNullOrUndefinedReturnType(descendant);
+        return Cleanup.removeNullOrUndefinedReturnType(descendant);
+      }
+      if (Node.isReturnTyped(descendant)) {
+        return Cleanup.replaceNullOrUndefinedReturnType(descendant, typeAlias);
+      }
+      if (Node.isTyped(descendant)) {
+        return Cleanup.replaceNullOrUndefinedType(descendant, typeAlias);
       }
     });
   }

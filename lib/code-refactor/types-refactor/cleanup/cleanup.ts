@@ -5,6 +5,7 @@ import {
   ReturnTypedNode,
   SyntaxKind,
   TypedNode,
+  TypeNode,
   UnionTypeNode
 } from 'ts-morph';
 import TypeHandler from '../type-handler/type-handler';
@@ -35,34 +36,42 @@ class Cleanup {
     }
   }
 
+  static replaceNullOrUndefinedReturnType = (node: Node & ReturnTypedNode, typeAlias: string) => {
+    if (this.checkTypeNode(node.getReturnTypeNode())) {
+      TypeHandler.setReturnTypeFiltered(node, typeAlias);
+    }
+  }
+
+  static replaceNullOrUndefinedType = (node: Node & TypedNode, typeAlias: string) => {
+    if (this.checkTypeNode(node.getTypeNode())) {
+      TypeHandler.setSimpleType(node, typeAlias);
+    }
+  }
+
   static removeNullOrUndefinedReturnType = (node: Node & ReturnTypedNode) => {
-    const typeNode = node.getReturnTypeNode();
-    if (typeNode && ['null', 'undefined'].includes(typeNode.getText())) {
+    if (this.checkTypeNode(node.getReturnTypeNode())) {
       node.removeReturnType();
-    } else if (Node.isUnionTypeNode(typeNode)) {
-      const types = typeNode
-        .getTypeNodes()
-        .map((t) => t.getText())
-        .filter(t => t !== 'null' && t !== 'undefined');
-      if (types.length <= 0) {
-        node.removeReturnType();
-      }
     }
   }
 
   static removeNullOrUndefinedType = (node: Node & TypedNode) => {
-    const typeNode = node.getTypeNode();
-    if (typeNode && ['null', 'undefined'].includes(typeNode.getText())) {
+    if (this.checkTypeNode(node.getTypeNode())) {
       node.removeType();
-    } else if (Node.isUnionTypeNode(typeNode)) {
+    }
+  }
+
+  private static checkTypeNode = (typeNode?: TypeNode) => {
+    if (typeNode && ['null', 'undefined'].includes(typeNode.getText())) {
+      return true;
+    }
+    if (Node.isUnionTypeNode(typeNode)) {
       const types = typeNode
         .getTypeNodes()
         .map((t) => t.getText())
         .filter(t => t !== 'null' && t !== 'undefined');
-      if (types.length <= 0) {
-        node.removeType();
-      }
+      return types.length <= 0;
     }
+    return false;
   }
 }
 

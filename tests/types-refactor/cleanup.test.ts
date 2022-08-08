@@ -68,7 +68,8 @@ test('should remove null type', () => {
     'let a: null;',
     {overwrite: true},
   );
-  TypesRefactor.removeNullOrUndefinedTypes(sourceFile);
+  const typeAlias = getTypeAliasType(project, '');
+  TypesRefactor.removeNullOrUndefinedTypes(sourceFile, typeAlias);
   expect(sourceFile.getText()).toEqual('let a;');
 });
 
@@ -78,6 +79,7 @@ test('should remove nested null type', () => {
     'let a: null | undefined;',
     {overwrite: true},
   );
-  TypesRefactor.removeNullOrUndefinedTypes(sourceFile);
+  const typeAlias = getTypeAliasType(project, '');
+  TypesRefactor.removeNullOrUndefinedTypes(sourceFile, typeAlias);
   expect(sourceFile.getText()).toEqual('let a;');
 });

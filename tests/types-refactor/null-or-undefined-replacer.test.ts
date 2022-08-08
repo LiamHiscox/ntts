@@ -21,21 +21,29 @@ afterEach(() => {
 
 test('should replace simple null and undefined types', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: null, b: undefined);', { overwrite: true });
-  TypesRefactor.removeNullOrUndefinedTypes(sourceFile);
   const typeAlias = getTypeAliasType(project, '');
+  TypesRefactor.removeNullOrUndefinedTypes(sourceFile, typeAlias);
   expect(sourceFile.getText()).toEqual(`function fun (a: ${typeAlias}, b: ${typeAlias});`);
 });
 
 test('should replace union types', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: null | undefined, b: undefined | null);', { overwrite: true });
-  TypesRefactor.removeNullOrUndefinedTypes(sourceFile);
   const typeAlias = getTypeAliasType(project, '');
+  TypesRefactor.removeNullOrUndefinedTypes(sourceFile, typeAlias);
   expect(sourceFile.getText()).toEqual(`function fun (a: ${typeAlias}, b: ${typeAlias});`);
+});
+
+test('should replace union type in variable declaration', () => {
+  const sourceFile = project.createSourceFile('write-access.ts', 'let a: null | undefined;', { overwrite: true });
+  const typeAlias = getTypeAliasType(project, '');
+  TypesRefactor.removeNullOrUndefinedTypes(sourceFile, typeAlias);
+  expect(sourceFile.getText()).toEqual('let a;');
 });
 
 test('should not replace union types', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'function fun (a: null | string, b: undefined | number);', { overwrite: true });
-  TypesRefactor.removeNullOrUndefinedTypes(sourceFile);
+  const typeAlias = getTypeAliasType(project, '');
+  TypesRefactor.removeNullOrUndefinedTypes(sourceFile, typeAlias);
   expect(sourceFile.getText()).toEqual('function fun (a: null | string, b: undefined | number);');
 });
 
