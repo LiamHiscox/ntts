@@ -26,7 +26,7 @@ class TypesRefactor {
           || Node.isPropertyDeclaration(descendant)
           || Node.isParameterDeclaration(descendant)
         )
-        && Node.isCallExpression(descendant.getInitializer())
+        && !Node.isCallExpression(descendant.getInitializer())
       ) {
         return InterfaceHandler.createInterfaceFromObjectLiterals(descendant, project, target);
       }
