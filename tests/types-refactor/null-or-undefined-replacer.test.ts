@@ -37,7 +37,7 @@ test('should replace union type in variable declaration', () => {
   const sourceFile = project.createSourceFile('write-access.ts', 'let a: null | undefined;', { overwrite: true });
   const typeAlias = getTypeAliasType(project, '');
   TypesRefactor.removeNullOrUndefinedTypes(sourceFile, typeAlias);
-  expect(sourceFile.getText()).toEqual('let a;');
+  expect(sourceFile.getText()).toEqual(`let a: ${typeAlias};`);
 });
 
 test('should not replace union types', () => {

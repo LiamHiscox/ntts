@@ -28,7 +28,7 @@ type NameNodeKind = PropertyName | BindingName;
 class InterfaceHandler {
   static createInterfaceFromObjectLiterals = (declaration: DeclarationKind, project: Project, target: string) => {
     const initializer = declaration.getInitializer();
-    if (initializer && (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer))) {
+    if (Node.isArrowFunction(initializer) || Node.isFunctionExpression(initializer)) {
       return;
     }
     const initialTypeNode = declaration.getTypeNode();
@@ -62,6 +62,9 @@ class InterfaceHandler {
   ) => {
     const typeNode = TypeHandler.getReturnTypeNode(declaration);
     const nameNode = this.getNameNode(declaration);
+    if (!nameNode) {
+      return;
+    }
     const typeLiteral = InterfaceFinder.getFirstTypeLiteral(typeNode);
     if (typeLiteral) {
       this.checkTypeLiteral(typeLiteral, nameNode, project, target);

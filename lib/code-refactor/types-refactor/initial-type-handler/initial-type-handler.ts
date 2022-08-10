@@ -4,10 +4,11 @@ import TypeChecker from '../helpers/type-checker/type-checker';
 
 class InitialTypeHandler {
   static setInitialType = (declaration: VariableDeclaration | PropertyDeclaration) => {
+    const typeNode = declaration.getTypeNode();
     const initializer = declaration.getInitializer();
     const initializerType = initializer && TypeHandler.getType(initializer);
     const currentType = TypeHandler.getType(declaration);
-    if (initializerType && !TypeChecker.isAnyOrUnknown(initializerType) && initializerType.getText() !== currentType.getText()) {
+    if (!typeNode && initializerType && !TypeChecker.isAnyOrUnknown(initializerType) && initializerType.getText() !== currentType.getText()) {
       const combined = TypeHandler.combineTypes(TypeHandler.getType(declaration), initializerType);
       TypeHandler.setTypeFiltered(declaration, combined);
     }

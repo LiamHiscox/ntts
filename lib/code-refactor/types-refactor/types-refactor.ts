@@ -1,4 +1,4 @@
-import { Node, Project, SourceFile, SyntaxKind } from 'ts-morph';
+import {Node, Project, SourceFile, SyntaxKind} from 'ts-morph';
 import InitialTypeHandler from './initial-type-handler/initial-type-handler';
 import ParameterTypeInference from './parameter-type-inference/parameter-type-inference';
 import WriteAccessTypeInference from './write-access-type-inference/write-access-type-inference';
@@ -21,9 +21,13 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return undefined;
       }
-      if (Node.isVariableDeclaration(descendant)
-        || Node.isPropertyDeclaration(descendant)
-        || Node.isParameterDeclaration(descendant)) {
+      if ((
+          Node.isVariableDeclaration(descendant)
+          || Node.isPropertyDeclaration(descendant)
+          || Node.isParameterDeclaration(descendant)
+        )
+        && !Node.isCallExpression(descendant.getInitializer())
+      ) {
         return InterfaceHandler.createInterfaceFromObjectLiterals(descendant, project, target);
       }
       return undefined;
@@ -78,10 +82,12 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return undefined;
       }
-      if (Node.isVariableDeclaration(descendant)
+      if (
+        Node.isVariableDeclaration(descendant)
         || Node.isPropertyDeclaration(descendant)
         || Node.isParameterDeclaration(descendant)
-        || Node.isPropertySignature(descendant)) {
+        || Node.isPropertySignature(descendant)
+      ) {
         return ContextualTypeInference.inferTypeByContextualType(descendant, project, target);
       }
       return undefined;
@@ -93,8 +99,10 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return undefined;
       }
-      if (Node.isVariableDeclaration(descendant)
-        || Node.isPropertyDeclaration(descendant)) {
+      if (
+        Node.isVariableDeclaration(descendant)
+        || Node.isPropertyDeclaration(descendant)
+      ) {
         InitialTypeHandler.setInitialType(descendant);
         return WriteAccessTypeInference.inferTypeByWriteAccess(descendant, project, target);
       }
@@ -110,13 +118,17 @@ class TypesRefactor {
       if (Node.isSetAccessorDeclaration(descendant)) {
         return ParameterTypeInference.inferSetAccessorParameterTypes(descendant, project, target);
       }
-      if (Node.isPropertyAssignment(descendant)
+      if (
+        Node.isPropertyAssignment(descendant)
         || Node.isVariableDeclaration(descendant)
-        || Node.isPropertyDeclaration(descendant)) {
+        || Node.isPropertyDeclaration(descendant)
+      ) {
         return ParameterTypeInference.inferFunctionAssignmentParameterTypes(descendant, project, target);
       }
-      if (Node.isFunctionDeclaration(descendant)
-        || Node.isMethodDeclaration(descendant)) {
+      if (
+        Node.isFunctionDeclaration(descendant)
+        || Node.isMethodDeclaration(descendant)
+      ) {
         return ParameterTypeInference.inferFunctionDeclarationParameterTypes(descendant, project, target);
       }
       if (Node.isConstructorDeclaration(descendant)) {
@@ -190,18 +202,6 @@ class TypesRefactor {
       if (descendant.wasForgotten()) {
         return;
       }
-      if (Node.isVariableDeclaration(descendant)) {
-        return Cleanup.removeNullOrUndefinedType(descendant);
-      }
-      if (
-        Node.isFunctionDeclaration(descendant)
-        || Node.isArrowFunction(descendant)
-        || Node.isMethodDeclaration(descendant)
-        || Node.isFunctionExpression(descendant)
-        || Node.isGetAccessorDeclaration(descendant)
-      ) {
-        return Cleanup.removeNullOrUndefinedReturnType(descendant);
-      }
       if (Node.isReturnTyped(descendant)) {
         return Cleanup.replaceNullOrUndefinedReturnType(descendant, typeAlias);
       }
@@ -239,7 +239,8 @@ class TypesRefactor {
       ) {
         TypeDeclarationChecker.checkTypeNode(descendant);
       }
-      if (Node.isFunctionDeclaration(descendant)
+      if (
+        Node.isFunctionDeclaration(descendant)
         || Node.isArrowFunction(descendant)
         || Node.isMethodDeclaration(descendant)
         || Node.isFunctionExpression(descendant)

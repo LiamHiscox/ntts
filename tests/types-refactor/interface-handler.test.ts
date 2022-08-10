@@ -23,6 +23,24 @@ afterEach(() => {
   }
 })
 
+test('should create interface and set type of variable with simple object assignment', () => {
+  const sourceFile = project.createSourceFile(
+    'write-access.ts',
+    'const a = {};',
+    { overwrite: true },
+  );
+  TypesRefactor.createInterfacesFromObjectTypes(sourceFile, project, '');
+  expect(sourceFile.getDescendantsOfKind(SyntaxKind.ImportType).length).toEqual(1);
+  const generatedFile = getSourceFile(project, '');
+  const A = generatedFile.getInterface((i) => i.getName() === 'A');
+  expect(A).not.toBeUndefined();
+  if (A) {
+    expect(flatten(A)).toEqual(`export interface A { }`);
+    expect(sourceFile.getText())
+      .toEqual(`const a: ${TypeHandler.getType(A).getText()} = {};`);
+  }
+});
+
 test('should create interface and set type of variable with object assignment', () => {
   const sourceFile = project.createSourceFile(
     'write-access.ts',

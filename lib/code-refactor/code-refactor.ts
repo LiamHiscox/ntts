@@ -18,12 +18,12 @@ class CodeRefactor {
     this.refactorImports(project);
     this.refactorClasses(project);
     this.addTypeAlias(project, target, unknown);
-    this.setFunctionReturnTypes(project, target);
     this.generateInterfaces(project, target);
     this.inferParameterTypes(project, target);
     this.inferFunctionTypeParameterTypes(project, target);
     this.inferParameterTypes(project, target);
     this.inferFunctionTypeParameterTypes(project, target);
+    this.setFunctionReturnTypes(project, target);
     this.inferWriteAccessType(project, target);
     this.inferContextualType(project, target);
     this.inferInterfaceProperties(project, target);
