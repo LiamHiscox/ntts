@@ -1,7 +1,7 @@
 import { PropertySignature, TypeLiteralNode } from 'ts-morph';
-import TypeHandler from '../../../type-handler/type-handler.js';
-import TypeSimplifier from '../type-simplifier.js';
-import { TypeMemberKind } from '../../../../helpers/combined-types/combined-types.js';
+import TypeHandler from '../../../type-handler/type-handler';
+import TypeSimplifier from '../type-simplifier';
+import { TypeMemberKind } from '../../../../helpers/combined-types/combined-types';
 
 class PropertyHandler {
   static updateProperties = (left: TypeMemberKind, right: TypeLiteralNode) => {

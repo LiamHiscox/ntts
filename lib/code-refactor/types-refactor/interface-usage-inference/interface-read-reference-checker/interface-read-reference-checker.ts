@@ -10,12 +10,12 @@ import {
   PropertySignature,
   StringLiteral
 } from 'ts-morph';
-import VariableValidator from '../../../helpers/variable-validator/variable-validator.js';
-import TypeHandler from '../../type-handler/type-handler.js';
-import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier.js';
-import { TypeMemberKind } from '../../../helpers/combined-types/combined-types.js';
-import WriteAccessTypeInference from '../../write-access-type-inference/write-access-type-inference.js';
-import InterfaceHandler from '../../interface-handler/interface-handler.js';
+import VariableValidator from '../../../helpers/variable-validator/variable-validator';
+import TypeHandler from '../../type-handler/type-handler';
+import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier';
+import { TypeMemberKind } from '../../../helpers/combined-types/combined-types';
+import WriteAccessTypeInference from '../../write-access-type-inference/write-access-type-inference';
+import InterfaceHandler from '../../interface-handler/interface-handler';
 
 class InterfaceReadReferenceChecker {
   static addPropertyOrType = (node: Node, interfaceDeclarations: TypeMemberKind[], project: Project, target: string) => {

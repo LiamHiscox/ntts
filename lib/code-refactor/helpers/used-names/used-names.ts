@@ -9,7 +9,7 @@ import {
   SyntaxKind,
   VariableDeclaration,
 } from 'ts-morph';
-import VariableParser from '../variable-parser/variable-parser.js';
+import VariableParser from '../variable-parser/variable-parser';
 
 class UsedNames {
   static getDeclaredImportNames = (sourceFile: SourceFile): string[] => sourceFile

@@ -5,11 +5,11 @@ import {
   SyntaxKind,
   TypeReferenceNode
 } from 'ts-morph';
-import UsedNames from '../../helpers/used-names/used-names.js';
-import ImportCreator from '../../helpers/import-creator/import-creator.js';
-import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator.js';
-import ImportFinder from '../../helpers/import-finder/import-finder.js';
-import ImportTypeParser from '../helpers/import-type-parser/import-type-parser.js';
+import UsedNames from '../../helpers/used-names/used-names';
+import ImportCreator from '../../helpers/import-creator/import-creator';
+import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator';
+import ImportFinder from '../../helpers/import-finder/import-finder';
+import ImportTypeParser from '../helpers/import-type-parser/import-type-parser';
 
 class TypeNodeRefactor {
   static importGlobalTypes = (typeReference: TypeReferenceNode, sourceFile: SourceFile) => {

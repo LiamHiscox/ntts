@@ -2,15 +2,15 @@ import {Project} from 'ts-morph';
 import {Dirent, readdirSync} from 'fs';
 import ignore, {Ignore} from 'ignore';
 import {join} from 'path';
-import ImportsRefactor from './imports-refactor/imports-refactor.js';
-import ClassRefactor from './class-refactor/class-refactor.js';
-import ExportsRefactor from './exports-refactor/exports-refactor.js';
-import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.model.js';
-import Logger from '../logger/logger.js';
-import TsconfigHandler from '../tsconfig-handler/tsconfig-handler.js';
-import TypesRefactor from './types-refactor/types-refactor.js';
-import {generateProgressBar} from './helpers/generate-progress-bar/generate-progress-bar.js';
-import {addTypeAlias, getTypeAliasType} from './types-refactor/interface-handler/interface-creator/interface-creator.js';
+import ImportsRefactor from './imports-refactor/imports-refactor';
+import ClassRefactor from './class-refactor/class-refactor';
+import ExportsRefactor from './exports-refactor/exports-refactor';
+import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.model';
+import Logger from '../logger/logger';
+import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
+import TypesRefactor from './types-refactor/types-refactor';
+import {generateProgressBar} from './helpers/generate-progress-bar/generate-progress-bar';
+import {addTypeAlias, getTypeAliasType} from './types-refactor/interface-handler/interface-creator/interface-creator';
 
 class CodeRefactor {
   static convertToTypescript = (project: Project, target: string, unknown: boolean) => {

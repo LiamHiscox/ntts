@@ -12,13 +12,13 @@ import {
   PropertySignature,
   ReferenceFindableNode, TypeNode, FunctionTypeNode
 } from 'ts-morph';
-import TypeHandler from '../type-handler/type-handler.js';
-import TypeChecker from '../helpers/type-checker/type-checker.js';
-import TypeInferenceValidator from './type-inference-validator/type-inference-validator.js';
-import {findReferencesAsNodes} from '../../helpers/reference-finder/reference-finder.js';
-import DeepTypeInference from '../deep-type-inference/deep-type-inference.js';
-import TypeSimplifier from '../helpers/type-simplifier/type-simplifier.js';
-import InterfaceHandler from '../interface-handler/interface-handler.js';
+import TypeHandler from '../type-handler/type-handler';
+import TypeChecker from '../helpers/type-checker/type-checker';
+import TypeInferenceValidator from './type-inference-validator/type-inference-validator';
+import {findReferencesAsNodes} from '../../helpers/reference-finder/reference-finder';
+import DeepTypeInference from '../deep-type-inference/deep-type-inference';
+import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
+import InterfaceHandler from '../interface-handler/interface-handler';
 
 class ParameterTypeInference {
   static inferSetAccessorParameterTypes = (setter: SetAccessorDeclaration, project: Project, target: string) => {

@@ -6,8 +6,8 @@ import {
   SourceFile,
   SyntaxKind,
 } from 'ts-morph';
-import VariableNameGenerator from '../variable-name-generator/variable-name-generator.js';
-import ImportFinder from '../import-finder/import-finder.js';
+import VariableNameGenerator from '../variable-name-generator/variable-name-generator';
+import ImportFinder from '../import-finder/import-finder';
 
 class ImportCreator {
   static addEmptyImport = (moduleSpecifier: string, sourceFile: SourceFile) => {

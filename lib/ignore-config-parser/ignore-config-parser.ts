@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'fs';
-import Logger from '../logger/logger.js';
+import Logger from '../logger/logger';
 
 const gitignore = '.gitignore';
 const nttsignore = '.nttsignore';

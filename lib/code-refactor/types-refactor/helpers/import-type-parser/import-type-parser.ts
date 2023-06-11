@@ -1,6 +1,6 @@
 import { Identifier, ImportTypeNode, Node, QualifiedName, SyntaxKind } from 'ts-morph';
 import path, { relative } from 'path';
-import PathParser from '../../../../helpers/path-parser/path-parser.js';
+import PathParser from '../../../../helpers/path-parser/path-parser';
 
 class ImportTypeParser {
   static getFullModuleSpecifier = (importType: ImportTypeNode): string | undefined => importType

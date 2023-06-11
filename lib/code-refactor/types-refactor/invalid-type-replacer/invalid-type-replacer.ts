@@ -1,5 +1,5 @@
 import {Node, ParameterDeclaration, ReturnTypedNode, SyntaxKind, TypedNode, TypeNode} from 'ts-morph';
-import TypeHandler from '../type-handler/type-handler.js';
+import TypeHandler from '../type-handler/type-handler';
 
 class InvalidTypeReplacer {
   static replaceParameterType = (parameter: ParameterDeclaration, typeAlias: string) => {

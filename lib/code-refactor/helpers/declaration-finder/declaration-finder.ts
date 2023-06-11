@@ -9,8 +9,8 @@ import {
   MethodDeclaration,
   Node,
 } from 'ts-morph';
-import { ClassKind, FunctionKind, isFieldDeclaration } from '../combined-types/combined-types.js';
-import { findReferences } from '../reference-finder/reference-finder.js';
+import { ClassKind, FunctionKind, isFieldDeclaration } from '../combined-types/combined-types';
+import { findReferences } from '../reference-finder/reference-finder';
 
 class DeclarationFinder {
   static getClassOrFunction = (nameNode: EntityNameExpression): ClassKind | FunctionKind | undefined => {

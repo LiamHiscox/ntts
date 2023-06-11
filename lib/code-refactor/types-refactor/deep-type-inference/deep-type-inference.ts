@@ -13,14 +13,14 @@ import {
   Expression,
   ReferenceFindableNode
 } from 'ts-morph';
-import TypeHandler from '../type-handler/type-handler.js';
-import DeclarationFinder from '../../helpers/declaration-finder/declaration-finder.js';
-import {FunctionKind, isFieldDeclaration} from '../../helpers/combined-types/combined-types.js';
-import {findReferencesAsNodes} from '../../helpers/reference-finder/reference-finder.js';
-import {getExpressionParent, getInnerExpression} from '../../helpers/expression-handler/expression-handler.js';
-import TypeChecker from '../helpers/type-checker/type-checker.js';
-import BindingNameHandler from '../helpers/binding-name-handler/binding-name-handler.js';
-import TypeSimplifier from '../helpers/type-simplifier/type-simplifier.js';
+import TypeHandler from '../type-handler/type-handler';
+import DeclarationFinder from '../../helpers/declaration-finder/declaration-finder';
+import {FunctionKind, isFieldDeclaration} from '../../helpers/combined-types/combined-types';
+import {findReferencesAsNodes} from '../../helpers/reference-finder/reference-finder';
+import {getExpressionParent, getInnerExpression} from '../../helpers/expression-handler/expression-handler';
+import TypeChecker from '../helpers/type-checker/type-checker';
+import BindingNameHandler from '../helpers/binding-name-handler/binding-name-handler';
+import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
 
 type LeftExpression =
   FunctionExpression

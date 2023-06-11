@@ -2,7 +2,7 @@ import {
   CallExpression,
   ElementAccessExpression, Node, PropertyAccessExpression, PropertyName, SyntaxKind,
 } from 'ts-morph';
-import { isAccessExpression } from '../combined-types/combined-types.js';
+import { isAccessExpression } from '../combined-types/combined-types';
 
 export const getInnerExpression = (node: Node | undefined) => {
   if (Node.isParenthesizedExpression(node)) {

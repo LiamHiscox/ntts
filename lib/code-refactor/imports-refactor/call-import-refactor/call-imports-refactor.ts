@@ -1,6 +1,6 @@
 import { CallExpression, SourceFile } from 'ts-morph';
-import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator.js';
-import ImportCreator from '../../helpers/import-creator/import-creator.js';
+import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator';
+import ImportCreator from '../../helpers/import-creator/import-creator';
 
 class CallImportsRefactor {
   static addCallExpressionImport = (

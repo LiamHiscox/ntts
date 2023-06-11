@@ -1,12 +1,12 @@
 import { existsSync } from 'fs';
-import ScriptRunner from '../helpers/script-runner/script-runner.js';
-import VersionHandler from './version-handler/version-handler.js';
-import VersionCalculator from './version-calculator/version-calculator.js';
-import DependencyHandler from './dependency-handler/dependency-handler.js';
-import Logger from '../logger/logger.js';
-import { NPM, PackageManager, Yarn } from '../models/package-manager.js';
-import ModuleDeclarator from '../module-declarator/module-declarator.js';
-import { PackageListModel, PackageModel } from '../models/package.model.js';
+import ScriptRunner from '../helpers/script-runner/script-runner';
+import VersionHandler from './version-handler/version-handler';
+import VersionCalculator from './version-calculator/version-calculator';
+import DependencyHandler from './dependency-handler/dependency-handler';
+import Logger from '../logger/logger';
+import { NPM, PackageManager, Yarn } from '../models/package-manager';
+import ModuleDeclarator from '../module-declarator/module-declarator';
+import { PackageListModel, PackageModel } from '../models/package.model';
 
 class DependencyInstaller {
   static installProject = async (packageManager: PackageManager) => {

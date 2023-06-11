@@ -1,12 +1,13 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import VersionHandler from '../dependency-installer/version-handler/version-handler.js';
-import Logger from '../logger/logger.js';
-import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.model.js';
+import VersionHandler from '../dependency-installer/version-handler/version-handler';
+import Logger from '../logger/logger';
+import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.model';
 import tsconfig10 from '@tsconfig/node10/tsconfig.json';
 import tsconfig12 from '@tsconfig/node12/tsconfig.json';
 import tsconfig14 from '@tsconfig/node14/tsconfig.json';
 import tsconfig16 from '@tsconfig/node16/tsconfig.json';
 import tsconfig18 from '@tsconfig/node18/tsconfig.json';
+import tsconfig20 from '@tsconfig/node20/tsconfig.json';
 import defaultConfig from './tsconfig.default.json';
 
 const nodeToConfigList = [
@@ -15,6 +16,7 @@ const nodeToConfigList = [
   { version: 14, config: tsconfig14 },
   { version: 16, config: tsconfig16 },
   { version: 18, config: tsconfig18 },
+  { version: 20, config: tsconfig20 },
 ];
 
 interface TsconfigModel {

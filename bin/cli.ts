@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import yargs, {Arguments} from 'yargs';
-import main from '../lib/index.js';
-import {OptionsModel} from '../lib/models/options.model.js';
+import main from '../lib/index';
+import {OptionsModel} from '../lib/models/options.model';
 
 yargs
   .scriptName('ntts')

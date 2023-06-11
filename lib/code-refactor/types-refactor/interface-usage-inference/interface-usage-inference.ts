@@ -5,9 +5,9 @@ import {
   Node, Project,
   Type
 } from 'ts-morph';
-import InterfaceReadReferenceChecker from './interface-read-reference-checker/interface-read-reference-checker.js';
-import TypeHandler from '../type-handler/type-handler.js';
-import {getInterfaces} from '../interface-handler/interface-creator/interface-creator.js';
+import InterfaceReadReferenceChecker from './interface-read-reference-checker/interface-read-reference-checker';
+import TypeHandler from '../type-handler/type-handler';
+import {getInterfaces} from '../interface-handler/interface-creator/interface-creator';
 
 class InterfaceUsageInference {
   static addPropertiesByUsage = (node: ElementAccessExpression | Identifier, interfaces: InterfaceDeclaration[], project: Project, target: string) => {

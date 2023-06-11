@@ -1,5 +1,5 @@
 import { ESLint } from 'eslint';
-import DependencyHandler from '../dependency-installer/dependency-handler/dependency-handler.js';
+import DependencyHandler from '../dependency-installer/dependency-handler/dependency-handler';
 
 const packageGlobals = [
   { npm: 'mocha', eslint: 'mocha' },

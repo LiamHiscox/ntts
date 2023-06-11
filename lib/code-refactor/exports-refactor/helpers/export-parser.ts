@@ -4,8 +4,8 @@ import {
   PropertyAccessExpression,
   SyntaxKind,
 } from 'ts-morph';
-import ExportedVariableModel from '../../../models/exported-variable.model.js';
-import { AccessExpressionKind } from '../../helpers/combined-types/combined-types.js';
+import ExportedVariableModel from '../../../models/exported-variable.model';
+import { AccessExpressionKind } from '../../helpers/combined-types/combined-types';
 
 class ExportParser {
   static flatten = (node: Node, result: (Identifier | null)[] = []): (Identifier | null)[] => {

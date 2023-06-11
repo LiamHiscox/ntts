@@ -9,7 +9,7 @@ import {
   TypeNode,
   VariableDeclaration,
 } from 'ts-morph';
-import TypeChecker from '../helpers/type-checker/type-checker.js';
+import TypeChecker from '../helpers/type-checker/type-checker';
 
 class TypeHandler {
   static setType = <T extends Node & TypedNode>(node: T, type: Type): T => {

@@ -3,11 +3,11 @@ import {
   SourceFile,
   VariableDeclarationKind,
 } from 'ts-morph';
-import ExportedVariableModel from '../../../models/exported-variable.model.js';
-import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator.js';
-import VariableCreator from '../helpers/variable-creator.js';
-import ExportParser from '../helpers/export-parser.js';
-import { AccessExpressionKind } from '../../helpers/combined-types/combined-types.js';
+import ExportedVariableModel from '../../../models/exported-variable.model';
+import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator';
+import VariableCreator from '../helpers/variable-creator';
+import ExportParser from '../helpers/export-parser';
+import { AccessExpressionKind } from '../../helpers/combined-types/combined-types';
 
 class NestedRefactor {
   static refactorNestedExport = (

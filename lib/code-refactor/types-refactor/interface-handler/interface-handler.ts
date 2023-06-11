@@ -17,10 +17,10 @@ import {
   UnionTypeNode,
   VariableDeclaration
 } from 'ts-morph';
-import { createInterface, getInterfaceName, getInterfaces } from './interface-creator/interface-creator.js';
-import TypeHandler from '../type-handler/type-handler.js';
-import TypeSimplifier from '../helpers/type-simplifier/type-simplifier.js';
-import InterfaceFinder from './interface-finder/interface-finder.js';
+import { createInterface, getInterfaceName, getInterfaces } from './interface-creator/interface-creator';
+import TypeHandler from '../type-handler/type-handler';
+import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
+import InterfaceFinder from './interface-finder/interface-finder';
 
 type DeclarationKind = VariableDeclaration | ParameterDeclaration | PropertyDeclaration | PropertySignature;
 type NameNodeKind = PropertyName | BindingName;

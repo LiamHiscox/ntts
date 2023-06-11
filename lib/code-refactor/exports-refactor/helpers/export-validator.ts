@@ -1,5 +1,5 @@
 import { BinaryExpression, Identifier, SyntaxKind } from 'ts-morph';
-import ExportParser from './export-parser.js';
+import ExportParser from './export-parser';
 
 class ExportValidator {
   private static isExport = (identifiers: (Identifier | null)[]): Identifier[] | undefined => this.isDefaultExport(identifiers)
