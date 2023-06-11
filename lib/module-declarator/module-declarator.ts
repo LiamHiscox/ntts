@@ -1,5 +1,5 @@
 import { appendFileSync, existsSync, writeFileSync } from 'fs';
-import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
+import TsconfigHandler from '../tsconfig-handler/tsconfig-handler.js';
 
 const moduleFile = './ntts-modules.d.ts';
 

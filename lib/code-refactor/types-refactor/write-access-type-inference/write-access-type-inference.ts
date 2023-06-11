@@ -12,12 +12,12 @@ import {
   VariableDeclaration,
   VariableDeclarationKind,
 } from 'ts-morph';
-import { findReferences } from '../../helpers/reference-finder/reference-finder';
-import TypeHandler from '../type-handler/type-handler';
-import { isWriteAccess } from '../../helpers/expression-handler/expression-handler';
-import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
-import InterfaceHandler from '../interface-handler/interface-handler';
-import TypeChecker from '../helpers/type-checker/type-checker';
+import { findReferences } from '../../helpers/reference-finder/reference-finder.js';
+import TypeHandler from '../type-handler/type-handler.js';
+import { isWriteAccess } from '../../helpers/expression-handler/expression-handler.js';
+import TypeSimplifier from '../helpers/type-simplifier/type-simplifier.js';
+import InterfaceHandler from '../interface-handler/interface-handler.js';
+import TypeChecker from '../helpers/type-checker/type-checker.js';
 
 class WriteAccessTypeInference {
   static inferTypeByWriteAccess = (declaration: VariableDeclaration | PropertyDeclaration | PropertySignature, project: Project, target: string) => {

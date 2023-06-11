@@ -1,7 +1,7 @@
 import {
   InterfaceDeclaration, Node, SyntaxKind, TypeLiteralNode, TypeNode,
 } from 'ts-morph';
-import TypeHandler from '../../type-handler/type-handler';
+import TypeHandler from '../../type-handler/type-handler.js';
 
 class InterfaceFinder {
   static getTypeLiteralNodes = (typeNodes: TypeNode[]): TypeLiteralNode[] => typeNodes

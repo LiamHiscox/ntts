@@ -1,5 +1,5 @@
-import ScriptRunner from '../../helpers/script-runner/script-runner';
-import { PackageVersion } from '../../models/package.model';
+import ScriptRunner from '../../helpers/script-runner/script-runner.js';
+import { PackageVersion } from '../../models/package.model.js';
 
 class VersionHandler {
   static packageVersions = async (packageName: string): Promise<PackageVersion[]> => {

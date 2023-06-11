@@ -7,16 +7,16 @@ import {
   SyntaxKind,
   VariableDeclarationKind,
 } from 'ts-morph';
-import ExportValidator from './helpers/export-validator';
-import ExportParser from './helpers/export-parser';
-import ExportedVariableModel from '../../models/exported-variable.model';
-import UsedNames from '../helpers/used-names/used-names';
-import TopLevelRefactor from './top-level-refactor/top-level-refactor';
-import NestedRefactor from './nested-refactor/nested-refactor';
-import ExportRename from './export-rename/export-rename';
-import VariableNameGenerator from '../helpers/variable-name-generator/variable-name-generator';
-import VariableCreator from './helpers/variable-creator';
-import { AccessExpressionKind } from '../helpers/combined-types/combined-types';
+import ExportValidator from './helpers/export-validator.js';
+import ExportParser from './helpers/export-parser.js';
+import ExportedVariableModel from '../../models/exported-variable.model.js';
+import UsedNames from '../helpers/used-names/used-names.js';
+import TopLevelRefactor from './top-level-refactor/top-level-refactor.js';
+import NestedRefactor from './nested-refactor/nested-refactor.js';
+import ExportRename from './export-rename/export-rename.js';
+import VariableNameGenerator from '../helpers/variable-name-generator/variable-name-generator.js';
+import VariableCreator from './helpers/variable-creator.js';
+import { AccessExpressionKind } from '../helpers/combined-types/combined-types.js';
 
 class ExportsRefactor {
   static moduleExportsToExport = (sourceFile: SourceFile) => {

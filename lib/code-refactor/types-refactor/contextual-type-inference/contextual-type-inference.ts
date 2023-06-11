@@ -11,13 +11,13 @@ import {
   getExpressionParent,
   isAccessExpressionTarget, isCallExpressionTarget,
   isWriteAccess,
-} from '../../helpers/expression-handler/expression-handler';
-import { findReferences } from '../../helpers/reference-finder/reference-finder';
-import { isAccessExpression } from '../../helpers/combined-types/combined-types';
-import TypeHandler from '../type-handler/type-handler';
-import TypeChecker from '../helpers/type-checker/type-checker';
-import InterfaceHandler from "../interface-handler/interface-handler";
-import TypeSimplifier from "../helpers/type-simplifier/type-simplifier";
+} from '../../helpers/expression-handler/expression-handler.js';
+import { findReferences } from '../../helpers/reference-finder/reference-finder.js';
+import { isAccessExpression } from '../../helpers/combined-types/combined-types.js';
+import TypeHandler from '../type-handler/type-handler.js';
+import TypeChecker from '../helpers/type-checker/type-checker.js';
+import InterfaceHandler from '../interface-handler/interface-handler.js';
+import TypeSimplifier from '../helpers/type-simplifier/type-simplifier.js';
 
 class ContextualTypeInference {
   static inferTypeByContextualType = (

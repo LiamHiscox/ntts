@@ -1,7 +1,7 @@
 import { resolve } from 'path';
 import { existsSync } from 'fs';
-import Logger from '../logger/logger';
-import PathParser from '../helpers/path-parser/path-parser';
+import Logger from '../logger/logger.js';
+import PathParser from '../helpers/path-parser/path-parser.js';
 
 class InputValidator {
   static validate = (path: string): string|null => {

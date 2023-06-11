@@ -6,7 +6,7 @@ import {
   SourceFile,
   SyntaxKind,
 } from 'ts-morph';
-import MethodFunctionHandler from './method-function-handler/method-function-handler';
+import MethodFunctionHandler from './method-function-handler/method-function-handler.js';
 
 class ClassRefactor {
   static toTypeScriptClasses = (sourceFile: SourceFile) => {

@@ -1,9 +1,9 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
-import { PackageJsonModel, Scripts } from '../models/package-json.model';
-import Logger from '../logger/logger';
-import FileRename from '../file-rename/file-rename';
-import TsconfigHandler from '../tsconfig-handler/tsconfig-handler';
+import { PackageJsonModel, Scripts } from '../models/package-json.model.js';
+import Logger from '../logger/logger.js';
+import FileRename from '../file-rename/file-rename.js';
+import TsconfigHandler from '../tsconfig-handler/tsconfig-handler.js';
 
 interface NodeCliModel {
   preNodeArguments: string[];

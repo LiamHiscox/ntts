@@ -1,8 +1,8 @@
 import {
   ImportDeclaration, ImportSpecifier, SourceFile, VariableDeclarationKind,
 } from 'ts-morph';
-import ImportCreator from '../../helpers/import-creator/import-creator';
-import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator';
+import ImportCreator from '../../helpers/import-creator/import-creator.js';
+import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator.js';
 
 class ImportClauseRefactor {
   static refactorImportClause = (

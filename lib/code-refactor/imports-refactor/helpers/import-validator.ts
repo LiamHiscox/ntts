@@ -7,9 +7,9 @@ import {
   VariableDeclaration,
   VariableDeclarationKind,
 } from 'ts-morph';
-import WriteAccessChecker from '../../helpers/write-access-checker/write-access-checker';
-import VariableValidator from '../../helpers/variable-validator/variable-validator';
-import { getInnerExpression } from '../../helpers/expression-handler/expression-handler';
+import WriteAccessChecker from '../../helpers/write-access-checker/write-access-checker.js';
+import VariableValidator from '../../helpers/variable-validator/variable-validator.js';
+import { getInnerExpression } from '../../helpers/expression-handler/expression-handler.js';
 
 class ImportValidator {
   static callExpressionFirstArgument = (callExpression: CallExpression): string =>

@@ -1,8 +1,8 @@
 import { FunctionTypeNode, IndexSignatureDeclaration, Node, SyntaxKind, TypeLiteralNode, TypeNode } from 'ts-morph';
-import TypeHandler from '../../type-handler/type-handler';
-import PropertyHandler from './property-handler/property-handler';
-import IndexSignatureHandler from './index-signature-handler/index-signature-handler';
-import { TypeMemberKind } from '../../../helpers/combined-types/combined-types';
+import TypeHandler from '../../type-handler/type-handler.js';
+import PropertyHandler from './property-handler/property-handler.js';
+import IndexSignatureHandler from './index-signature-handler/index-signature-handler.js';
+import { TypeMemberKind } from '../../../helpers/combined-types/combined-types.js';
 
 class TypeSimplifier {
   static simplifyTypeNode = (typeNode: TypeNode): string => {

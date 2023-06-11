@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import ScriptRunner from '../../helpers/script-runner/script-runner';
-import { PackageListModel, PackageVersionModel } from '../../models/package.model';
+import ScriptRunner from '../../helpers/script-runner/script-runner.js';
+import { PackageListModel, PackageVersionModel } from '../../models/package.model.js';
 
 class DependencyHandler {
   static installedPackages = async (): Promise<PackageListModel> => {

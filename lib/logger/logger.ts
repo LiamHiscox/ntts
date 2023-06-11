@@ -1,9 +1,9 @@
-import { green, yellow, redBright } from 'chalk';
+import chalk from 'chalk';
 
 /* eslint no-console: "off" */
 class Logger {
   static success = (text: string) => {
-    console.log(green('SUCCESS'), text);
+    console.log(chalk.green('SUCCESS'), text);
   };
 
   static info = (text: string) => {
@@ -11,11 +11,11 @@ class Logger {
   };
 
   static warn = (text: string) => {
-    console.log(yellow('WARN'), text);
+    console.log(chalk.yellow('WARN'), text);
   };
 
   static error = (text: string) => {
-    console.log(redBright('ERROR'), text);
+    console.log(chalk.redBright('ERROR'), text);
   };
 }
 

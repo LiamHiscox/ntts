@@ -1,6 +1,6 @@
 import { PropertyDeclaration, VariableDeclaration } from 'ts-morph';
-import TypeHandler from '../type-handler/type-handler';
-import TypeChecker from '../helpers/type-checker/type-checker';
+import TypeHandler from '../type-handler/type-handler.js';
+import TypeChecker from '../helpers/type-checker/type-checker.js';
 
 class InitialTypeHandler {
   static setInitialType = (declaration: VariableDeclaration | PropertyDeclaration) => {

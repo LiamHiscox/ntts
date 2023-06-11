@@ -1,5 +1,5 @@
 import { ExpressionStatement, SourceFile } from 'ts-morph';
-import ImportCreator from '../../helpers/import-creator/import-creator';
+import ImportCreator from '../../helpers/import-creator/import-creator.js';
 
 class ExpressionImportsRefactor {
   static addExpressionStatementImport = (

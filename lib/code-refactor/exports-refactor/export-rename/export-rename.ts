@@ -1,10 +1,10 @@
 import {
   EntityNameExpression, Identifier, Node, SourceFile, SyntaxKind,
 } from 'ts-morph';
-import ExportedVariableModel from '../../../models/exported-variable.model';
-import ExportParser from '../helpers/export-parser';
-import ExportValidator from '../helpers/export-validator';
-import { AccessExpressionKind } from '../../helpers/combined-types/combined-types';
+import ExportedVariableModel from '../../../models/exported-variable.model.js';
+import ExportParser from '../helpers/export-parser.js';
+import ExportValidator from '../helpers/export-validator.js';
+import { AccessExpressionKind } from '../../helpers/combined-types/combined-types.js';
 
 class ExportRename {
   static refactorExportReadAccess = (exportedVariables: ExportedVariableModel[], sourceFile: SourceFile) => {

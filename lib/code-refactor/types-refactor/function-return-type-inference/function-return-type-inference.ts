@@ -1,5 +1,5 @@
 import {FunctionDeclaration, ArrowFunction, MethodDeclaration, FunctionExpression, Project, GetAccessorDeclaration} from 'ts-morph';
-import InterfaceHandler from '../interface-handler/interface-handler';
+import InterfaceHandler from '../interface-handler/interface-handler.js';
 
 class FunctionReturnTypeInference {
   static checkReturnType = (

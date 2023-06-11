@@ -8,7 +8,7 @@ import {
   TypeNode,
   UnionTypeNode
 } from 'ts-morph';
-import TypeHandler from '../type-handler/type-handler';
+import TypeHandler from '../type-handler/type-handler.js';
 
 class Cleanup {
   static filterUnionType = (unionType: UnionTypeNode) => {

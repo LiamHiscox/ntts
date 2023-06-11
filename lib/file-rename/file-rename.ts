@@ -1,7 +1,7 @@
 import { Dirent, readdirSync, renameSync } from 'fs';
 import { join } from 'path';
 import ignore, { Ignore } from 'ignore';
-import Logger from '../logger/logger';
+import Logger from '../logger/logger.js';
 
 class FileRename {
   private static javaScriptEnding = /\.[mc]?js$/g;

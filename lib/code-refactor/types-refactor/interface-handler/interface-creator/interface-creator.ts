@@ -8,10 +8,10 @@ import {
 } from 'ts-morph';
 import { existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import VariableNameGenerator from '../../../helpers/variable-name-generator/variable-name-generator';
-import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier';
-import TypeHandler from '../../type-handler/type-handler';
-import InterfaceHandler from "../interface-handler";
+import VariableNameGenerator from '../../../helpers/variable-name-generator/variable-name-generator.js';
+import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier.js';
+import TypeHandler from '../../type-handler/type-handler.js';
+import InterfaceHandler from '../interface-handler.js';
 
 const createInterfaceFile = (project: Project, fullPath: string): SourceFile => {
   if (!existsSync(fullPath)) {

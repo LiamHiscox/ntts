@@ -1,6 +1,6 @@
 import {ReferencedSymbol, ReferencedSymbolEntry, VariableDeclaration} from 'ts-morph';
-import VariableParser from '../variable-parser/variable-parser';
-import { findReferences } from '../reference-finder/reference-finder';
+import VariableParser from '../variable-parser/variable-parser.js';
+import { findReferences } from '../reference-finder/reference-finder.js';
 
 class WriteAccessChecker {
   static hasValueChanged = (declaration: VariableDeclaration): boolean => VariableParser

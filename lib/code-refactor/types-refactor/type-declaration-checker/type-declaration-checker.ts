@@ -1,5 +1,5 @@
 import {Node, ReturnTypedNode, TypedNode} from 'ts-morph';
-import TypeHandler from '../type-handler/type-handler';
+import TypeHandler from '../type-handler/type-handler.js';
 
 class TypeDeclarationChecker {
   static checkTypeNode = (node: Node & TypedNode) => {

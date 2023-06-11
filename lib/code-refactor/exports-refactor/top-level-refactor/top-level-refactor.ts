@@ -8,12 +8,12 @@ import {
   SyntaxKind,
   VariableDeclarationKind,
 } from 'ts-morph';
-import ExportedVariableModel from '../../../models/exported-variable.model';
-import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator';
-import VariableCreator from '../helpers/variable-creator';
-import ExportParser from '../helpers/export-parser';
-import WriteAccessChecker from '../../helpers/write-access-checker/write-access-checker';
-import {AccessExpressionKind} from '../../helpers/combined-types/combined-types';
+import ExportedVariableModel from '../../../models/exported-variable.model.js';
+import VariableNameGenerator from '../../helpers/variable-name-generator/variable-name-generator.js';
+import VariableCreator from '../helpers/variable-creator.js';
+import ExportParser from '../helpers/export-parser.js';
+import WriteAccessChecker from '../../helpers/write-access-checker/write-access-checker.js';
+import {AccessExpressionKind} from '../../helpers/combined-types/combined-types.js';
 
 class TopLevelRefactor {
   static refactorTopLevelExport = (

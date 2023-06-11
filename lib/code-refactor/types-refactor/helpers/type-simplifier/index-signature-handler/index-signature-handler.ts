@@ -1,6 +1,6 @@
 import { IndexSignatureDeclaration } from 'ts-morph';
-import TypeHandler from '../../../type-handler/type-handler';
-import { TypeMemberKind } from '../../../../helpers/combined-types/combined-types';
+import TypeHandler from '../../../type-handler/type-handler.js';
+import { TypeMemberKind } from '../../../../helpers/combined-types/combined-types.js';
 
 class IndexSignatureHandler {
   static getCombinedTypesOfSignatures = (

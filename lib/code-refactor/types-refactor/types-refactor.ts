@@ -1,19 +1,19 @@
 import {Node, Project, SourceFile, SyntaxKind} from 'ts-morph';
-import InitialTypeHandler from './initial-type-handler/initial-type-handler';
-import ParameterTypeInference from './parameter-type-inference/parameter-type-inference';
-import WriteAccessTypeInference from './write-access-type-inference/write-access-type-inference';
-import ContextualTypeInference from './contextual-type-inference/contextual-type-inference';
-import InterfaceHandler from './interface-handler/interface-handler';
-import InterfaceUsageInference from './interface-usage-inference/interface-usage-inference';
-import {getInterfaces} from './interface-handler/interface-creator/interface-creator';
-import InterfaceMerger from './interface-merger/interface-merger';
-import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer';
-import TypeNodeRefactor from './type-node-refactor/type-node-refactor';
-import {generateProgressBar} from '../helpers/generate-progress-bar/generate-progress-bar';
-import Cleanup from './cleanup/cleanup';
-import {getInnerExpression} from '../helpers/expression-handler/expression-handler';
-import FunctionReturnTypeInference from './function-return-type-inference/function-return-type-inference';
-import TypeDeclarationChecker from "./type-declaration-checker/type-declaration-checker";
+import InitialTypeHandler from './initial-type-handler/initial-type-handler.js';
+import ParameterTypeInference from './parameter-type-inference/parameter-type-inference.js';
+import WriteAccessTypeInference from './write-access-type-inference/write-access-type-inference.js';
+import ContextualTypeInference from './contextual-type-inference/contextual-type-inference.js';
+import InterfaceHandler from './interface-handler/interface-handler.js';
+import InterfaceUsageInference from './interface-usage-inference/interface-usage-inference.js';
+import {getInterfaces} from './interface-handler/interface-creator/interface-creator.js';
+import InterfaceMerger from './interface-merger/interface-merger.js';
+import InvalidTypeReplacer from './invalid-type-replacer/invalid-type-replacer.js';
+import TypeNodeRefactor from './type-node-refactor/type-node-refactor.js';
+import {generateProgressBar} from '../helpers/generate-progress-bar/generate-progress-bar.js';
+import Cleanup from './cleanup/cleanup.js';
+import {getInnerExpression} from '../helpers/expression-handler/expression-handler.js';
+import FunctionReturnTypeInference from './function-return-type-inference/function-return-type-inference.js';
+import TypeDeclarationChecker from './type-declaration-checker/type-declaration-checker.js';
 
 class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project, target: string) => {

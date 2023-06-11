@@ -1,8 +1,8 @@
 import { ImportDeclaration, SourceFile } from 'ts-morph';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import ModuleSpecifierRefactorModel from '../../../models/module-specifier-refactor.model';
-import FileRename from '../../../file-rename/file-rename';
+import ModuleSpecifierRefactorModel from '../../../models/module-specifier-refactor.model.js';
+import FileRename from '../../../file-rename/file-rename.js';
 
 class ImportsReformat {
   private static knownFileEndings = ['json', 'js', 'cjs', 'mjs', 'jsx', 'ts', 'tsx'];

@@ -1,13 +1,13 @@
-import FileRename from './file-rename/file-rename';
-import DependencyInstaller from './dependency-installer/dependency-installer';
-import TsconfigHandler from './tsconfig-handler/tsconfig-handler';
-import PackageJsonHandler from './package-json-handler/package-json-handler';
-import InputValidator from './input-validator/input-validator';
-import { PackageManager } from './models/package-manager';
-import IgnoreConfigParser from './ignore-config-parser/ignore-config-parser';
-import CodeRefactor from './code-refactor/code-refactor';
-import EslintRunner from './eslint-runner/eslint-runner';
-import { OptionsModel } from "./models/options.model";
+import FileRename from './file-rename/file-rename.js';
+import DependencyInstaller from './dependency-installer/dependency-installer.js';
+import TsconfigHandler from './tsconfig-handler/tsconfig-handler.js';
+import PackageJsonHandler from './package-json-handler/package-json-handler.js';
+import InputValidator from './input-validator/input-validator.js';
+import { PackageManager } from './models/package-manager.js';
+import IgnoreConfigParser from './ignore-config-parser/ignore-config-parser.js';
+import CodeRefactor from './code-refactor/code-refactor.js';
+import EslintRunner from './eslint-runner/eslint-runner.js';
+import { OptionsModel } from './models/options.model.js';
 
 const basicSetup = async (packageManager: PackageManager) => {
   DependencyInstaller.addPackageJson(packageManager);

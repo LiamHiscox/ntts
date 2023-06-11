@@ -1,7 +1,7 @@
 import { InterfaceDeclaration } from 'ts-morph';
-import TypeHandler from '../type-handler/type-handler';
+import TypeHandler from '../type-handler/type-handler.js';
 import ProgressBar from 'progress';
-import { findReferencesAsNodes } from '../../helpers/reference-finder/reference-finder';
+import { findReferencesAsNodes } from '../../helpers/reference-finder/reference-finder.js';
 
 class InterfaceMerger {
   static mergeDuplicates = (interfaceDeclarations: InterfaceDeclaration[], bar: ProgressBar) => {

@@ -1,4 +1,4 @@
-import reservedKeywords from '../../../assets/reserved-keywords';
+import reservedKeywords from '../../../assets/reserved-keywords.js';
 
 class VariableNameGenerator {
   static variableNameFromImportId = (importId: string) => {
