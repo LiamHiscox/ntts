@@ -88,7 +88,7 @@ This uses the same syntax as a `.gitignore` file. If no `.nttsignore` file is pr
 # Refactoring a project
 Many of the refactoring steps listed above can be skipped by using the appropriate flag.
 Additionally, a target folder can be provided to define the directory to refactor the JavaScript code in.
-Values which are of type `any`, `unknown` or `never` implicitly have their explicitly set as `any` by default, using the following type alias: `type $FixMe = any`.
+Values which implicitly are of type `any`, `unknown` or `never` have it defined as `any` by default, using the following type alias: `type $FixMe = any`.
 If preferred, the type alias can also be of type `unknown` by using the appropriate flag.
 To refactor a project run the following command:
 
