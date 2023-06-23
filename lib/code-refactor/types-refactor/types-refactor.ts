@@ -13,7 +13,7 @@ import {generateProgressBar} from '../helpers/generate-progress-bar/generate-pro
 import Cleanup from './cleanup/cleanup';
 import {getInnerExpression} from '../helpers/expression-handler/expression-handler';
 import FunctionReturnTypeInference from './function-return-type-inference/function-return-type-inference';
-import TypeDeclarationChecker from "./type-declaration-checker/type-declaration-checker";
+import TypeDeclarationChecker from './type-declaration-checker/type-declaration-checker';
 
 class TypesRefactor {
   static createInterfacesFromObjectTypes = (sourceFile: SourceFile, project: Project, target: string) => {

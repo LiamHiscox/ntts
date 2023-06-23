@@ -3,9 +3,11 @@ import VersionHandler from '../dependency-installer/version-handler/version-hand
 import Logger from '../logger/logger';
 import ModuleSpecifierRefactorModel from '../models/module-specifier-refactor.model';
 import tsconfig10 from '@tsconfig/node10/tsconfig.json';
-import tsconfig12 from '@tsconfig/node10/tsconfig.json';
-import tsconfig14 from '@tsconfig/node10/tsconfig.json';
-import tsconfig16 from '@tsconfig/node10/tsconfig.json';
+import tsconfig12 from '@tsconfig/node12/tsconfig.json';
+import tsconfig14 from '@tsconfig/node14/tsconfig.json';
+import tsconfig16 from '@tsconfig/node16/tsconfig.json';
+import tsconfig18 from '@tsconfig/node18/tsconfig.json';
+import tsconfig20 from '@tsconfig/node20/tsconfig.json';
 import defaultConfig from './tsconfig.default.json';
 
 const nodeToConfigList = [
@@ -13,18 +15,24 @@ const nodeToConfigList = [
   { version: 12, config: tsconfig12 },
   { version: 14, config: tsconfig14 },
   { version: 16, config: tsconfig16 },
+  { version: 18, config: tsconfig18 },
+  { version: 20, config: tsconfig20 },
 ];
 
+interface TsconfigModel {
+  [key: string]: unknown;
+}
+
 class TsconfigHandler {
-  private static getTsconfig = (): Object => {
+  private static getTsconfig = (): TsconfigModel => {
     const [nodeMajorVersion] = VersionHandler.parsedNodeVersion();
-    return nodeToConfigList.reduce((bestConfig: Object, {version, config}) =>
+    return nodeToConfigList.reduce((bestConfig: TsconfigModel, {version, config}) =>
         (nodeMajorVersion >= version ? config : bestConfig), defaultConfig);
   };
 
   private static readConfig = (filename: string) => JSON.parse(readFileSync(filename, { encoding: 'utf-8' }));
 
-  private static writeToConfig = (filename: string, tsconfig: Object, partialConfig: Object) => {
+  private static writeToConfig = (filename: string, tsconfig: TsconfigModel, partialConfig: TsconfigModel) => {
     writeFileSync(
       filename,
       JSON.stringify({ ...tsconfig, ...partialConfig }, null, 2),

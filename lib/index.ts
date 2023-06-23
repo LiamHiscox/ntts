@@ -7,7 +7,7 @@ import { PackageManager } from './models/package-manager';
 import IgnoreConfigParser from './ignore-config-parser/ignore-config-parser';
 import CodeRefactor from './code-refactor/code-refactor';
 import EslintRunner from './eslint-runner/eslint-runner';
-import { OptionsModel } from "./models/options.model";
+import { OptionsModel } from './models/options.model';
 
 const basicSetup = async (packageManager: PackageManager) => {
   DependencyInstaller.addPackageJson(packageManager);

@@ -82,7 +82,11 @@ test('refactor importType with fs node import path', () => {
 test('should refactor import type to import interface in neighbouring file', () => {
   const sourceFile1 = project.createSourceFile('temp/export-file.ts', '', {overwrite: true});
   const declaration = sourceFile1.addInterface({name: 'A', isExported: true});
-  const sourceFile2 = project.createSourceFile('temp/import-file.ts', `let a: ${TypeHandler.getType(declaration).getText()};`, {overwrite: true});
+  const sourceFile2 = project.createSourceFile(
+    'temp/import-file.ts',
+    `let a: ${TypeHandler.getType(declaration).getText()};`,
+    {overwrite: true}
+  );
   project.saveSync();
   TypeNodeRefactor.refactor(sourceFile2.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile2);
   expect(sourceFile2.getText()).toEqual('import { A } from "./export-file";\n\nlet a: A;');
@@ -91,7 +95,11 @@ test('should refactor import type to import interface in neighbouring file', () 
 test('should refactor typeof import type to import interface in neighbouring file', () => {
   const sourceFile1 = project.createSourceFile('temp/export-file.ts', '', {overwrite: true});
   const declaration = sourceFile1.addInterface({name: 'A', isExported: true});
-  const sourceFile2 = project.createSourceFile('temp/import-file.ts', `let a: typeof ${TypeHandler.getType(declaration).getText()};`, {overwrite: true});
+  const sourceFile2 = project.createSourceFile(
+    'temp/import-file.ts',
+    `let a: typeof ${TypeHandler.getType(declaration).getText()};`,
+    {overwrite: true}
+  );
   project.saveSync();
   TypeNodeRefactor.refactor(sourceFile2.getFirstDescendantByKindOrThrow(SyntaxKind.ImportType), sourceFile2);
   expect(sourceFile2.getText()).toEqual('import { A } from "./export-file";\n\nlet a: typeof A;');

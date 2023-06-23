@@ -18,7 +18,7 @@ import TypeInferenceValidator from './type-inference-validator/type-inference-va
 import {findReferencesAsNodes} from '../../helpers/reference-finder/reference-finder';
 import DeepTypeInference from '../deep-type-inference/deep-type-inference';
 import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
-import InterfaceHandler from "../interface-handler/interface-handler";
+import InterfaceHandler from '../interface-handler/interface-handler';
 
 class ParameterTypeInference {
   static inferSetAccessorParameterTypes = (setter: SetAccessorDeclaration, project: Project, target: string) => {

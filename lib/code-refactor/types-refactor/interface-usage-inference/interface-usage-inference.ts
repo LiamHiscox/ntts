@@ -7,10 +7,15 @@ import {
 } from 'ts-morph';
 import InterfaceReadReferenceChecker from './interface-read-reference-checker/interface-read-reference-checker';
 import TypeHandler from '../type-handler/type-handler';
-import {getInterfaces} from "../interface-handler/interface-creator/interface-creator";
+import {getInterfaces} from '../interface-handler/interface-creator/interface-creator';
 
 class InterfaceUsageInference {
-  static addPropertiesByUsage = (node: ElementAccessExpression | Identifier, interfaces: InterfaceDeclaration[], project: Project, target: string) => {
+  static addPropertiesByUsage = (
+    node: ElementAccessExpression | Identifier,
+    interfaces: InterfaceDeclaration[],
+    project: Project,
+    target: string
+  ) => {
     const type = TypeHandler.getType(node);
     if (type.isInterface()) {
       return this.checkInterfaceType(type, node, interfaces, project, target);

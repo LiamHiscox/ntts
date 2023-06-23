@@ -11,7 +11,7 @@ import { join } from 'path';
 import VariableNameGenerator from '../../../helpers/variable-name-generator/variable-name-generator';
 import TypeSimplifier from '../../helpers/type-simplifier/type-simplifier';
 import TypeHandler from '../../type-handler/type-handler';
-import InterfaceHandler from "../interface-handler";
+import InterfaceHandler from '../interface-handler';
 
 const createInterfaceFile = (project: Project, fullPath: string): SourceFile => {
   if (!existsSync(fullPath)) {

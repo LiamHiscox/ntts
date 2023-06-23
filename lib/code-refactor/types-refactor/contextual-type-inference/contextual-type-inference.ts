@@ -16,8 +16,8 @@ import { findReferences } from '../../helpers/reference-finder/reference-finder'
 import { isAccessExpression } from '../../helpers/combined-types/combined-types';
 import TypeHandler from '../type-handler/type-handler';
 import TypeChecker from '../helpers/type-checker/type-checker';
-import InterfaceHandler from "../interface-handler/interface-handler";
-import TypeSimplifier from "../helpers/type-simplifier/type-simplifier";
+import InterfaceHandler from '../interface-handler/interface-handler';
+import TypeSimplifier from '../helpers/type-simplifier/type-simplifier';
 
 class ContextualTypeInference {
   static inferTypeByContextualType = (
