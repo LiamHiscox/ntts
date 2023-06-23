@@ -1,6 +1,6 @@
 import * as fse from 'fs-extra';
 import { writeFileSync } from 'fs';
-import { globbySync } from 'globby';
+import globby from 'globby';
 import FileRename from '../lib/file-rename/file-rename';
 import IgnoreConfigParser from '../lib/ignore-config-parser/ignore-config-parser';
 
@@ -21,7 +21,7 @@ afterEach(() => {
 test('should rename a single file', () => {
   const ignores = IgnoreConfigParser.getIgnores();
   FileRename.rename('src', ignores);
-  expect(globbySync(['**/*.ts']).sort())
+  expect(globby.sync(['**/*.ts']).sort())
     .toEqual(['src/index.ts'].sort());
 });
 
@@ -29,6 +29,6 @@ test('should not rename config file', () => {
   writeFileSync('.gitignore', '*.config.js');
   const ignores = IgnoreConfigParser.getIgnores();
   FileRename.rename('.', ignores);
-  expect(globbySync(['**/*.ts']).sort())
+  expect(globby.sync(['**/*.ts']).sort())
     .toEqual(['src/index.ts', 'js-ts.ts'].sort());
 });
