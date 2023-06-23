@@ -54,7 +54,11 @@ class InterfaceReadReferenceChecker {
     return property;
   }
 
-  private static checkPropertyAccess = (propertyAccess: PropertyAccessExpression, interfaceDeclaration: TypeMemberKind, project: Project, target: string) => {
+  private static checkPropertyAccess = (
+    propertyAccess: PropertyAccessExpression,
+    interfaceDeclaration: TypeMemberKind,
+    project: Project, target: string
+  ) => {
     if (!interfaceDeclaration.getProperty(propertyAccess.getName()) && propertyAccess.getNameNode().getSymbol()) {
       return;
     }
@@ -63,7 +67,12 @@ class InterfaceReadReferenceChecker {
     return this.updateType(property, nameNode, project, target);
   };
 
-  private static checkElementAccess = (elementAccess: ElementAccessExpression, interfaceDeclaration: TypeMemberKind, project: Project, target: string) => {
+  private static checkElementAccess = (
+    elementAccess: ElementAccessExpression,
+    interfaceDeclaration: TypeMemberKind,
+    project: Project,
+    target: string
+  ) => {
     const node = elementAccess.getArgumentExpression();
     const member = this.parseElementAccess(elementAccess, interfaceDeclaration);
     if (Node.isIndexSignatureDeclaration(member) && node) {
@@ -75,7 +84,12 @@ class InterfaceReadReferenceChecker {
     return member;
   };
 
-  private static updateReturnType = (indexSignature: IndexSignatureDeclaration, node: Node, project: Project, target: string): IndexSignatureDeclaration => {
+  private static updateReturnType = (
+    indexSignature: IndexSignatureDeclaration,
+    node: Node,
+    project: Project,
+    target: string
+  ): IndexSignatureDeclaration => {
     const type = WriteAccessTypeInference.checkNodeWriteAccess(node);
     if (type) {
       const combined = TypeHandler.combineTypeWithList(indexSignature.getReturnType(), type);
